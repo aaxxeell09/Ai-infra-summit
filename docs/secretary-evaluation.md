@@ -1,106 +1,182 @@
-# Secretary correctness evaluation
+# Golden Secretary correctness evaluation
 
-## What exists (inspected application commit f8f27ccb520e7a4cc1eca0a062fe4742e28a76b2)
+## Actual implementation inspected
 
-There is **no `turbo/secretary.py`, file executor, Secretary CLI/API or complete secretary workflow** in this revision. Do not describe the benchmark below as end-to-end Secretary correctness.
+The real `turbo/secretary.py` and `turbo/service.py` arrived in shared main `06aeed3` during this task. The existing evaluation was adapted before publication; no runtime/performance code was changed.
 
-Actual components:
-- `turbo/action_codec.py`: `ActionCodec.from_files()` builds a sorted unique inventory, `instructions()` declares ONE compact JSON action, `decode(text, snapshot_digest=...)` expands the action and validates representation. `grammar()` optionally constrains generation. The SHA-256 inventory identity prevents expanding symbols against a changed inventory.
-- `turbo/native.py`: `NativeRuntime(sdk_dir)`, `NativeModel(runtime, path, device=..., threads=..., context=...)`, then `model.chat(messages, max_tokens=..., temperature=0, reset=True, grammar=...)`. Returns text, native profile, timing, resolved device, SDK version and config. Model calls are serialized. SDK bindings are version-pinned by the existing module.
-- `turbo/policy.py`: independent measured-profile selection by decode speed or estimated latency, subject to context/quality tiers. No Secretary caller integrates this router in this revision. This evaluation uses an explicit native configuration and records route/route accuracy as null.
-- `turbo/context.py`: local raw-output recovery and context reduction. Not wired into these first-action trials.
-- Existing benchmarks and `scripts/sweep.py` measure runtime performance. Their throughput results are not semantic correctness results. Existing tests cover codecs, native layout, policy, context and benchmark parsing; 42 passed before this change on the Mac.
+Production `Engine.secretary()` creates its 12-file fixture, builds inventory-aware messages, invokes `Engine.completion()` with `secretary.TOOLS`, parses one to four tool calls through `service.parse_calls()`, executes them with `execute_tool()`, and grades labelled demo tasks using exact calls and final state. Its existing 13 tasks remain untouched in `benchmarks/secretary_tasks.json`.
 
-### Actual action contract
+Production `Engine.completion()` applies a selected mode/model, loads the native model, calls `NativeModel.chat()`, and reports model, route, applied configuration, text and profile. `policy.py`, `catalog.py` and context modules are separate performance components; this task changes none of them.
 
-| Compact output | Decoded tool | Arguments |
-|---|---|---|
-| `{"r":FILE_ID}` | read_file | path |
-| `{"l":"DIRECTORY"}` | list_files | path |
-| `{"s":"QUERY"}` | search_files | query |
-| `{"m":[FILE_ID,"DESTINATION"]}` | move_file | source, destination |
-| `{"q":"QUESTION"}` | clarify | nonempty question |
-
-There is no separate operation nested inside a tool: tool accuracy and action accuracy are two labels for the same selection in this schema. There are no email/calendar/reminder/delete/send/draft operations, tool-execution result schema or direct text-answer action.
+Our versioned golden evaluation tests **one requested action plus actual fixture execution**, using the production tool schema, parser and executor. It uses a larger 30-file synthetic fixture to test distractors and ambiguity. It invokes the same native model API directly with an explicit configuration and `tools=TOOLS`; it does not exercise Engine's mode routing, multi-turn loops or automatic context reduction. Those require a separately versioned adapter/benchmark. Routing metrics remain null, not claimed successes.
 
 ```
-Fixture inventory + user prompt
-  → existing ActionCodec.instructions() as system message
-  → existing NativeModel.chat() with explicit model/device configuration
-  → ONE compact JSON action
-  → existing ActionCodec.decode()
-  → deterministic expected tool/arguments/no-action checks
-  → results JSON and Markdown (NO file operation execution)
+Fixed synthetic inventory + prompt (never golden answers)
+  → Secretary system instructions + real TOOLS
+  → existing NativeModel.chat() with explicit config
+  → real service.parse_calls() + strict schema validation
+  → actual action and arguments
+  → real execute_tool() in a disposable fixture copy
+  → deterministic golden action/arguments + final filesystem comparison
+  → JSON and Markdown correctness audit
 ```
 
-This is an evaluation entrypoint composed from real primitives, not a new production Secretary implementation. If Henry publishes Secretary, add a separately versioned adapter/protocol and freeze a new comparable baseline rather than claiming this benchmark already tested its executor or routing.
+### Actual production action space
 
-## Dataset and expected behavior
+| Tool | Meaning | Required arguments | Optional | Use / avoid |
+|---|---|---|---|---|
+| read_file | Read a text file | path | none | Read identified existing file; clarify ambiguous identity |
+| list_files | Recursively list ALL files | none | none | Full inventory; no directory-filter argument exists |
+| search_files | Case-insensitive content substring search | query | none | Search text contents; not filename search or semantic retrieval; PDF files excluded |
+| move_file | Move/rename a file | path, destination | none | Full relative filenames; refuses overwrite/escape; executor creates destination parents |
+| clarify | Ask a question | question | none | Missing essential info, ambiguous/conflicting/unsupported request; not a guessed file action |
 
-50 synthetic human-reviewable prompts, with a fixed committed inventory of 30 illustrative path strings. No actual personal files are read or changed. `secretary_dev.json` contains 35 development cases; `secretary_heldout.json` contains 15 held-out cases. Split is curated by case ID and committed, not randomly reselected. Both contain action coverage and difficult examples. Held-out is public and labelled; it is not a secret dataset and scores do not establish broad generalization.
+Outputs are generated tool calls: `{"name":"read_file","arguments":{"path":"docs/example.md"}}`, optionally wrapped in `<tool_call>` tags. Executor returns `{ok,result,error}`. One tool name is one action: tool/action accuracy are the same decision. Required question wording is unconstrained beyond nonempty text.
 
-Coverage: reads, lists, searches, moves, exact paths, paraphrases, missing information, ambiguous filenames, unsupported/destructive requests, overwrite ambiguity, and explicitly requested FIRST actions of multi-step instructions. Read/write and move/new-destination distinctions use the actual operations. Calendar/date reasoning, draft-versus-send and full multi-tool completion are not supported and are not fabricated.
+ToolWire `action_codec.py` still exists, unchanged for historical comparisons. Its compact `r/l/s/m/q` schema is **not** the production Secretary schema: notably its list path and move source fields differ. Version 2 uses the real production schema and is not directly comparable to ToolWire v1. No calendar/email/date/send/draft/delete capabilities are invented.
 
-Every case has id, split, category, prompt and `expected: {tool, arguments, clarification_required}`. Clarification expects a nonempty question and no file action, not exact wording. This measures choosing clarification, not whether its question is helpful. Unsupported requests expect clarify under the limited available action vocabulary; that is a benchmark policy, not evidence that Secretary already implements safe refusal.
+## Golden dataset: secretary-eval-v2
 
-Paths preserve case and internal spaces, normalize Windows separators and leading `./`, and do not collapse `..` or Unicode differences. Search queries match exactly. Required arguments are checked; irrelevant generated wording is not. Missing/invalid output is failure, never credited as successful no-action. There are no timestamps in this workload because no date-aware operation exists.
+- Exactly **50** committed questions: **35 development / 15 held-out**.
+- **15 easy / 20 medium / 15 hard** (development 10/14/11; held-out 5/6/4).
+- Action distribution: read 12, list 9, search 8, move 8, clarify 13.
+- Coverage: direct actions, paraphrases, filename inference, exact path discrimination, nested directories, distractors, read/search and list/search distinctions, moves/renames, missing arguments, ambiguous filenames, overwrite ambiguity, unsupported/destructive requests, missing files, conflicting constraints, and explicit first steps of multi-action requests.
 
-## Run commands
+Difficulty is predefined by reasoning required, not by observing model failures. v1 was introduced in `0470a28`; v2 strengthens fixtures, intent cases, explanations and metrics **before any model baseline was measured**. Some golden prompts changed. Old files are preserved in Git. Never compare v1 and v2 as the same exam.
 
-No additional Python packages are required for dataset/scoring tests. Actual measurements require native Windows ARM64, the compatible pinned GenieX SDK and real model files. Copy `eval/config.example.json` to ignored `local/secretary-config.json` and replace paths/settings with the actual configuration. Example paths are placeholders, not verified installation instructions. Do not put private paths or credentials in public configuration.
+`eval/fixtures/files.json` fixes the 30 path symbols. `eval/fixtures/secretary_workspace/` materializes every path with synthetic, deterministic contents (valid JSON/CSV/SVG/PNG where relevant). Similar reports, draft/final names, nested paths and distractors create deliberate ambiguity. No personal data is used. Actions execute only in independently copied temporary fixtures; the original golden fixture remains unchanged. The model sees the file inventory, not hidden fixture contents or expected answers; questions require no unknown timestamps/content metadata.
 
-Validate all cases without loading any model:
+Golden item schema:
+
+```json
+{
+  "id": "stable-case-id",
+  "split": "development",
+  "category": "read",
+  "difficulty": "easy",
+  "prompt": "A predefined task",
+  "expected": {
+    "tool": "read_file",
+    "arguments": {"path": "an/existing/fixture/path"},
+    "should_act": true,
+    "clarification_required": false
+  },
+  "rationale": {"kind": "explicit"}
+}
+```
+
+This illustrates the shape, not an extra executable test. For clarify, arguments are empty, should_act=false, clarification_required=true; wording need not match. Rationales include explicit instructions, unique filename match, multiple existing candidates, missing arguments, nonexistent file, occupied destination, unsupported capability and conflicting constraints.
+
+### Validation and leakage
+
+`validate_dataset.py` checks IDs, nonempty prompts, schema, fixed split/difficulty counts, real fixture files, source paths, directory paths, unoccupied destination and existing parent, golden encode/decode against **the production Secretary tools**, rationale evidence and committed hashes. Changing the production tool schema or benchmark system instructions invalidates the manifest until deliberately reviewed/versioned. Every golden action is also executed on temporary fixtures during validation. No output from a candidate determines an expected answer.
+
+It checks that ambiguity candidates exist and unique filename matches identify one target. Natural-language intent still requires human review when authoring the benchmark; this validator does not pretend to prove English ambiguity automatically. Missing/conflicting requests carry explicit authored rationale. Actual executor behavior is checked on isolated fixture copies.
+
+`--check-leakage` searches tracked and unignored working files for held-out prompt text (including decoded JSON), excluding its canonical dataset file. No duplicate held-out text was found at construction. This exact-text check cannot detect paraphrase leakage. The set is public in Git: do not use it as tuning examples. Future audit reports may legitimately reproduce prompts; the scanner reports those locations for review, rather than deleting files.
+
+## Deterministic scoring and audit
+
+Each record includes ID/category/difficulty/prompt, full expected behavior, raw output, decoded actual tool/action/arguments, individual booleans, should_act, latency, native profile and failure reasons. Model execution errors remain failures and are counted in denominators.
+
+Overall success requires correct action, semantically important required arguments, correct action-vs-clarification behavior, successful execution and matching final filesystem state. Normalize path separators and leading `./` only. Preserve case, source, destination, interior spaces, and `..` differences. Exact queries are used for search. Clarification needs a valid clarify action with a nonempty question, not exact wording; this tests the decision to ask, not usefulness of the question. A malformed response is not credited as abstention.
+
+Failure taxonomy: WRONG_ACTION, WRONG_SOURCE, WRONG_DESTINATION, WRONG_ARGUMENT, FAILED_TO_CLARIFY, UNNECESSARY_CLARIFICATION, INVALID_OUTPUT, PARSE_ERROR, MODEL_ERROR, TIMEOUT, EXECUTION_ERROR, WRONG_FINAL_STATE. Failures may have multiple argument reasons. No subjective text scoring or LLM judge is introduced.
+
+Reports include total/passed/failed, overall accuracy, action/tool/argument accuracy, argument accuracy on applicable non-clarify cases, clarification accuracy on expected-clarify cases, all-case clarification/no-action accuracy, invalid-output and parse-failure rates, category/action/difficulty accuracy, mean/median latency and nearest-rank p95 for >=20 samples. Smaller samples report p95 unavailable. Inference latency includes generation/templating, excludes model loading and scoring. task_latency_ms separately includes scoring, fixture copies and real execution; failed attempts remain in averages and error counts are explicit. One untimed development prompt warms the model; reset=True isolates every measured question.
+
+Native profile counters and timings are preserved per case for later speed-quality plots. No streaming chunks are counted as tokens; no replay/shorter text is credited as higher decode speed. Future graphs can join Henry's measured throughput by candidate/config/commit, not by an invented accuracy value. Route and routing accuracy are null because the explicit native configuration adapter does not exercise Engine routing.
+
+## Commands
+
+### Validate the frozen golden dataset (no model required)
 
 ```sh
+python eval/validate_dataset.py --check-leakage
 python eval/run_secretary_eval.py --dataset all --candidate-name validation --validate-only
-python -m unittest discover -s tests -v
 ```
 
-Freeze the first real action-intent baseline on the Latitude (all 50 cases):
+### Configure actual Latitude execution
+
+Copy `eval/config.example.json` to ignored `local/secretary-config.json`. Supply the real SDK directory and model path, requested device, threads/context, output cap and other supported settings. Record actual hardware/power/background load in hardware_note. Example paths are placeholders, not installed locations. Defaults are test settings, **not Henry's official baseline**.
+
+`NativeRuntime` uses the version-pinned native SDK, and `NativeModel.chat()` returns the actual text and profile. Model file SHA-256 is captured. Directory model bundles currently lack a full weight hash and cannot become an accepted official baseline. No model files, private addresses or host paths are committed.
+
+### Confirm the official original baseline with Henry
+
+Henry must explicitly identify the original model/weights, backend/runtime, config and application commit. After confirmation, put these fields in ignored `local/baseline-approval.json`:
+
+```json
+{
+  "status": "confirmed",
+  "confirmed_by": "Henry",
+  "application_commit": "EXACT_CURRENT_APPLICATION_COMMIT",
+  "config_sha256": "HASH_OF_CONFIRMED_CONFIG"
+}
+```
+
+Get the commit and canonical config hash:
 
 ```sh
-python eval/run_secretary_eval.py --dataset all --candidate-name reference --config local/secretary-config.json --freeze-baseline --output-dir local/reference
+git rev-parse HEAD
+python -c "import json; from pathlib import Path; from eval.scoring import digest; print(digest(json.loads(Path('local/secretary-config.json').read_text())))"
 ```
 
-Repeated development checks against that reference use ONLY the matching 35 baseline rows:
+This is a recorded team attestation, not cryptographic proof of Henry's identity. Do not fill it in on Henry's behalf without confirmation. The tracked pending baseline manifest is deliberately not accepted by this guard.
+
+Freeze all 50 cases:
 
 ```sh
-python eval/run_secretary_eval.py --dataset development --candidate-name cpu-tuned-v1 --config local/secretary-config.json --baseline local/reference/baseline.json --output-dir local/secretary-eval
+python eval/run_secretary_eval.py --dataset all --candidate-name reference --config local/secretary-config.json --baseline-approval local/baseline-approval.json --freeze-baseline --output-dir local/reference
 ```
 
-For a serious final candidate, run all 50 with the same command and `--dataset all` plus a new candidate name. Output filenames are unique; an existing baseline or candidate is never overwritten. Outputs default to ignored `local/` to allow review before public publication. After checking privacy and validity, commit the real reference JSON/Markdown to `eval/results/` in place of the explicit unmeasured marker. Do not replace it silently on future optimization runs.
+It requires a clean committed working tree and writes baseline.json, baseline.md and baseline_manifest.json. Existing outputs are never overwritten. Execution errors or unverified model identity produce an invalid baseline, never an accepted reference. A poor but technically valid score remains poor; do not change its golden labels to improve the score.
 
-The runner stores source commit, branch/dirty flag, source/evaluator hashes, dataset/fixture hashes, timestamp, model-file hash, runtime version, config without private paths, safe OS/Python metadata, generation policy, native per-case profiles, failures and latency. For a model directory/bundle the model hash is currently unavailable: supply a separately reviewed bundle manifest before claiming identical weights. Hardware note must record power and competing load manually. Requested/resolved device is not proof of actual NPU dispatch; attach Henry's execution evidence separately. No CPU/NPU work is run on this Mac and reported as Latitude speed.
+### Run future candidates
 
-One untimed warmup uses the first development case. Each measured case resets context; the model stays loaded. Wall-clock case latency includes prompt templating/generation and native work, excludes model loading and deterministic scoring. Mean/median include failures; count is explicit; p95 uses nearest-rank only for at least 20 samples. Raw native TTFT, decode speed and token counts are preserved, not inferred from streaming chunks. This runner does not invent NPU utilization, power or token counts. Native timeouts/process supervision remain the caller's responsibility: abort a hung run, do not publish it as a completed baseline.
+```sh
+python eval/run_secretary_eval.py --dataset dev --candidate-name cpu-tuned-v1 --config local/secretary-config.json --baseline local/reference/baseline.json --output-dir local/secretary-eval
+```
 
-## Metrics and quality gate
+Use a unique candidate name each time; use `--dataset heldout` or `--dataset all` for serious evaluations. Development runs compare only their matching 35 baseline rows, not a 35/50 aggregate. The full baseline is immutable. Review real results before publishing from ignored local/ into eval/results/.
 
-Overall task success requires correct tool/action, required arguments and clarification/no-action behavior. Report all-prompt tool/action/argument rates, clarification/no-action rate, argument rate restricted to non-clarify expectations, latency and category failures. Tool/action metrics are identical by design for this codec.
+Compare previously saved runs:
 
-`eval/quality_policy.json` provides editable engineering defaults:
-- maximum overall accuracy drop: 3 percentage points;
-- maximum per-category accuracy drop: 10 percentage points;
-- no previously correct critical clarification or move case may regress (plus configured critical categories).
+```sh
+python eval/compare_runs.py local/reference/baseline.json local/secretary-eval/candidate_cpu-tuned-v1.json
+```
 
-These are provisional tolerances, not scientific truths. With 50 cases, each error is 2 points; small categories make the category gate strict. Show every category regression even if the total score improves. A poor baseline is not proof of useful absolute quality even if a candidate passes a relative gate.
+### Quality gate
 
-PASS requires every condition above. FAIL lists reasons and failed cases. Missing/invalid baseline yields NOT_EVALUATED; incompatible fixture/protocol/evaluator/generation settings or case expectations yield NOT_COMPARABLE, never PASS. Development subsets compare their exact case hashes against only those baseline rows; a development pass is not a held-out pass. Repeated tests of held-out cases must not guide routine tuning.
+Editable `eval/quality_policy.json` defaults:
+- Overall accuracy may drop at most 3 percentage points.
+- Category accuracy may drop at most 10 points.
+- No previously successful clarification or move case may regress.
+- Invalid output fraction <=0.02, increase <=2 percentage points.
+- Clarification accuracy drop <=0 points.
 
-Runtime changes, grammar experiments and model variants are recorded separately. Preserve same weights/quantization for native runtime speed claims. Comparing changed model weights can support a quality/latency tradeoff, not same-model acceleration. Do not interpret fewer generated syntax tokens as greater decode throughput.
+These are engineering starting tolerances, not scientific truths. With small categories the category rule is deliberately strict. Report every regression, even if aggregate accuracy improves. Speed improvements are Henry's separate responsibility: this PASS is a correctness gate, not proof of speedup.
 
-## Frozen reference status
+Absent or unapproved baseline, dirty reference or a candidate file used as reference => NOT_EVALUATED. Different benchmark/protocol/fixture/action schema/evaluator/generation policy or changed case expectations => NOT_COMPARABLE. Valid comparison => PASS or FAIL with baseline/candidate values, deltas, failed categories and critical cases. Changing max output length requires a new comparable reference; model/runtime candidates are recorded as different experiments.
 
-`eval/results/baseline.json` records the clean pre-evaluation application commit, not measured values. Baseline is **not measured**: this Mac has no verified native Latitude runtime/config or authenticated SSH session, and `turbo/secretary.py` is absent. No existing throughput report is substituted for correctness.
+## Provenance, baseline status and workflow
 
-The historical application commit is frozen by SHA and source hashes. Henry may continue working, but a later run on changed application code must be identified by its actual commit and cannot be retroactively called the original baseline. To measure the historical reference, run these evaluation files against that recorded application revision in an isolated checkout; preserve Henry's live work. Full Secretary baseline requires its implementation and a new protocol.
+Metadata includes actual Git commit, branch, dirty flag, evaluator/source hashes, benchmark version, dataset/fixture/inventory/action-schema hashes, config hash, model hash/label, runtime version, requested settings, per-case resolved device and native timing, timestamp, safe environment metadata and reproducible command shape. Private config paths are redacted in the public command; the private config plus its hash is needed to rerun. Source/fixture changes during a run invalidate publication. Requested/resolved device does not alone prove NPU dispatch; attach Henry's measured evidence separately.
 
-## Team workflow
+**No official model baseline has been run in this task.** The historical code observation at f8f27cc is not Henry's baseline approval. `eval/results/baseline.json`, baseline.md and baseline_manifest.json explicitly mark the official baseline unmeasured/pending. Blockers: original configuration confirmation, real SDK/model paths, verified device session, and the explicitly confirmed original application commit. This measures single-action Secretary correctness with real isolated execution, not the full routed multi-step Engine.secretary workflow.
 
-Henry owns device/performance optimization. We own task fixtures, deterministic scoring and correctness gates. Product/demo work is outside this change.
+Henry supplies candidate name, commit, what changed, why faster, exact command, model and runtime/backend/config. We run the same golden exam, inspect failure taxonomy/categories and report the gate. Serious candidates get a complete run; tiny experiments do not need 50 cases. Coordinate an exclusive measurement window on the laptop. Do not change runtime or model optimization logic in this workstream.
 
-For a serious candidate Henry provides name, commit, what changed, reason for anticipated improvement and exact private run configuration. Run development checks during tuning; run the full benchmark for serious candidates. Compare to the fixed reference, examine category regressions and report PASS/FAIL. Tiny internal experiments do not each require 50 cases. Coordinate exclusive laptop measurement windows so competing jobs do not contaminate latency. No automatic runtime optimization or router modification is introduced here.
+If a golden answer is objectively wrong, document why, bump the benchmark version/manifest and rerun every compared configuration. Never silently adjust labels after seeing failures.
 
-## Verification of this change
+## Tests
 
-After integrating remote main through `9d5012c`, all 71 tests passed with pytest (including 10 new evaluation tests); unittest discovery passed 59 class-based tests. The new remote context-pipeline tests require pytest, installed only in the ignored local virtual environment. Dataset validation passed for all 50 cases. Independent bounded code review found no blocking issue in the declared first-action scope. The requested external Fable/Claude review was unavailable: no Claude executable is installed on this Mac. No native model results were produced by these synthetic tests.
+```sh
+python -m pytest tests -q
+```
+
+The repository's newer context tests require pytest; dataset validation and the runner otherwise use the standard library plus the existing native runtime. Evaluation tests use synthetic outputs only and are not model accuracy measurements. Tests cover fixture/schema/rationale validity, strict scoring, clarification, unknown/invalid actions, failure reasons, metric denominators, subset comparison, incompatible versions, audit output and gates. No production runtime/performance module is changed. The production 13-case task set is preserved.
+
+### Verification of this update
+
+152 tests and 5 subtests passed on the development Mac, including 22 evaluation tests; all 50 golden cases validate and the held-out exact-text scan found no duplicates outside the canonical dataset. Synthetic test outputs are not model results. A bounded independent review checked scoring/provenance; its two baseline-approval findings were fixed. External Fable/Claude review is unavailable on this Mac because the Claude executable is absent.

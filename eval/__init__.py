@@ -1,1 +1,1 @@
-"""Offline deterministic correctness evaluation; never executes file actions."""
+"""Offline golden Secretary evaluation with disposable synthetic fixtures."""

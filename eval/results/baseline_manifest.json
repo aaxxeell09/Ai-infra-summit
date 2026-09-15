@@ -1,0 +1,11 @@
+{
+  "status": "pending_confirmation",
+  "confirmed_by": null,
+  "application_commit": null,
+  "config_sha256": null,
+  "benchmark_version": "secretary-eval-v2",
+  "note": "Henry must confirm the original pre-optimization config and application commit. This is not a measured or approved baseline.",
+  "scope": "single_action_with_fixture_execution",
+  "protocol_version": "secretary-single-action-v2",
+  "current_secretary_inspected_commit": "06aeed3"
+}

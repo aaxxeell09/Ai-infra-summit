@@ -1,0 +1,2 @@
+Synthetic Secretary fixture: inbox/summary.txt
+This deterministic file contains no personal data and no measured benchmark results.

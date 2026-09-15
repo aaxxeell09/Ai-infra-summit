@@ -42,10 +42,10 @@ Tokens per second, fewer generated tokens and faster completed tasks are separat
 
 ## Correctness benchmark
 
-The [Secretary evaluation protocol](docs/secretary-evaluation.md) provides 35 development and 15 held-out first-action cases using the actual ToolWire schema, a native evaluation runner, category regression reports and configurable quality gates. `turbo/secretary.py` is not present in the inspected revision: this evaluates action intent, not completed file operations. The historical reference is explicitly **not measured** until the real Latitude run is completed.
+The [Secretary evaluation protocol](docs/secretary-evaluation.md) provides a versioned golden dataset (secretary-eval-v2), 35 development and 15 held-out single-action cases, 30 synthetic fixture files, deterministic scoring, difficulty/category audits and configurable quality gates. Official baseline freezing requires Henry-confirmed configuration and a clean commit. The evaluator uses the actual Secretary tools and executor on isolated synthetic workspaces; it checks intent, execution and final state for one action, not the full routed multi-step workflow. The historical reference is explicitly **not measured** until the real Latitude run is completed.
 
 ```sh
-python eval/run_secretary_eval.py --dataset all --candidate-name validation --validate-only
+python eval/validate_dataset.py --check-leakage
 ```
 
 See the protocol for the real SDK/model configuration, baseline freeze and one-command candidate evaluation. No runtime tuning or product UI is changed by this evaluation work.
