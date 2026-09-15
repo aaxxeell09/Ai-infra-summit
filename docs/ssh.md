@@ -15,6 +15,31 @@ Verified on September 15, 2026 at 18:14 UTC from the development Mac to the Lati
 
 The photo included an earlier check with an empty fingerprint and zero matching keys. The authenticated remote check above confirmed the final configuration. Actual usernames, device addresses, fingerprints and raw diagnostic output are kept in local notes rather than this public repository.
 
+## Latest connection check
+
+Rechecked on **September 15, 2026 at 20:22 UTC**. The dedicated key authenticated from the development Mac, remote PowerShell executed, and `sshd` was running. The existing `Qualcomm-ADB`, `Qualcomm-GenieX`, `Qualcomm-Hub` and `Qualcomm-Demo-Browser` scheduled tasks all reported Running.
+
+The code checkout on the Latitude is under the signed-in account's `Documents/Ai-infra-summit` directory. Development uses SSH for commands and SCP for file transfer. The browser camera belongs to the signed-in Windows session; keep that session awake during the demo.
+
+### Local alias and dashboard tunnel
+
+Copy [ssh-config.example](../scripts/ssh-config.example) to a private SSH configuration file and replace its address and account placeholders with the kit's current values. Add the public key to Windows and pin the verified host key as described below. The example contains no credentials.
+
+```sh
+ssh -F ~/.ssh/config_qualcomm_latitude qualcomm-latitude whoami
+ssh -F ~/.ssh/config_qualcomm_latitude -N -L 127.0.0.1:8081:127.0.0.1:8080 qualcomm-latitude
+```
+
+The second command keeps a tunnel open. The station console is then available on the development machine at `http://127.0.0.1:8081`. It forwards the Latitude's loopback-only hub without exposing a dashboard port to the venue Wi-Fi. The local port is bound only to loopback. Run the camera on the Latitude; the development console can display the image received by the hub.
+
+To transfer a source file:
+
+```sh
+scp -F ~/.ssh/config_qualcomm_latitude path/to/file qualcomm-latitude:Documents/Ai-infra-summit/path/to/file
+```
+
+Changing the Wi-Fi network may change both machines' addresses. Check the Latitude address locally and update the private SSH config and Windows firewall source restriction before reconnecting. Repository files never contain the Windows password, SSH private key or device-specific host identity.
+
 ## Reproduce setup
 
 1. On the development machine, create a dedicated Ed25519 key with `ssh-keygen`. Keep the private key on that machine; transfer only its `.pub` content.

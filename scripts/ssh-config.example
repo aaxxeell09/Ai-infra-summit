@@ -1,0 +1,13 @@
+# Copy into a private file such as ~/.ssh/config_qualcomm_latitude.
+# Replace the address/account placeholders; never commit the filled-in file.
+Host qualcomm-latitude
+    HostName LATITUDE_CURRENT_WIFI_ADDRESS
+    User WINDOWS_ACCOUNT
+    IdentityFile ~/.ssh/id_ed25519_qualcomm_latitude
+    IdentitiesOnly yes
+    BatchMode yes
+    StrictHostKeyChecking yes
+    UserKnownHostsFile ~/.ssh/known_hosts_qualcomm_latitude
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+    ExitOnForwardFailure yes
