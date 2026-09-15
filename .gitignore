@@ -30,3 +30,7 @@ build/
 arduino/data/
 .DS_Store
 Thumbs.db
+
+# Presentation build/validate scratch
+.codex-finalizer/
+.chart-data-*/
