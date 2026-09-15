@@ -343,3 +343,71 @@ def test_invalid_optional_variability_never_poison_scores(native, diagnostic):
     row = _row(native, variability_ratio=diagnostic)
     assert t.rank_results([row])[0]["score"] == pytest.approx(95.950082)
     assert t.rank_results([row], variability_penalty=0.1) == []
+
+
+def test_service_modes_record_is_derived_from_measured_cells(setup):
+    exe, v, root = setup
+    rec = t.run_tuning(exe, [v], t.SearchSpace(threads=(0, 6), repeats=3), root / "run")
+    service = rec["recommendation"]
+    assert json.loads(Path(rec["recommendation_path"]).read_text()) == service
+    assert service["model_sha256"] == t._sha256(v.path)
+    assert service["model_id"] == v.id
+    assert Path(service["scope"]["evidence"]).is_file()
+    assert set(service["modes"]) == {"fast", "balanced"}
+    assert "efficient" in service["unavailable_modes"]
+    for mode, chosen in service["modes"].items():
+        winner = t.rank_results(rec["results"], mode)[0]
+        assert {k: chosen[k] for k in ("device", "threads", "context")} == {
+            k: winner[k] for k in ("device", "threads", "context")}
+        assert chosen["metrics"]["decode_tps"] == winner["decode_tps"]
+        assert chosen["evidence"] == winner["result_path"]
+
+
+def test_parent_apply_and_load_use_the_new_measured_config(setup, monkeypatch):
+    # Optional local integration with the parent's uncommitted service, read only.
+    # CI still runs the portable schema/command tests when that source is absent.
+    import importlib.util
+    import types
+    service_path = ROOT.parents[1] / "Ai-infra-summit/turbo/service.py"
+    if not service_path.is_file():
+        pytest.skip("parent service checkout not available")
+    spec = importlib.util.spec_from_file_location("turbo._parent_service_contract", service_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    exe, v, root = setup
+    rec = t.run_tuning(exe, [v], t.SearchSpace(devices=("cpu",), threads=(6,),
+                       contexts=(2048,), repeats=3), root / "run")
+    engine = module.Engine({"models": {v.id: {"path": v.path}}, "default": v.id,
+                            "recommendation_file": rec["recommendation_path"], "sdk_dir": "fake"})
+    selected = rec["recommendation"]["modes"]["fast"]
+    applied = engine.apply("fast", v.id)
+    assert applied["config"] == {"device": "cpu", "threads": 6, "context": 2048}
+    assert applied["config"] == {k: selected[k] for k in ("device", "threads", "context")}
+    assert applied["evidence"]["metrics"] == selected["metrics"]
+    loaded = []
+    monkeypatch.setitem(sys.modules, "turbo.native", types.SimpleNamespace(
+        NativeRuntime=lambda path: object(),
+        NativeModel=lambda runtime, path, **kw: loaded.append((path, kw)) or object()))
+    engine.load(v.id)
+    assert loaded[0][0] == v.path
+    assert {k: loaded[0][1][k] for k in ("device", "threads", "context")} == applied["config"]
+    with pytest.raises(ValueError, match="no eligible"):
+        engine.apply("efficient", v.id)
+    wrong = root / "unmeasured.gguf"
+    wrong.write_bytes(b"different weights")
+    engine.config["models"]["other"] = {"path": str(wrong)}
+    with pytest.raises(ValueError, match="different model weights"):
+        engine.apply("fast", "other")
+
+
+def test_service_export_rejects_unapplyable_plugin_and_requires_explicit_group(setup):
+    exe, v, root = setup
+    other = replace(v, id="another-variant")
+    rec = t.run_tuning(exe, [v, other], t.SearchSpace(), root / "run")
+    assert rec["recommendation"] is None and rec["recommendation_path"] is None
+    group = rec["results"][0]["group_id"]
+    service = t.recommendation_record(rec, group)
+    assert service["model_id"] == v.id
+    rec["results"][0]["model"]["tokenizer_path"] = "explicit-tokenizer.json"
+    with pytest.raises(t.TuningError, match="artifact overrides"):
+        t.recommendation_record(rec, group)

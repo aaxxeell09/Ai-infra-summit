@@ -160,3 +160,102 @@ repetitions do not establish paired confirmation.
 and artifact hashes, plugin, device, threads, context and complete workload,
 power/runtime/objective scope. For multiple groups, the caller must choose
 `group_id`; exporting a global recommendation raises `TuningError`.
+
+## Parent service ingestion: exact modes contract
+
+`run_tuning` now also returns:
+
+- `recommendation`: a `turbo.recommended.v2` modes record (shape below), or
+  `null` when an explicit group must be selected or the service cannot apply it.
+- `recommendation_path`: absolute path to the newly written
+  `<output_dir>/recommended.json`, or `null`.
+- `recommendation_error`: reason when no service recommendation was produced.
+
+The existing `recommended` field is the selected **trial row** for the requested
+objective. It is different from `recommendation`, which is the parent's
+apply-compatible modes record. `export_recommended` remains the complete generic
+single-profile export for other adapters.
+
+```python
+record = run_tuning(...)  # completed job; parent owns locking/inference teardown
+if record["recommendation_path"] is not None:
+    engine.config["recommendation_file"] = record["recommendation_path"]
+    engine.apply("fast", record["recommendation"]["model_id"])
+```
+
+Registry variant ids must match the parent's `config["models"]` keys.
+The parent owns persisting its changed recommendation-file setting.
+Nothing in this module edits or reloads the parent service automatically.
+
+Exact modes-record fields (values below describe their types; `null` is JSON):
+
+```text
+{
+  "schema_version": "turbo.recommended.v2",
+  "model_id": string,
+  "model_sha256": string,
+  "model": Variant fields with absolute artifact paths,
+  "plugin": "llama_cpp",
+  "artifact_sha256": {"model": string, ...},
+  "runtime_sha256": string,
+  "scope": {
+    "group_id": string,
+    "workload": SearchSpace sampling fields + prompt/image paths and SHA256s,
+    "power_state": string,
+    "power_scope": string,
+    "quality_calibrated": false,
+    "cold_kv": true,
+    "evidence": absolute path to record.json,
+    "provisional": true,
+    "requires_paired_confirmation": true
+  },
+  "modes": {
+    "fast": {
+      "device": string,
+      "threads": integer,
+      "context": integer,
+      "metrics": {
+        "decode_tps": number|null,
+        "prefill_tps": number|null,
+        "latency_s": number|null,
+        "tokens_per_joule": number|null,
+        "median_decode_tps": number|null,
+        "median_ttft_ms": number|null,
+        "median_peak_mib": number|null
+      },
+      "evidence": absolute path to the chosen trial result.json,
+      "command": [string, ...],
+      "provisional": true,
+      "requires_paired_confirmation": true
+    },
+    "balanced": same shape, selected by measured native profile latency,
+    "efficient": same shape, present only with valid comparable energy
+  },
+  "unavailable_modes": {omitted mode name: reason}
+}
+```
+
+Each mode independently selects an eligible measured row from one group;
+device/threads/context are copied exactly from that row. The current runner
+normally emits `fast` and `balanced`; `efficient` is omitted without energy.
+`balanced` here means measured profile latency as defined above, so the parent
+does not substitute its legacy speed/energy interpolation.
+
+`recommendation_record(record, group_id=None)` is also public. It builds this
+record from completed measurements without launching anything. Use an explicit
+group id for a multi-model sweep, or call it again after a parent telemetry
+adapter attaches valid evidence to result rows. Multiple energy-channel groups
+cannot produce one efficient winner.
+
+The current parent's `Engine.load` only constructs `llama_cpp` LLMs without
+tokenizer/projector overrides. This service-specific export therefore rejects
+QAIRT/VLM/override profiles. Their measurements and generic scoped exports still
+work; the parent must add the correct native load path before applying them.
+This avoids claiming an incompatible model configuration was applied.
+
+The local integration test imports the parent service read-only, calls its real
+`Engine.apply`, and substitutes only `NativeRuntime`/`NativeModel` to inspect load
+arguments. It asserts the new measured configuration and model SHA are honored,
+and rejects absent efficient modes and another model's weights. The benchmark
+side is an external fake CLI using the real schema-4 fixture. This is software
+contract validation, not a claim of a new Latitude benchmark.

@@ -363,8 +363,55 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
         recommendations=recommendations, recommended=next(iter(recommendations.values()))
         if len(recommendations) == 1 and len({_group(r) for r in record["results"]}) == 1 else None,
         cells_run=sum("exit_code" in r for r in record["results"]), output_dir=str(out))
+    try:
+        record["recommendation"] = recommendation_record(record)
+        recpath = out / "recommended.json"
+        recpath.write_text(json.dumps(record["recommendation"], indent=2, allow_nan=False), encoding="utf-8")
+        record["recommendation_path"] = str(recpath)
+    except TuningError as exc:
+        record.update(recommendation=None, recommendation_path=None, recommendation_error=str(exc))
     save()
     return record
+
+
+def recommendation_record(record, group_id=None):
+    """Parent Engine.modes/apply contract; explicit group selection, no static profiles."""
+    groups = {_group(r) for r in record["results"]}
+    if group_id is None:
+        if len(groups) != 1 or None in groups:
+            raise TuningError("select one model/workload/power group for service modes")
+        group_id = next(iter(groups))
+    rows = [r for r in record["results"] if _group(r) == group_id and _eligible(r)]
+    if not rows:
+        raise TuningError("no eligible measurements for service modes")
+    first = rows[0]
+    model = first["model"]
+    if (first["plugin"] != "llama_cpp" or first["kind"] != "llm"
+            or model.get("tokenizer_path") or model.get("mmproj_path")):
+        raise TuningError("current parent apply supports llama_cpp LLM without artifact overrides only")
+    modes, unavailable = {}, {}
+    for mode in ("fast", "efficient", "balanced"):
+        ranked = rank_results(rows, mode, record.get("constraints"), record.get("variability_penalty", 0))
+        if not ranked or len({r["group_id"] for r in ranked}) != 1:
+            unavailable[mode] = "missing eligible metrics or incomparable energy channels"
+            continue
+        r = ranked[0]
+        metrics = {k: r.get(k) for k in ("decode_tps", "prefill_tps", "latency_s", "tokens_per_joule")}
+        metrics.update(median_decode_tps=r["decode_tps"], median_ttft_ms=r["ttft_ms"],
+                       median_peak_mib=r.get("peak_working_set_mb"))
+        modes[mode] = dict(device=r["device"], threads=r["threads"], context=r["context"],
+            metrics=metrics, evidence=r["result_path"], command=r["command"],
+            provisional=True, requires_paired_confirmation=True)
+    if not modes:
+        raise TuningError("no eligible modes under the requested constraints")
+    return dict(schema_version="turbo.recommended.v2", model_id=first["variant_id"],
+        model_sha256=first["model_sha256"], model=model, plugin=first["plugin"],
+        artifact_sha256=first["artifact_sha256"], runtime_sha256=first["runtime_sha256"],
+        scope=dict(group_id=group_id, workload=first["workload"], power_state=first["power_state"],
+            power_scope=first["power_scope"], quality_calibrated=False, cold_kv=True,
+            evidence=str(Path(record["output_dir"]) / "record.json"),
+            provisional=True, requires_paired_confirmation=True),
+        modes=modes, unavailable_modes=unavailable)
 
 
 def export_recommended(record, path, group_id=None):
