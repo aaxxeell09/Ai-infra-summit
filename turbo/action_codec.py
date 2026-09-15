@@ -25,7 +25,7 @@ class ActionCodec:
     def instructions(self):
         table = '\n'.join(f'{i}={p}' for i, p in enumerate(self.files))
         return ('Return ONE compact JSON action, no prose. File symbols:\n' + table +
-                '\nActions: {"r":FILE_ID} read file; {"l":"DIRECTORY"} list files; '
+                '\nActions: {"r":FILE_ID} read file; {"l":"."} list all files; '
                 '{"s":"QUERY"} search files; {"m":[FILE_ID,"DESTINATION_PATH"]} move file; '
                 '{"q":"QUESTION"} ask for missing information. '
                 'Use q if the request is ambiguous. Preserve all constraints and exact paths.')
@@ -48,13 +48,17 @@ class ActionCodec:
         if op in {'l', 's', 'q'}:
             if not isinstance(value, str) or not value.strip():
                 raise ValueError('Expected a nonempty string')
+            if op == 'l':
+                if value != '.':
+                    raise ValueError('Only whole-workspace listing is supported')
+                return 'list_files', {}
             name, key = {'l': ('list_files', 'path'), 's': ('search_files', 'query'),
                          'q': ('clarify', 'question')}[op]
             return name, {key: value}
         if op == 'm':
             if not isinstance(value, list) or len(value) != 2 or not isinstance(value[1], str):
                 raise ValueError('Move requires [file symbol, destination path]')
-            return 'move_file', {'source': file_path(value[0]), 'destination': value[1]}
+            return 'move_file', {'path': file_path(value[0]), 'destination': value[1]}
         raise ValueError('Unknown compact action')
 
     def grammar(self):
