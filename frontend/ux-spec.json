@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "product": "Local Turbo",
   "purpose": "Compare recorded local inference configurations, then demonstrate one prompt answered by a default setup and Local Turbo. Speed tuning and model routing are separate experiments.",
   "visual_system": {
@@ -72,20 +72,20 @@
       "id": "demo",
       "route": "#demo",
       "nav_label": "In action",
-      "headline": "See Local Turbo in action.",
+      "headline": "Compare answers",
       "purpose": "Finish with readable answers side by side; no file operations.",
       "content": [
-        "comparison mode: speed or routing",
-        "one shared example prompt",
-        "one launch button",
-        "Default setup answer",
-        "Local Turbo answer and selection reason",
-        "timing and quality placeholders"
+        "compact Speed / Model routing control",
+        "one shared prompt with example selector",
+        "one Run preview / Stop / Replay button",
+        "one split surface for Default setup and Local Turbo answers",
+        "one-line model and configuration identity",
+        "optional comparison explanation"
       ],
       "primary_action": {
-        "label": "Preview comparison",
-        "running_label": "Playing comparison…",
-        "complete_label": "Replay comparison"
+        "label": "Run preview",
+        "running_label": "Stop",
+        "complete_label": "Replay"
       },
       "scenarios": [
         "quick explanation",
@@ -110,7 +110,14 @@
         "default": "createPreviewComparisonProvider",
         "live_connected": false,
         "contract": "comparison-contract.md"
-      }
+      },
+      "layout": "Prompt spans both answer columns. Equal-width answer columns share one surface and a single divider; stack on mobile. Route rationale is a compact footer only in routing mode.",
+      "progressive_disclosure": "Keep the preview badge visible. Hide method, simulation details and calibration caveats under How this comparison works. Do not display empty metric rows.",
+      "research": [
+        "https://www.nngroup.com/articles/progressive-disclosure/",
+        "https://m1.material.io/style/writing.html",
+        "https://design-system.service.gov.uk/patterns/question-pages/"
+      ]
     }
   ],
   "rules": [

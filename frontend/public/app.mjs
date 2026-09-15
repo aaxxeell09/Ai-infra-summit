@@ -97,37 +97,43 @@ function demoScreen() {
   const lanes = ['default', 'turbo'].map(key => {
     const lane = state.lanes[key] || { status: 'idle', answer: '' };
     const meta = descriptions?.[key];
-    const status = lane.status === 'running' ? 'Showing example…' : lane.status === 'completed' ? 'Example complete' : busy ? 'Queued' : 'Ready';
-    return `<article class="answer-lane ${key === 'turbo' ? 'turbo-lane' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
-      <header class="answer-lane-head"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="lane-status ${lane.status === 'running' ? 'working' : ''}">${status}</span></header>
-      <div class="answer-model"><strong>${esc(meta?.model || 'Unavailable')}</strong><span>${esc(meta?.configuration || setupError)}</span><p>${esc(meta?.reason || '')}</p></div>
-      <div class="answer-output ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${lane.answer ? esc(lane.answer) : `<span class="answer-placeholder">${busy ? 'Waiting for its turn.' : 'The answer will appear here.'}</span>`}</div>
-      <dl class="answer-measures"><div><dt>Time to finish</dt><dd>Not measured</dd></div><div><dt>Answer check</dt><dd>Not evaluated</dd></div></dl>
+    const status = lane.status === 'running' ? 'Writing…' : lane.status === 'completed' ? 'Done' : busy ? 'Queued' : '';
+    const identity = !meta ? 'Configuration unavailable' : state.comparison === 'speed'
+      ? `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`
+      : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
+    return `<article class="response-column ${key === 'turbo' ? 'response-turbo' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
+      <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p></header>
+      <div class="response-text ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${lane.answer ? esc(lane.answer) : '<span class="answer-placeholder">No answer yet</span>'}</div>
     </article>`;
   }).join('');
   return `<section class="screen comparison-demo">
-    <div class="section-heading"><div><div class="eyebrow">ONE PROMPT. TWO APPROACHES.</div><h1>See Local Turbo in action.</h1></div>
-      <div class="comparison-switch" role="group" aria-label="Comparison type"><button data-comparison="speed" aria-pressed="${state.comparison === 'speed'}" ${busy ? 'disabled' : ''}>Speed</button><button data-comparison="routing" aria-pressed="${state.comparison === 'routing'}" ${busy ? 'disabled' : ''}>Model routing</button></div>
+    <div class="demo-heading"><h1>Compare answers</h1><div class="comparison-switch" role="group" aria-label="Comparison type"><button data-comparison="speed" aria-pressed="${state.comparison === 'speed'}" ${busy ? 'disabled' : ''}>Speed</button><button data-comparison="routing" aria-pressed="${state.comparison === 'routing'}" ${busy ? 'disabled' : ''}>Model routing</button></div></div>
+    <div class="comparison-workspace">
+      <div class="prompt-composer"><div class="prompt-controls"><label for="demo-example">Prompt</label><select id="demo-example" aria-label="Example prompt" ${busy ? 'disabled' : ''}>${PROMPTS.map(item => `<option value="${item.id}" ${state.scenario === item.id ? 'selected' : ''}>${item.label}</option>`).join('')}</select></div>
+        <p class="prompt-copy">${esc(scenario.prompt)}</p>
+        <button class="button primary run-comparison" data-action="${busy ? 'reset-demo' : 'run-demo'}" ${setupError ? 'disabled' : ''}>${busy ? '<span aria-hidden="true">■</span> Stop' : state.result ? '↻ Replay' : 'Run preview <span aria-hidden="true">→</span>'}</button>
+      </div>
+      <div class="response-grid">${lanes}</div>
+      ${state.comparison === 'routing' ? `<div class="routing-note"><span>Example route</span><p>${esc(scenario.reason)}</p></div>` : ''}
     </div>
-    <p class="comparison-intent">${state.comparison === 'speed' ? 'Same model, same prompt. Default settings versus your selected configuration.' : 'Same prompt. A fixed model versus a model chosen for the request.'}</p>
-    <div class="prompt-stage"><div class="prompt-top"><span class="eyebrow">TRY A PROMPT</span><div class="prompt-examples" role="group" aria-label="Example prompt">${PROMPTS.map(item => `<button data-scenario="${item.id}" aria-pressed="${state.scenario === item.id}" ${busy ? 'disabled' : ''}>${item.label}</button>`).join('')}</div></div>
-      <p class="comparison-prompt">${esc(scenario.prompt)}</p>
-      <div class="prompt-bottom"><button class="button primary" data-action="run-demo" ${busy || setupError ? 'disabled' : ''}>${busy ? '<span class="spinner small"></span> Playing comparison…' : state.result ? 'Replay comparison' : 'Preview comparison'} ${busy ? '' : arrow}</button><button class="text-button" data-action="reset-demo">${busy ? 'Stop preview' : 'Reset'}</button><span class="preview-explanation">Scripted answers · animation speed is illustrative</span></div>
-    </div>
-    <div class="answer-lanes">${lanes}</div>
-    <div class="comparison-outcome" role="status" aria-live="polite">${state.error || setupError ? esc(state.error || setupError) : state.result ? 'Preview complete. A live comparison will report actual times and answer checks.' : busy ? 'One launch, two runs. Each takes its turn so they do not compete for the laptop’s resources.' : state.comparison === 'routing' ? 'Routing preview: candidate roles are illustrative. Model choices need measured speed and quality profiles.' : 'Live trials will run one at a time. This preview does not show a measured speed advantage.'}</div>
-    <div class="demo-bottom"><button class="text-button" data-action="back">← Back to configurations</button>${state.result ? '<details class="comparison-evidence"><summary>Preview details</summary><p>Both answers are scripted examples, shown at the same animation pace. No model was run, no answer was graded, and no winner is claimed.</p></details>' : ''}</div>
+    ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
+    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>These are scripted answers at the same animation pace. No model runs, timings or quality checks are measured in this preview. Live trials will run one at a time to avoid competing for resources.</p></div></details></div>
+    <span class="sr-only" role="status" aria-live="polite">${state.result ? 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
   </section>`;
 }
 
 function render({ focus = false } = {}) {
   if (!state.snapshot) return;
+  const keepRunFocus = document.activeElement?.classList.contains('run-comparison');
+  const keepExplanationOpen = document.querySelector('.comparison-info')?.open;
   document.querySelectorAll('[data-step]').forEach(link => {
     if (link.dataset.step === state.page) link.setAttribute('aria-current', 'step');
     else link.removeAttribute('aria-current');
   });
   $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Preview · scripted answers' : 'Device task' : 'Recorded results'}`;
   $('#main').innerHTML = state.page === 'device' ? deviceScreen() : state.page === 'calibration' ? calibrationScreen() : demoScreen();
+  if (keepExplanationOpen && $('#main .comparison-info')) $('#main .comparison-info').open = true;
+  if (!focus && keepRunFocus) $('#main .run-comparison')?.focus({ preventScroll: true });
   if (!focus && !state.reveal) $('#main .screen')?.classList.add('static-screen');
   if (focus) { $('#main').focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
   state.reveal = false;
@@ -225,6 +231,11 @@ document.addEventListener('click', event => {
     case 'reset-demo': resetDemo(); render(); break;
     case 'retry': load(); break;
   }
+});
+document.addEventListener('change', event => {
+  if (event.target.id !== 'demo-example') return;
+  state.scenario = event.target.value; resetDemo(); render();
+  $('#demo-example')?.focus({ preventScroll: true });
 });
 $('#evidence-button').addEventListener('click', showEvidence);
 $('#close-dialog').addEventListener('click', () => $('#evidence-dialog').close());
