@@ -2,6 +2,8 @@
 
 Three screens: **Machine → Compare → In action**. Local-only, dependency-free Node.js 20+ server and browser ES modules.
 
+The header uses a typographic `localturbo` wordmark in a locally bundled Manrope variable font; the matching `lt` favicon is derived from the same letterforms. The font was converted to WOFF2 from the [Google Fonts Manrope source](https://github.com/google/fonts/tree/main/ofl/manrope) (source TTF SHA-256 `d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40`) and retains its [SIL Open Font License](licenses/Manrope-OFL.txt). The interface font remains the local system sans serif.
+
 ```sh
 cd frontend
 npm run dev

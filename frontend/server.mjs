@@ -9,6 +9,7 @@ const resultsRoot = path.resolve(here, '../benchmarks/results/screen-01');
 const assets = new Map([
   ['/', ['index.html', 'text/html']],
   ['/styles.css', ['styles.css', 'text/css']],
+  ['/brand-manrope.woff2', ['brand-manrope.woff2', 'font/woff2']],
   ['/app.mjs', ['app.mjs', 'text/javascript']],
   ['/data.mjs', ['data.mjs', 'text/javascript']],
   ['/demo.mjs', ['demo.mjs', 'text/javascript']],
