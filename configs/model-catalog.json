@@ -63,7 +63,7 @@
       "context_length": 40960,
       "total_bytes": 1056782912,
       "requires_projector": false,
-      "state": "downloading",
+      "state": "downloaded",
       "source": {
         "model_card": "https://huggingface.co/Qwen/Qwen3-1.7B",
         "quant_repo": "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF",
@@ -79,7 +79,8 @@
       "backend_support": {
         "geniex-llama_cpp@0.6.1": "unverified",
         "geniex-qairt@0.6.1": "unsupported"
-      }
+      },
+      "notes": "Weights checksum-verified on the Latitude. CPU/GPU/NPU/hybrid screening completed; official CPU/10 task evaluation is eval/results/candidate_qwen17-cpu-t10-v2.json and failed the quality gate."
     },
     {
       "id": "qwen3-4b-instruct-2507-q4_0",
@@ -121,7 +122,7 @@
       "context_length": 8192,
       "total_bytes": 386404992,
       "requires_projector": false,
-      "state": "candidate",
+      "state": "downloaded",
       "source": {
         "model_card": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct",
         "quant_repo": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF",
@@ -137,7 +138,8 @@
       "backend_support": {
         "geniex-llama_cpp@0.6.1": "unverified",
         "geniex-qairt@0.6.1": "unsupported"
-      }
+      },
+      "notes": "Checksum-verified on development host; not yet transferred to or executed on the Latitude or UNO Q."
     },
     {
       "id": "granite-4.0-h-tiny-q4_k_m",
@@ -263,6 +265,72 @@
         "geniex-llama_cpp@0.6.1": "unverified",
         "geniex-qairt@0.6.1": "unsupported"
       }
+    },
+    {
+      "id": "qwen3-8b-q4_k_m",
+      "name": "Qwen3-8B (Q4_K_M)",
+      "family": "qwen3",
+      "kind": "instruction",
+      "architecture": "qwen3",
+      "license": "apache-2.0",
+      "parameters": "8.2B total",
+      "parameters_total_billion": 8.2,
+      "parameters_active_billion": null,
+      "context_length": 32768,
+      "initial_test_context": 2048,
+      "total_bytes": 5027784512,
+      "requires_projector": false,
+      "state": "candidate",
+      "source": {
+        "model_card": "https://huggingface.co/Qwen/Qwen3-8B",
+        "quant_repo": "https://huggingface.co/unsloth/Qwen3-8B-GGUF",
+        "revision": "a6adef130ffb23ddaf1a62fec9dced968c9bc482",
+        "files": [
+          {
+            "path": "Qwen3-8B-Q4_K_M.gguf",
+            "sha256": "120307ba529eb2439d6c430d94104dabd578497bc7bfe7e322b5d9933b449bd4",
+            "bytes": 5027784512
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      },
+      "notes": "Q4_0 is not present in this pinned repository. Q4_K_M support, chat formatting and dispatch must be tested on the installed runtime; do not infer NPU support from the Qwen family."
+    },
+    {
+      "id": "gpt-oss-20b-mxfp4",
+      "name": "gpt-oss-20b (MXFP4)",
+      "family": "gpt-oss",
+      "kind": "instruction",
+      "architecture": "gpt-oss",
+      "license": "apache-2.0",
+      "parameters": "21B total, 3.6B active",
+      "parameters_total_billion": 21,
+      "parameters_active_billion": 3.6,
+      "context_length": null,
+      "initial_test_context": 2048,
+      "total_bytes": 12109566624,
+      "requires_projector": false,
+      "state": "candidate",
+      "source": {
+        "model_card": "https://huggingface.co/openai/gpt-oss-20b",
+        "quant_repo": "https://huggingface.co/ggml-org/gpt-oss-20b-GGUF",
+        "revision": "ef9b12f2ff56c69cf32153a02784e7a3c88bf524",
+        "files": [
+          {
+            "path": "gpt-oss-20b-MXFP4.gguf",
+            "sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+            "bytes": 12109566624
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      },
+      "notes": "MoE candidate: full weights must fit despite only 3.6B active parameters. Requires Harmony formatting and compatible MXFP4 kernels; context and memory are unverified on this runtime. No NPU claim."
     }
   ]
 }

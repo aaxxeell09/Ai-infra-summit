@@ -10,8 +10,8 @@ class CatalogTests(unittest.TestCase):
     def setUp(self):
         self.catalog = load_catalog()
 
-    def test_real_catalog_is_valid_and_bounded(self):
-        self.assertLessEqual(len(self.catalog["models"]), 8)
+    def test_real_catalog_is_valid(self):
+        self.assertTrue(self.catalog["models"])
         for e in self.catalog["models"]:
             self.assertIn(e["kind"], {"instruction", "base", "multimodal"})
             self.assertIn(e["state"], {"downloaded", "downloading", "candidate", "rejected"})
@@ -38,7 +38,8 @@ class CatalogTests(unittest.TestCase):
 
     def test_filtering_by_state_and_kind(self):
         downloaded = filter_models(self.catalog, state="downloaded")
-        self.assertEqual([e["id"] for e in downloaded], ["qwen3-0.6b-q4_0"])
+        self.assertEqual({e["id"] for e in downloaded}, {"qwen3-0.6b-q4_0",
+                         "qwen3-1.7b-q4_0", "smollm2-360m-instruct-q8_0"})
         mm = filter_models(self.catalog, kind="multimodal")
         self.assertEqual({e["id"] for e in mm},
                          {"qwen3-vl-4b-instruct-q4_0", "qwen3-vl-4b-instruct-qairt"})
