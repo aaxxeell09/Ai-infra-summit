@@ -14,6 +14,7 @@ A local secretary that performs structured file operations is the demonstration 
 
 - Work autonomously and carry development through implementation, tests, real-device measurements, documentation and demo artifacts. Make routine reversible decisions without repeatedly asking permission.
 - **Commit and push to GitHub frequently.** Make small coherent checkpoints after a working change or meaningful verified milestone. Do not leave hours of completed work only in the working tree. The user explicitly authorized commits and pushes to `aaxxeell09/Ai-infra-summit` using GitHub account `Qin2Qin`.
+- **Check open GitHub PRs and fetch remote changes before each push.** Teammates own the demo and frontend design; coordinate through their branches and documented API contracts, preserve their work, and avoid parallel visual redesign. Review relevant PRs for integration issues. Do not post messages or review comments to others without explicit authorization.
 - Check current work before committing; preserve other contributors' edits. Run relevant checks and inspect the staged diff. Never commit credentials, private connection details, model weights or raw private captures.
 - Refactor aggressively when evidence shows the design is wrong. Preserve useful work in Git, and explain material changes briefly.
 - Optimize for speed of execution and credible evidence. Prefer implementation and experiments over repeatedly expanding plans.
