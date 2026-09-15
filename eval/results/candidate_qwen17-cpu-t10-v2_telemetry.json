@@ -1,0 +1,72 @@
+{
+  "exit_code": 2,
+  "scope": "Complete evaluation process: validation, hashes, model load, one uncounted warmup, 50 inference cases, disposable fixture execution/scoring and report serialization. Energy is not inference-only.",
+  "energy": {
+    "duration_s": 157.1025568000041,
+    "channels": {
+      "SYS": {
+        "energy_j": 5600.6563078044,
+        "average_power_w": 35.64968274153673,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_0": {
+        "energy_j": 1059.473603088,
+        "average_power_w": 6.743834248584122,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_1": {
+        "energy_j": 999.7606825596,
+        "average_power_w": 6.363745459803834,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_2": {
+        "energy_j": 1002.242318706,
+        "average_power_w": 6.3795417408889294,
+        "tokens_per_joule": null
+      }
+    },
+    "unit": "picowatt-hours",
+    "scope": "full process trial including model initialization and any warmup",
+    "error": null
+  },
+  "raw_energy_before": {
+    "monotonic_s": 2418167.6935799,
+    "channels_pwh": {
+      "SYS": 60032722255938,
+      "GPU": 150786869572,
+      "CPU_CLUSTER_0": 13306453550625,
+      "CPU_CLUSTER_1": 3933569100903,
+      "CPU_CLUSTER_2": 3161577600619
+    },
+    "error": null
+  },
+  "raw_energy_after": {
+    "monotonic_s": 2418324.7961367,
+    "channels_pwh": {
+      "SYS": 61588460119217,
+      "GPU": 150786869572,
+      "CPU_CLUSTER_0": 13600751773705,
+      "CPU_CLUSTER_1": 4211280401614,
+      "CPU_CLUSTER_2": 3439978244704
+    },
+    "error": null
+  },
+  "power_before": {
+    "ac_line_status": "ac",
+    "battery_percent": 99,
+    "battery_flag": 9
+  },
+  "power_after": {
+    "ac_line_status": "ac",
+    "battery_percent": 99,
+    "battery_flag": 9
+  },
+  "process_memory": {
+    "peak_working_set_mib": 2345.33984375,
+    "sampled_peak_private_mib": 3453.6796875,
+    "samples": 2329,
+    "poll_interval_ms": 50
+  },
+  "tokens_per_joule": null,
+  "tokens_per_joule_unavailable_reason": "Warmup token count is not preserved by the frozen runner; no unmatched numerator is used."
+}

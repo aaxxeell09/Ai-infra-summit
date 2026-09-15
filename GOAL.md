@@ -95,7 +95,7 @@ Completion means the entire tuner → recommendation → applied runtime → cor
 
 ## Immediate priorities
 
-1. Preserve/publish the official reference and failed CPU candidate; test the already-downloaded 1.7B model as a clearly labelled model-substitution candidate.
+1. Preserve/publish the official reference and candidate failures. The 1.7B CPU/10 model substitution now measured 34/50 (68%), 2839.033 ms mean and 1530.137 ms median inference, with a failed gate (8% invalid output and one critical move regression). More parameters alone did not solve correctness or latency; test larger/instruction-specialized candidates without weakening the gate.
 2. Make recommendation application robust, finish live MCP integration and test the real end-to-end task path.
 3. Finish the 4B download; add verified 8B/larger candidates and measured large-to-small routing.
 4. Integrate teammate frontend and the functional UNO Q controller without obscuring correctness failures.
