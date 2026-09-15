@@ -1,77 +1,41 @@
-# AI Infra Summit — Qualcomm track
+# Local Turbo
 
-**Project idea: a local inspection station that checks instructions written in plain language, runs visual reasoning on a Snapdragon AI PC, and returns a physical result through an Arduino UNO Q.**
+Fast, private tool-using AI on a Snapdragon X Elite laptop. We are rebuilding around measured inference throughput, local model routing and auditable context reduction.
 
-This is the working repository for our entry in the [AI Infra Summit Hackathon's Qualcomm Model-to-Device Innovation track](https://lablab.ai/ai-hackathons/ai-infra-summit-hackathon).
+**Hardware:** Dell Latitude 7455, Snapdragon X Elite X1E-80-100, 32 GB RAM, Adreno X1-85, Windows ARM64. Inference runs locally through Qualcomm GenieX. The earlier camera/Arduino prototype is preserved in Git history and `archive/inspection-station`.
+
+## What we are building
+
+- Native benchmark sweeps comparing CPU thread counts, GPU, NPU and hybrid execution on identical weights.
+- A calibrated router selecting a local model/configuration subject to context and tool-quality requirements.
+- A local secretary performing structured file operations in a disposable workspace.
+- Context reduction preserving stable instructions and keeping original tool results recoverable locally.
+- An OpenAI-compatible adapter and dashboard showing measured speed, TTFT, tool correctness and routing decisions.
 
 ## Current status
 
-**Prototype in development, September 15, 2026.** The Python hub and browser console run on the Latitude. The connected UNO Q can reach the hub over USB. GenieX 0.6.1 runs Qwen3-VL-4B on the Hexagon HTP backend, and real camera tests returned OK/CHECK/UNKNOWN. The real result reaches the UNO Q MCU, whose independent expiry check passes. A physical button walkthrough is awaiting onsite confirmation. See [the measured checks and limitations](docs/verification.md).
+Active development. Benchmark orchestration, routing and context primitives are implemented; native integration and the demo are in progress. **No measured speedup is claimed yet.** The runtime is installed on the Latitude; downloads and device benchmarking are underway. Results will include model hashes, configurations, failures and timing definitions.
 
-| Implemented or verified | Remaining |
-|---|---|
-| Windows ARM64 Python hub; offline browser assets; image upload and camera capture code | Broader inspection scenarios and repeatable object demonstrations |
-| Versioned instructions, one in-flight request, strict answer validation and expiring results | Physical trigger-to-display latency and broader evaluation |
-| Dedicated SSH access; USB ADB reverse tunnel from UNO Q to the hub | Onsite button press and visual feedback confirmation |
-| 17 tests passed on both Mac and Windows ARM64 | Full Wi-Fi-disconnected rehearsal; process-level offline test passed |
+## Run tests
 
-## Run the hub
+Python 3.11+; the core project uses the standard library.
 
-Python 3.11 or later; no pip dependencies:
-
-```bash
-python -m inspection
-```
-
-Open **http://127.0.0.1:8080** on the computer running the hub. Upload an image, or start its camera and allow camera access. Choose an instruction and select **Inspect**. Without GenieX, an inspection returns UNKNOWN. No simulated model answers are enabled in the app.
-
-On our Windows installation, the launcher finds the native ARM64 Python under the user's local `QualcommTools` folder:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-hub.ps1 -Model local/qwen3-vl-4b-x-elite
-```
-
-In another terminal, after installing [GenieX](https://geniex.aihub.qualcomm.com/en/run/cli/install) and downloading the compatible model:
-
-```powershell
-geniex model list
-geniex pull qualcomm/Qwen3-VL-4B-Instruct
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-geniex.ps1
-```
-
-The server listens on loopback port 18181. The hub uses its OpenAI-compatible `/v1/chat/completions` endpoint. `--compute npu` requests the NPU; the console keeps backend evidence **unverified** until actual execution is checked. Our tested bundle is imported as `local/qwen3-vl-4b-x-elite`: use `start-hub.ps1 -Model local/qwen3-vl-4b-x-elite` on this kit. For another imported name, pass it with `-Model NAME` or `python -m inspection --model NAME`.
-
-```bash
+```sh
 python -m unittest discover -s tests -v
 ```
 
-See [API and state rules](docs/api.md), [UNO Q setup](docs/arduino.md) and [device verification](docs/hardware.md). Test doubles are confined to tests and the explicitly labelled board simulation option.
+## Benchmark on the Latitude
 
-## The demo we want to build
+Download the official GenieX v0.6.1 ARM64 benchmark release and a compatible GGUF. From native Windows ARM64 Python:
 
-1. Choose an inspection instruction, such as “the bottle must be capped and upright.”
-2. Put the objects in view and press a physical button.
-3. The UNO Q requests an inspection from the Latitude over USB or the local network.
-4. One vision-language model running through GenieX checks the image against the instruction.
-5. The board shows **OK**, **CHECK**, or **UNKNOWN**, with a short explanation on the laptop.
-6. Change the instruction and repeat without changing code or retraining a model.
+```powershell
+python scripts/sweep.py --exe C:/tools/geniex-bench/bin/geniex-bench.exe --model C:/models/Qwen3-0.6B-Q4_0.gguf --output local/bench-screen
+```
 
-The objects and instructions are candidates, pending tests on the real model. The kit has no USB webcam, so the first version captures on the Latitude or accepts an uploaded image. The UNO Q handles physical controls and feedback. Independent board capture remains an extension.
+Each cell preserves native timings, arguments, exit status and logs. See [benchmark protocol](docs/benchmark-protocol.md).
 
-## The infrastructure idea
+## Evidence boundaries
 
-The longer-term idea is a **tiered edge brain**: a small node handles capture and cheap decisions, while the AI PC handles contextual visual reasoning. A policy could decide whether to inspect locally, escalate to the laptop, or reuse a still-valid result. We would measure accuracy, missed events, calls, traffic and latency before claiming an improvement.
+Tokens per second, fewer generated tokens and faster completed tasks are separate metrics. Existing prefix caching and speculative decoding belong to their upstream implementations. Our experimental contribution is a portable measured policy combining model, device and context choices; novelty and speedup remain hypotheses until tested.
 
-The first prototype will use explicit button-triggered inspection. A fixed trigger is an event-driven pipeline; a general inference router remains an extension to earn through implementation and evaluation.
-
-## Project documentation
-
-- [Demo walkthrough](docs/demo.md): launch the kit, show the current loop, and explain its limits.
-- [Verification](docs/verification.md): measured device checks and unresolved acceptance steps.
-- [Project brief](docs/project.md): problem, use cases, intended value and scope.
-- [Architecture](docs/architecture.md): device responsibilities, data flow, result handling and routing extensions.
-- [Hardware](docs/hardware.md): actual kit, available modules and vendor references.
-- [SSH setup](docs/ssh.md): setup procedure and verified remote access status.
-- [Execution plan](docs/plan.md): setup, milestones, evaluation and demo checklist.
-
-Passwords, private keys, device addresses and raw camera captures belong outside the public repository.
+[SSH setup](docs/ssh.md) uses placeholders. Credentials, device addresses, models and private logs stay out of Git.

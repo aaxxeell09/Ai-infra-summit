@@ -1,1 +1,0 @@
-"""Local visual inspection hub."""
