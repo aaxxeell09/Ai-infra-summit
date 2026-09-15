@@ -13,6 +13,21 @@ const state = { snapshot: null, page: 'device', metric: 'decode', selected: null
 let demoGeneration = 0;
 let taskAbort;
 let toastTimer;
+let clockTick;
+let laneClocks = {};
+
+// Browser animation clocks stay separate from authoritative device measurements.
+function clockText(key) {
+  const clock = laneClocks[key];
+  if (!clock) return '—';
+  return `${((clock.elapsed ?? (performance.now() - clock.started)) / 1000).toFixed(1)} s`;
+}
+function updateClocks() {
+  for (const key of ['default', 'turbo']) {
+    const output = document.querySelector(`[data-clock="${key}"]`);
+    if (output) output.textContent = clockText(key);
+  }
+}
 
 function notify(message) {
   clearTimeout(toastTimer); $('#toast').textContent = message; $('#toast').classList.add('visible');
@@ -104,12 +119,13 @@ function demoScreen() {
     return `<article class="response-column ${key === 'turbo' ? 'response-turbo' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
       <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p></header>
       <div class="response-text ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${lane.answer ? esc(lane.answer) : '<span class="answer-placeholder">No answer yet</span>'}</div>
+      <div class="response-timing"><span>Animation time</span><strong data-clock="${key}">${clockText(key)}</strong></div>
     </article>`;
   }).join('');
   return `<section class="screen comparison-demo">
     <div class="demo-heading"><h1>Compare answers</h1><div class="comparison-switch" role="group" aria-label="Comparison type"><button data-comparison="speed" aria-pressed="${state.comparison === 'speed'}" ${busy ? 'disabled' : ''}>Speed</button><button data-comparison="routing" aria-pressed="${state.comparison === 'routing'}" ${busy ? 'disabled' : ''}>Model routing</button></div></div>
     <div class="comparison-workspace">
-      <div class="prompt-composer"><div class="prompt-controls"><label for="demo-example">Prompt</label><select id="demo-example" aria-label="Example prompt" ${busy ? 'disabled' : ''}>${PROMPTS.map(item => `<option value="${item.id}" ${state.scenario === item.id ? 'selected' : ''}>${item.label}</option>`).join('')}</select></div>
+      <div class="prompt-composer"><div class="prompt-controls"><span class="prompt-label">Prompt</span><details class="prompt-picker" ${busy ? 'inert' : ''}><summary aria-label="Example prompt: ${esc(scenario.label)}">${esc(scenario.label)}<span aria-hidden="true">⌄</span></summary><div class="prompt-options" role="group" aria-label="Example prompts">${PROMPTS.map(item => `<button data-scenario="${item.id}" aria-pressed="${state.scenario === item.id}">${item.label}<span aria-hidden="true">${state.scenario === item.id ? '✓' : ''}</span></button>`).join('')}</div></details></div>
         <p class="prompt-copy">${esc(scenario.prompt)}</p>
         <button class="button primary run-comparison" data-action="${busy ? 'reset-demo' : 'run-demo'}" ${setupError ? 'disabled' : ''}>${busy ? '<span aria-hidden="true">■</span> Stop' : state.result ? '↻ Replay' : 'Run preview <span aria-hidden="true">→</span>'}</button>
       </div>
@@ -117,7 +133,7 @@ function demoScreen() {
       ${state.comparison === 'routing' ? `<div class="routing-note"><span>Example route</span><p>${esc(scenario.reason)}</p></div>` : ''}
     </div>
     ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
-    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>These are scripted answers at the same animation pace. No model runs, timings or quality checks are measured in this preview. Live trials will run one at a time to avoid competing for resources.</p></div></details></div>
+    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>These are scripted answers at the same animation pace. Each clock measures only its answer animation, excluding the wait for the other answer. No inference speed or answer quality is measured. Live trials will run one at a time to avoid competing for resources.</p></div></details></div>
     <span class="sr-only" role="status" aria-live="polite">${state.result ? 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
   </section>`;
 }
@@ -151,6 +167,7 @@ function navigate() {
 
 function resetDemo() {
   taskAbort?.abort();
+  clearInterval(clockTick); laneClocks = {};
   demoGeneration++; state.demo = 'idle'; state.lanes = {};
   state.result = null; state.error = null;
 }
@@ -166,6 +183,7 @@ async function runDemo() {
   let rejectOnAbort;
   const interrupted = new Promise((_, reject) => { rejectOnAbort = () => reject(controller.signal.reason); controller.signal.addEventListener('abort', rejectOnAbort, { once: true }); });
   state.demo = 'running'; render();
+  clockTick = setInterval(updateClocks, 100);
   try {
     const result = await Promise.race([interrupted, taskProvider.execute(request, { signal: controller.signal, onEvent(event) {
       if (generation !== demoGeneration) return;
@@ -174,6 +192,10 @@ async function runDemo() {
         const output = document.querySelector(`[data-answer="${event.lane}"]`);
         if (output) output.textContent = event.answer;
       } else {
+        if (event.type === 'start') laneClocks[event.lane] = { started: performance.now() };
+        if (event.type === 'complete' && laneClocks[event.lane]) {
+          laneClocks[event.lane].elapsed = performance.now() - laneClocks[event.lane].started;
+        }
         state.lanes[event.lane] = event.type === 'complete' ? event.result : { status: 'running', answer: '' };
         render();
       }
@@ -183,8 +205,9 @@ async function runDemo() {
   } catch (error) {
     if (generation !== demoGeneration) return;
     state.error = error.message || 'The device run could not be verified. Check its status before retrying.';
+    for (const clock of Object.values(laneClocks)) clock.elapsed ??= performance.now() - clock.started;
     state.demo = 'failed'; render();
-  } finally { clearTimeout(timer); controller.signal.removeEventListener('abort', rejectOnAbort); }
+  } finally { if (generation === demoGeneration) clearInterval(clockTick); clearTimeout(timer); controller.signal.removeEventListener('abort', rejectOnAbort); }
 }
 
 function download(data, filename) {
@@ -204,6 +227,8 @@ function showEvidence() {
 
 document.addEventListener('click', event => {
   if (event.target.closest('.skip')) { event.preventDefault(); $('#main').focus(); return; }
+  const picker = $('.prompt-picker');
+  if (picker && !picker.contains(event.target)) picker.open = false;
   const target = event.target.closest('button'); if (!target) return;
   const metric = target.dataset.metric;
   if (metric) {
@@ -215,7 +240,7 @@ document.addEventListener('click', event => {
     resetDemo(); state.selected = target.dataset.select; render(); document.querySelector(`[data-select="${CSS.escape(state.selected)}"]`)?.focus({ preventScroll: true }); return;
   }
   if (target.dataset.comparison) { state.comparison = target.dataset.comparison; resetDemo(); render(); document.querySelector(`[data-comparison="${state.comparison}"]`)?.focus(); return; }
-  if (target.dataset.scenario) { state.scenario = target.dataset.scenario; resetDemo(); render(); document.querySelector(`[data-scenario="${state.scenario}"]`)?.focus(); return; }
+  if (target.dataset.scenario) { state.scenario = target.dataset.scenario; resetDemo(); render(); $('.prompt-picker summary')?.focus({ preventScroll: true }); return; }
   switch (target.dataset.action) {
     case 'explore': state.reveal = true; location.hash = 'calibration'; break;
     case 'try': resetDemo(); location.hash = 'demo'; break;
@@ -232,10 +257,10 @@ document.addEventListener('click', event => {
     case 'retry': load(); break;
   }
 });
-document.addEventListener('change', event => {
-  if (event.target.id !== 'demo-example') return;
-  state.scenario = event.target.value; resetDemo(); render();
-  $('#demo-example')?.focus({ preventScroll: true });
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape') return;
+  const picker = $('.prompt-picker');
+  if (picker?.open) { picker.open = false; picker.querySelector('summary').focus(); }
 });
 $('#evidence-button').addEventListener('click', showEvidence);
 $('#close-dialog').addEventListener('click', () => $('#evidence-dialog').close());

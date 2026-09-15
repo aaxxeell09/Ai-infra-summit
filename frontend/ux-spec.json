@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "product": "Local Turbo",
   "purpose": "Compare recorded local inference configurations, then demonstrate one prompt answered by a default setup and Local Turbo. Speed tuning and model routing are separate experiments.",
   "visual_system": {
@@ -117,7 +117,12 @@
         "https://www.nngroup.com/articles/progressive-disclosure/",
         "https://m1.material.io/style/writing.html",
         "https://design-system.service.gov.uk/patterns/question-pages/"
-      ]
+      ],
+      "timing": {
+        "preview": "Independent browser animation clock per answer; excludes queue time, freezes on completion, resets on stop/replay. Never an inference measurement or speedup.",
+        "live": "Use backend total_time_s with explicit source and scope; never substitute browser animation time."
+      },
+      "example_picker": "Styled disclosure with selected-state buttons, outside-click dismissal, Escape, and keyboard focus restoration."
     }
   ],
   "rules": [

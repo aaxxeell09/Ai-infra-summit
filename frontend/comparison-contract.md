@@ -8,6 +8,8 @@ Status: **interactive preview implemented; live bridge pending**. No file operat
 
 `createPreviewComparisonProvider().execute(request, {signal, onEvent})` emits `start`, `text` and `complete` events for the default lane followed by the turbo lane. Text chunks are animation fragments, never token counts. It returns `local-turbo.comparison-result.v1` with null timing, output-token counts, winner and speedup; quality is `not_evaluated`. Both lanes use the same scripted answer and animation pace. Abort ends the preview; resets and changed selections discard stale results.
 
+The view also keeps independent browser animation clocks: start on each lane’s `start`, freeze on `complete`, and exclude time spent queued. They are labelled **Animation time**, stored outside provider results, and never used to compute a winner or speedup. Stopping or changing examples clears them.
+
 ## Live integration requirements
 
 Implement a separate provider and update the view's preview-specific labels and metric bindings together. Do not simply replace the scripted text while leaving candidate names, timing placeholders or preview status in place. No live HTTP endpoints are currently implemented.

@@ -28,3 +28,9 @@ The machine screen and its graphic are outside this edit. Actual token throughpu
 - Browser verifies one-click completion in both lanes, mode switching, native example selector, clearing prior answers, stop/replay and accessible details.
 - Equal answer animation pacing and null measurements remain unchanged from the tested provider.
 - The responsive layout uses paired columns on wide screens and stacked answer sections on narrow screens; controls keep touch-sized targets.
+
+## Follow-up: prompt menu and comparison clocks
+
+The native example select was replaced with a styled disclosure and selected-state buttons. Keyboard selection, Escape dismissal, outside-click dismissal and focus restoration use ordinary browser controls. Per-answer animation clocks start independently, exclude the other lane’s queue time, freeze on completion and clear on stop/replay. Actual inference timing remains a backend integration requirement.
+
+Browser checks confirmed the first clock stayed frozen while the second started at zero, both final times remained visible, stop cleared both clocks, and the open menu fit a 390 px viewport without horizontal overflow. No browser errors were recorded.
