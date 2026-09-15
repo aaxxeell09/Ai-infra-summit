@@ -1,0 +1,30 @@
+# Credentials and machine-specific connection notes
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_ed25519*
+id_rsa*
+known_hosts*
+local/
+
+# Local models and captured media
+models/
+captures/
+recordings/
+*.gguf
+*.onnx
+*.dlc
+
+# Generated environments and output
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+node_modules/
+dist/
+build/
+*.log
+.DS_Store
+Thumbs.db
