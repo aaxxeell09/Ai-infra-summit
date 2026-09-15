@@ -8,8 +8,18 @@
     "ram_gb": 32
   },
   "runtimes": [
-    {"name": "geniex-llama_cpp", "version": "0.6.1", "gguf": true, "requires_projector": false},
-    {"name": "geniex-qairt", "version": "0.6.1", "gguf": false, "requires_projector": false}
+    {
+      "name": "geniex-llama_cpp",
+      "version": "0.6.1",
+      "gguf": true,
+      "requires_projector": false
+    },
+    {
+      "name": "geniex-qairt",
+      "version": "0.6.1",
+      "gguf": false,
+      "requires_projector": false
+    }
   ],
   "models": [
     {
@@ -26,13 +36,21 @@
       "state": "downloaded",
       "source": {
         "model_card": "https://huggingface.co/Qwen/Qwen3-0.6B",
-        "quant_repo": "https://huggingface.co/ggml-org/Qwen3-0.6B-GGUF",
-        "revision": "b5f37287796e5be0ea3dab2e7430873fb3f73e49",
+        "quant_repo": "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF",
+        "revision": "50968a4468ef4233ed78cd7c3de230dd1d61a56b",
         "files": [
-          {"path": "Qwen3-0.6B-Q4_0.gguf", "sha256": "da2572f16c06133561ce56accaa822216f2391ef4d37fba427801cd6736417d4", "bytes": 382156480}
+          {
+            "path": "Qwen3-0.6B-Q4_0.gguf",
+            "sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+            "bytes": 382156480
+          }
         ]
       },
-      "backend_support": {"geniex-llama_cpp@0.6.1": "unverified", "geniex-qairt@0.6.1": "unsupported"}
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      },
+      "notes": "Exact weights measured in benchmarks/results/screen-01, confirm-01 and confirm-auto-01; CPU/GPU/NPU/hybrid completed. Per-backend status details are in those manifests."
     },
     {
       "id": "qwen3-1.7b-q4_0",
@@ -51,10 +69,17 @@
         "quant_repo": "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF",
         "revision": "d7f544eead698dbd1f15126ef60b45a1e1933222",
         "files": [
-          {"path": "Qwen3-1.7B-Q4_0.gguf", "sha256": "c876f159707a4e4f70e045106c69db15bfc935a4981706fd4f65c6e7ea1e81c5", "bytes": 1056782912}
+          {
+            "path": "Qwen3-1.7B-Q4_0.gguf",
+            "sha256": "c876f159707a4e4f70e045106c69db15bfc935a4981706fd4f65c6e7ea1e81c5",
+            "bytes": 1056782912
+          }
         ]
       },
-      "backend_support": {"geniex-llama_cpp@0.6.1": "unverified", "geniex-qairt@0.6.1": "unsupported"}
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      }
     },
     {
       "id": "qwen3-4b-instruct-2507-q4_0",
@@ -73,10 +98,17 @@
         "quant_repo": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF",
         "revision": "a06e946bb6b655725eafa393f4a9745d460374c9",
         "files": [
-          {"path": "Qwen3-4B-Instruct-2507-Q4_0.gguf", "sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2", "bytes": 2375773280}
+          {
+            "path": "Qwen3-4B-Instruct-2507-Q4_0.gguf",
+            "sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+            "bytes": 2375773280
+          }
         ]
       },
-      "backend_support": {"geniex-llama_cpp@0.6.1": "unverified", "geniex-qairt@0.6.1": "unsupported"}
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      }
     },
     {
       "id": "smollm2-360m-instruct-q8_0",
@@ -95,10 +127,17 @@
         "quant_repo": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF",
         "revision": "593b5a2e04c8f3e4ee880263f93e0bd2901ad47f",
         "files": [
-          {"path": "smollm2-360m-instruct-q8_0.gguf", "sha256": "48ab3034d0dd401fbc721eb1df3217902fee7dab9078992d66431f09b7750201", "bytes": 386404992}
+          {
+            "path": "smollm2-360m-instruct-q8_0.gguf",
+            "sha256": "48ab3034d0dd401fbc721eb1df3217902fee7dab9078992d66431f09b7750201",
+            "bytes": 386404992
+          }
         ]
       },
-      "backend_support": {"geniex-llama_cpp@0.6.1": "unverified", "geniex-qairt@0.6.1": "unsupported"}
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      }
     },
     {
       "id": "granite-4.0-h-tiny-q4_k_m",
@@ -118,10 +157,17 @@
         "quant_repo": "https://huggingface.co/ibm-granite/granite-4.0-h-tiny-GGUF",
         "revision": "08d5a8a9741dd5c1a95d2d39e25253226aa1464e",
         "files": [
-          {"path": "granite-4.0-h-tiny-Q4_K_M.gguf", "sha256": "5a38b08c441ae1adbafb1d2b8a7167e0d48734d83af68b268cefea1eec553dcd", "bytes": 4230976352}
+          {
+            "path": "granite-4.0-h-tiny-Q4_K_M.gguf",
+            "sha256": "5a38b08c441ae1adbafb1d2b8a7167e0d48734d83af68b268cefea1eec553dcd",
+            "bytes": 4230976352
+          }
         ]
       },
-      "backend_support": {"geniex-llama_cpp@0.6.1": "unverified", "geniex-qairt@0.6.1": "unsupported"}
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      }
     },
     {
       "id": "qwen3-vl-4b-instruct-q4_0",
@@ -141,11 +187,22 @@
         "quant_repo": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF",
         "revision": "00c00da0690c4b14b5539b02c4ea5d7c9102b35e",
         "files": [
-          {"path": "Qwen3-VL-4B-Instruct-Q4_0.gguf", "sha256": "09965766e92778b591ab9da5209463b843d000449b38d909055b399d8dbd3d76", "bytes": 2375774496},
-          {"path": "mmproj-F16.gguf", "sha256": "1b9f4e92f0fbda14d7d7b58baed86039b8a980fe503d9d6a9393f25c0028f1fc", "bytes": 836180640}
+          {
+            "path": "Qwen3-VL-4B-Instruct-Q4_0.gguf",
+            "sha256": "09965766e92778b591ab9da5209463b843d000449b38d909055b399d8dbd3d76",
+            "bytes": 2375774496
+          },
+          {
+            "path": "mmproj-F16.gguf",
+            "sha256": "1b9f4e92f0fbda14d7d7b58baed86039b8a980fe503d9d6a9393f25c0028f1fc",
+            "bytes": 836180640
+          }
         ]
       },
-      "backend_support": {"geniex-llama_cpp@0.6.1": "unverified", "geniex-qairt@0.6.1": "unsupported"}
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      }
     },
     {
       "id": "qwen3-vl-4b-instruct-qairt",
@@ -159,16 +216,23 @@
       "total_bytes": 3034262089,
       "requires_projector": false,
       "state": "candidate",
-      "notes": "Precompiled QAIRT bundle; projector is compiled into the bundle, so requires_projector is false for this artifact form. Cached locally, not on this PC; context length is not published in bundle metadata and stays unset rather than guessed.",
+      "notes": "Precompiled X Elite QAIRT bundle is installed on the Latitude and was used for the archived inspection demo. New tuner benchmark and compiled-context validation remain pending.",
       "source": {
         "model_card": "https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct",
         "quant_repo": "https://qaihub-public-assets.s3.us-west-2.amazonaws.com/qai-hub-models/models/qwen3_vl_4b_instruct/releases/v0.62.2/qwen3_vl_4b_instruct-geniex_qairt-w4a16-qualcomm_snapdragon_x_elite.zip",
         "revision": "v0.62.2 (QAI Hub release tag; bundle has no git revision)",
         "files": [
-          {"path": "qwen3_vl_4b_instruct-geniex_qairt-w4a16-qualcomm_snapdragon_x_elite.zip", "sha256": null, "bytes": 3034262089}
+          {
+            "path": "qwen3_vl_4b_instruct-geniex_qairt-w4a16-qualcomm_snapdragon_x_elite.zip",
+            "sha256": null,
+            "bytes": 3034262089
+          }
         ]
       },
-      "backend_support": {"geniex-llama_cpp@0.6.1": "unsupported", "geniex-qairt@0.6.1": "unverified"}
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unsupported",
+        "geniex-qairt@0.6.1": "unverified"
+      }
     },
     {
       "id": "gemma-3-270m-it-q4_0",
@@ -181,17 +245,24 @@
       "context_length": 32768,
       "total_bytes": 241574944,
       "requires_projector": false,
-      "state": "rejected",
-      "notes": "Rejected: Google publishes no official GGUF Q4_0 (its Gemma GGUF repos carry Q8_0/BF16; the official small quantized artifact is a LiteRT .task/.litertlm bundle). The only Q4_0 GGUF is a third-party unsloth conversion; catalog policy requires an official quantization source for a listed candidate.",
+      "state": "candidate",
+      "notes": "Third-party Unsloth conversion. Valid candidate with provenance; no rule requires publisher-owned quantization. License acceptance and installed-runtime support must be checked before download/use.",
       "source": {
         "model_card": "https://huggingface.co/google/gemma-3-270m-it",
-        "quant_repo": "https://huggingface.co/unsloth/gemma-3-270m-it-GGUF (third-party conversion; no official Google GGUF Q4_0 exists)",
+        "quant_repo": "https://huggingface.co/unsloth/gemma-3-270m-it-GGUF",
         "revision": "c90975dbd40c0c7b275fefaae758c3415c906238",
         "files": [
-          {"path": "gemma-3-270m-it-Q4_0.gguf", "sha256": "e479ea2962bdcdc7e6321b91148b9ac2f516f649e0921412561d4936aadef158", "bytes": 241574944}
+          {
+            "path": "gemma-3-270m-it-Q4_0.gguf",
+            "sha256": "e479ea2962bdcdc7e6321b91148b9ac2f516f649e0921412561d4936aadef158",
+            "bytes": 241574944
+          }
         ]
       },
-      "backend_support": {"geniex-llama_cpp@0.6.1": "unverified", "geniex-qairt@0.6.1": "unsupported"}
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      }
     }
   ]
 }

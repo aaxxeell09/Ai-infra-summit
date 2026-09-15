@@ -1,0 +1,50 @@
+{
+  "schema_version": "turbo.recommended.v1",
+  "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+  "runtime": "GenieX 0.6.1 / llama_cpp",
+  "device": "Latitude 7455 / X1E80100",
+  "scope": {
+    "prompt_tokens": 512,
+    "generated_tokens": 128,
+    "context": 4096,
+    "power_state": "battery",
+    "cold_kv": true,
+    "energy_interval": "full trial including load, prefill and decode",
+    "quality_calibrated": false,
+    "evidence": "confirm-auto-01/sweep.json"
+  },
+  "modes": {
+    "fast": {
+      "device": "cpu",
+      "threads": 10,
+      "context": 4096,
+      "metrics": {
+        "decode_tps": 97.19188055385159,
+        "prefill_tps": 1547.5848487574347,
+        "median_ttft_ms": 321.128,
+        "median_decode_tps": 97.24988,
+        "median_peak_mib": 1527.0625,
+        "output_tokens": 3200,
+        "energy_j": 2339.3053937484,
+        "battery_only": true,
+        "tokens_per_joule": 1.367927423478668
+      }
+    },
+    "efficient": {
+      "device": "npu",
+      "threads": 0,
+      "context": 4096,
+      "metrics": {
+        "decode_tps": 36.36382975309459,
+        "prefill_tps": 1230.8053265023639,
+        "median_ttft_ms": 416.482,
+        "median_decode_tps": 36.431303,
+        "median_peak_mib": 1183.7890625,
+        "output_tokens": 3200,
+        "energy_j": 1517.3507411928001,
+        "battery_only": true,
+        "tokens_per_joule": 2.108938897992996
+      }
+    }
+  }
+}

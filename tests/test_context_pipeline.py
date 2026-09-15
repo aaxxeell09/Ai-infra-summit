@@ -126,12 +126,8 @@ def test_rtk_label_preserves_exit_and_failure_text(tmp_path):
     policy = Policy(call_map={"call_1": {"exit_code": 2}}, rtk_label=True,
                     compressor=lambda text, name: "ERR: connection refused")
     result = optimize_messages(msgs, store, policy)
-    envelope = json.loads(result["messages"][3]["content"])
-    assert "[context-pipeline/command-output exit=2]" in envelope["text"]
-    assert "connection refused" in envelope["text"]
-    record = result["records"][0]
-    assert record["applied"] is True and record["saved_chars"] > 0
-    assert recover(store, envelope) == {"ok": True, "text": failure}
+    assert result["messages"][3]["content"] == failure
+    assert result["records"][0]["applied"] is False
 
 
 def test_break_even_rejects_unmeasured_and_negative():
@@ -155,3 +151,10 @@ def test_prefix_fingerprint_stable_under_optimization(tmp_path):
 def test_caveman_instruction_is_optin_text_only():
     text = caveman_prose_instruction()
     assert "JSON" in text and "user prompt" in text
+
+def test_bad_compressor_and_recovery_arguments(tmp_path):
+    store = ContextStore(tmp_path / "ctx")
+    msgs = make_messages()
+    result = optimize_messages(msgs, store, Policy(tools=frozenset(["search_units"]), compressor=lambda *_: None))
+    assert result["messages"][3]["content"] == msgs[3]["content"]
+    assert not execute_recovery(store, {"name": "context_recover", "arguments": []})["ok"]

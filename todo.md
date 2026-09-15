@@ -12,10 +12,10 @@ Owner: main integration agent. Independent review: `review/benchmark-energy` wor
 - [x] Publish raw screening results, exact commands, model/runtime hashes, memory and energy-counter evidence.
 - [x] Run five alternating default-CPU versus selected-CPU pairs with 15 repetitions per trial.
 - [x] Audit and publish confirmation results; disclose substantial run-to-run variation and unresolved power/thermal effects.
-- [ ] Run a separate default automatic-dispatch versus tuned comparison. Source inspection says GenieX v0.6.1 defaults to NPU; verify it on-device. Keep the stronger default-CPU baseline visible.
+- [x] Run a separate default automatic-dispatch versus tuned comparison. Source inspection says GenieX v0.6.1 defaults to NPU; verify it on-device. Keep the stronger default-CPU baseline visible.
 - [x] Capture operation-level Hexagon dispatch evidence in a diagnostic run separated from clean timing.
-- [ ] Record power state around every trial; identify reset/stale/missing telemetry and preserve failures.
-- [ ] Export a recommended configuration with evidence and scope, not an unsupported universal speedup claim.
+- [x] Record power state around every trial; identify reset/stale/missing telemetry and preserve failures.
+- [x] Export a recommended configuration with evidence and scope, not an unsupported universal speedup claim.
 
 Acceptance: reproducible same-model measurements of prefill/decode tok/s, TTFT, memory and correctly scoped measured energy. Report tokens/J over an explicitly defined interval. Keep raw per-run distributions.
 
@@ -133,3 +133,10 @@ These extend the requested tuner; they do not precede the P0 evidence milestone.
 - [ ] **Portable evidence bundle:** export model/runtime hashes, device/power state, complete config, raw measurements, failures, quality scores and reproduction commands.
 - [ ] **Profile invalidation:** rerun calibration when the model, quantization, runtime, driver or relevant device configuration changes.
 - [ ] **Search-budget control:** quick screening versus longer confirmation, with elapsed-time budget and explicit incomplete/unsupported trials.
+
+## Added September 15: agent control, ports and kernels
+
+- [ ] Agent-facing MCP: local model/status tools, bounded local worker calls, explicit fast/efficient/balanced mode selection and tuning requests. Owner: `feat/agent-interface`.
+- [ ] Model import/preflight: distinguish directly loadable GGUF, conversions, architecture support and chipset/context-specific QAIRT compilation. Owner: `feat/kernel-ports`.
+- [ ] Kernel research: compare MLX portability, ARM CPU kernels, Adreno and Hexagon paths against the installed release; require real hardware wins before adoption. Owner: `feat/kernel-ports`.
+- [ ] Speculative decoding: actual supported n-gram screening, then compatible draft models with acceptance and output-correctness checks. Owner: integrator.

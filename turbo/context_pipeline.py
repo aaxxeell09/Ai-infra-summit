@@ -145,18 +145,25 @@ def _transform(content: str, name: str, cfg: dict, policy: Policy, store):
         budget = policy.cost_budget_chars
         if budget is None or (budget >= 0 and len(text) <= budget):
             try:
-                text = hook(text, name)
+                candidate = hook(text, name)
+                if not isinstance(candidate, str):
+                    raise TypeError("compressor must return text")
+                text = candidate
                 mode = mode + "+compressor" if mode else "compressor"
                 lossy = applied = True
             except Exception:
                 pass  # fallback: keep pre-hook text; record stays truthful
-    elif policy.preview_opt_in and policy.preview_chars:
+    elif policy.preview_opt_in and policy.preview_chars is not None and policy.preview_chars > 0:
         text = text[: policy.preview_chars]
         mode = mode + "+preview" if mode else "preview"
         lossy = applied = True
     if policy.rtk_label and "exit_code" in cfg:
         label = "[" + RTK_STYLE_LABEL + " exit=" + str(cfg["exit_code"]) + "]"
-        text = label + "\n" + text  # exit code and failure text preserved
+        # Failed command output must remain available verbatim in context;
+        # a compressor or preview cannot silently erase its diagnostics.
+        if cfg["exit_code"] != 0:
+            text = content
+        text = label + "\n" + text
         mode += "+rtk_label"
         lossy = applied = True
     record = {
@@ -233,6 +240,8 @@ def execute_recovery(store, call: dict) -> dict:
             args = json.loads(args)
         except ValueError:
             return {"ok": False, "error": "invalid arguments"}
+    if not isinstance(args, dict) or not isinstance(args.get("raw_ref"), str):
+        return {"ok": False, "error": "invalid arguments"}
     try:
         return {"ok": True, "text": store.get(args["raw_ref"])}
     except (KeyError, ValueError, OSError) as exc:

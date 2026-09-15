@@ -15,7 +15,7 @@ Actual Dell Latitude 7455, Snapdragon X Elite X1E-80-100, 32 GB RAM, Windows 11 
 | NPU | 36.46 | 1235.16 | 414.72 |
 | Hybrid | 38.43 | 1127.47 | 455.02 |
 
-These are **screening observations**, not a confirmed speedup. The best observed decode result is approximately 2.0% above the default; paired confirmation is running. Native results identify the resolved devices. NPU operation-level dispatch evidence is a separate diagnostic still pending.
+These are **screening observations**, not a confirmed speedup. The best observed decode result is approximately 2.0% above the default; paired confirmation and NPU operation-level diagnostics are reported below. Native results identify the resolved devices.
 
 Memory is sampled benchmark-process peak working set. Energy comes from Windows Energy Meter counter deltas, in picowatt-hours converted to joules (`delta × 3.6e-9`). `SYS` is the channel name, not a wall-socket or NPU-only measurement. Full trial energy includes loading and warmup. Screening tokens/J is deliberately null because the native JSON does not report warmup token counts. Do not compare its average watts as decode-only power: initialization and trial durations differ.
 
@@ -44,4 +44,20 @@ All counter conversions were independently checked. The audit prompted fixes to 
 
 The separate default-auto diagnostic enabled `GGML_HEXAGON_PROFILE=1` and captured HTP0 operation records with device microseconds/cycles, including matrix multiplication and normalization. [Operation excerpts](dispatch/npu-ops.txt). This establishes actual Hexagon work for this model/runtime path. Profiling substantially reduces speed; its timings are excluded from the clean benchmarks.
 
-The v0.6.1 [device resolver](https://github.com/qualcomm/GenieX/blob/v0.6.1/sdk/src/device.cpp) maps empty/auto to the pinned NPU path. A separate default-auto versus selected-CPU confirmation is underway; the strong default-CPU comparison above remains part of the report.
+The v0.6.1 [device resolver](https://github.com/qualcomm/GenieX/blob/v0.6.1/sdk/src/device.cpp) maps empty/auto to the pinned NPU path. The default-auto comparison below keeps the strong default-CPU comparison above visible.
+
+## Automatic placement versus selected CPU: battery-powered confirmation
+
+[Manifest](confirm-auto-01/sweep.json). Five alternating pairs, five cold-KV repetitions per trial, no warmup, same model/hash and 512/128 tokens. All 25 repetitions per leg completed the full length (3,200 generated tokens per leg). Every start/end power snapshot reports battery operation.
+
+| Metric | Default auto (HTP0 NPU) | Selected CPU (10 decode threads) |
+| --- | ---: | ---: |
+| Aggregate native decode tok/s | 36.36 | 97.19 |
+| Aggregate native prefill tok/s | 1230.81 | 1547.58 |
+| Median individual TTFT, ms | 416.48 | 321.13 |
+| Median process peak working set, MiB | 1183.79 | 1527.06 |
+| Pooled full-trial SYS tokens/J | 2.1089 | 1.3679 |
+
+CPU decode is **2.67×** the default-auto rate on this fixed workload, while the NPU delivers **1.54×** the full-trial tokens/J and uses less process memory. This is a backend-selection result, not a new kernel claim. CPU uses 54% more measured full-trial SYS energy for the same output count. The energy interval includes loading, prefill and decode and does not establish decode-only power. The CPU-versus-CPU comparison above is the stronger baseline for thread tuning.
+
+[Recommended modes](recommended.json) exports both choices with hashes, workload, power state and scope. These are measured performance profiles, not calibrated secretary-quality tiers.
