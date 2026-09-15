@@ -1,0 +1,130 @@
+{
+  "version": 4,
+  "product": "Local Turbo",
+  "purpose": "Measure a local model, select a configuration, then finish with a task performed by that same model and configuration. Preview remains explicitly simulated until the device bridge is connected.",
+  "visual_system": {
+    "background": "#f7f8fa",
+    "surface": "#ffffff",
+    "text": "#171b25",
+    "accent": "#1557ff",
+    "typography": "local system sans serif; monospace for metrics",
+    "motion": "screen entrance, chart reveal, file arrival; respects reduced motion",
+    "navigation": "one persistent three-step navigation; no secondary sidebar"
+  },
+  "screens": [
+    {
+      "id": "device",
+      "route": "#device",
+      "nav_label": "Machine",
+      "headline": "Tune your model. For this machine.",
+      "purpose": "Identify the recorded target and model before exploring calibration.",
+      "content": [
+        "target device identity",
+        "model",
+        "runtime",
+        "recorded date",
+        "configuration count"
+      ],
+      "primary_action": {
+        "label": "Compare configurations",
+        "next": "calibration",
+        "starts_benchmark": false
+      },
+      "data_mode": "recorded"
+    },
+    {
+      "id": "calibration",
+      "route": "#calibration",
+      "nav_label": "Compare",
+      "headline": "Choose how it runs.",
+      "purpose": "Compare one metric at a time and inspect the selected configuration.",
+      "metrics": [
+        "decode",
+        "prefill",
+        "ttft"
+      ],
+      "content": [
+        "all attempted configurations",
+        "selected result details",
+        "provisional status",
+        "evidence dialog"
+      ],
+      "ranking": "Only completed comparable trials; TTFT ascending, throughput descending; keep ties.",
+      "primary_action": {
+        "label": "Continue to task",
+        "next": "demo"
+      },
+      "secondary_action": {
+        "label": "Export configuration",
+        "applies_to_device": false
+      },
+      "data_mode": "recorded",
+      "empty_state": "No comparable result available.",
+      "failure_state": "Keep failed/incomplete rows visible with no numeric bar."
+    },
+    {
+      "id": "demo",
+      "route": "#demo",
+      "nav_label": "In action",
+      "headline": "Your model. In action.",
+      "purpose": "The demo finale: carry the selected model and settings into a file task, show its visible result, and expose measured evidence when the device is connected.",
+      "content": [
+        "selected model and configuration handoff",
+        "fixed task requests",
+        "authoritative workspace returned by task provider",
+        "result-dependent outcome",
+        "collapsed run evidence"
+      ],
+      "primary_action": {
+        "preview_label": "Preview task",
+        "live_label": "Run on the Latitude",
+        "preview_replay": "Replay preview",
+        "live_replay": "Run a new task"
+      },
+      "scenarios": [
+        "move final file while preserving draft",
+        "request clarification for ambiguous filename"
+      ],
+      "states": [
+        "idle",
+        "preparing",
+        "running",
+        "completed",
+        "clarification",
+        "failed"
+      ],
+      "data_mode": "simulated",
+      "disclosure": "Preview · no model connected",
+      "task_time": null,
+      "model_correctness": null,
+      "real_filesystem_changes": false,
+      "completion": "Leave the result on the final screen; no fourth step or automatic return to the start.",
+      "providers": {
+        "default": "createPreviewTaskProvider",
+        "integration": "createLiveTaskProvider(bridge)",
+        "bridge_contract": "task-contract.md",
+        "live_connected": false
+      },
+      "live_behavior": [
+        "Verify exact model/runtime hashes, configuration and fixture before inference.",
+        "Apply selected settings before running; do not infer application from selection.",
+        "Only display timings with a source and scope; missing remains unavailable.",
+        "Task checks require intent, action and file postconditions, not valid JSON alone.",
+        "Handle clarification and failed checks separately from success.",
+        "No silent preview fallback on device failure.",
+        "Invalidate prior task results when selection changes."
+      ]
+    }
+  ],
+  "rules": [
+    "Never present animated recorded results as a live benchmark.",
+    "Never use invented performance numbers or treat null as zero.",
+    "Never label screening gains as confirmed speedups.",
+    "Never infer verified NPU computation from a requested or reported device alone.",
+    "No duplicate navigation, metric-card grid, unrelated marketing sections, or camera/Arduino workflow.",
+    "Preserve the same three-screen UX when a live provider is added, with explicit mode and evidence states.",
+    "One persistent mode badge. Benchmark evidence is available from the footer; task evidence belongs with the task result.",
+    "Do not animate the whole screen again on every state update.",
+    "The file task illustrates the tuner result; it is not a separate file management product."
+  ]
+}

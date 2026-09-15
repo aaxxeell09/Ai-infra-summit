@@ -14,9 +14,20 @@ Fast, private tool-using AI on a Snapdragon X Elite laptop. We are rebuilding ar
 
 ## Current status
 
-Active development. Benchmark orchestration, routing and context primitives are implemented; native integration and the demo are in progress. **No measured speedup is claimed yet.** The runtime is installed on the Latitude; downloads and device benchmarking are underway. Results will include model hashes, configurations, failures and timing definitions.
+Active development. Benchmark orchestration, routing and context primitives are implemented. The first native Latitude screening records are available in `benchmarks/results/screen-01`, and the local interface compares those measurements. **No confirmed tuning speedup is claimed yet.** The final task screen currently uses a labelled simulation; device configuration application, live file-task execution and quality evaluation remain to be connected through the frontend task contract.
 
-## Run tests
+## Local demo interface
+
+The three-screen frontend previews the target machine, compares the recorded Latitude screening results, and demonstrates simulated in-memory file operations. It does not yet run live inference or apply configurations to the device.
+
+```sh
+cd frontend
+npm run dev
+```
+
+Open `http://127.0.0.1:4173`. Node.js 20+ is required; no package installation is needed. See [frontend setup and backend integration](frontend/README.md) and the [versioned UX specification](frontend/ux-spec.json).
+
+## Core tests
 
 Python 3.11+; the core project uses the standard library.
 

@@ -1,0 +1,11 @@
+{
+  "name": "local-turbo-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check server.mjs && node --check public/app.mjs && node --check public/data.mjs && node --check public/demo.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
