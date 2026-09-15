@@ -1,0 +1,77 @@
+{
+  "exit_code": 0,
+  "scope": "Complete evaluation process: validation, hashes, model load, one uncounted warmup, 50 inference cases, disposable fixture execution/scoring and report serialization. Energy is not inference-only.",
+  "energy": {
+    "duration_s": 72.46385660022497,
+    "channels": {
+      "SYS": {
+        "energy_j": 1382.6936142684,
+        "average_power_w": 19.081148577235776,
+        "tokens_per_joule": null
+      },
+      "GPU": {
+        "energy_j": 0.0200054412,
+        "average_power_w": 0.00027607475144978544,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_0": {
+        "energy_j": 268.2134688384,
+        "average_power_w": 3.7013413503245327,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_1": {
+        "energy_j": 168.0113912652,
+        "average_power_w": 2.3185543683121934,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_2": {
+        "energy_j": 104.3371390464,
+        "average_power_w": 1.439850760662883,
+        "tokens_per_joule": null
+      }
+    },
+    "unit": "picowatt-hours",
+    "scope": "full process trial including model initialization and any warmup",
+    "error": null
+  },
+  "raw_energy_before": {
+    "monotonic_s": 2417607.9339543,
+    "channels_pwh": {
+      "SYS": 58132745483504,
+      "GPU": 150770154404,
+      "CPU_CLUSTER_0": 13030781030781,
+      "CPU_CLUSTER_1": 3692025069970,
+      "CPU_CLUSTER_2": 2952568050317
+    },
+    "error": null
+  },
+  "raw_energy_after": {
+    "monotonic_s": 2417680.3978109,
+    "channels_pwh": {
+      "SYS": 58516827043023,
+      "GPU": 150775711471,
+      "CPU_CLUSTER_0": 13105284772125,
+      "CPU_CLUSTER_1": 3738694900877,
+      "CPU_CLUSTER_2": 2981550588941
+    },
+    "error": null
+  },
+  "power_before": {
+    "ac_line_status": "ac",
+    "battery_percent": 99,
+    "battery_flag": 9
+  },
+  "power_after": {
+    "ac_line_status": "ac",
+    "battery_percent": 99,
+    "battery_flag": 9
+  },
+  "process_memory": {
+    "peak_working_set_mib": 1219.40625,
+    "sampled_peak_private_mib": 1024.69921875,
+    "samples": 1350,
+    "poll_interval_ms": 50
+  },
+  "tokens_per_joule": null,
+  "tokens_per_joule_unavailable_reason": "Warmup token count is not preserved by the frozen runner; no unmatched numerator is used."
+}

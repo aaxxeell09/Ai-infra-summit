@@ -1,0 +1,10 @@
+{
+  "runtime": "GenieX 0.6.1",
+  "files": {
+    "lib/geniex.dll": {
+      "sha256": "b8c69332260ea772db6b1e9709800eb88956b94cd7b248131c4a119b194f5846",
+      "bytes": 4983296
+    }
+  },
+  "python_version": "3.14.6"
+}
