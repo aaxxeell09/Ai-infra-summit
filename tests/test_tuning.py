@@ -1,159 +1,345 @@
+"""Real schema-4 fixture plus a fake external benchmark; no hardware/network."""
+import copy
 import json
+import subprocess
+import sys
+from dataclasses import replace
+from pathlib import Path
+
 import pytest
 
-from turbo.tuning import (
-    Variant, SearchSpace, TuningError,
-    plan_cells, build_command, rank_results, pareto_frontier,
-    _energy_comparable, export_recommended,
-)
+from turbo import tuning as t
+
+ROOT = Path(__file__).resolve().parents[1]
+SAMPLE = ROOT / "benchmarks/results/screen-01/cpu-t0.json"
 
 
-def _v(**kw):
-    base = dict(id="m1", path="/tmp/m.gguf", architecture="x1e",
-                quantization="q4_k", plugin="llama_cpp", kind="llm")
-    base.update(kw)
-    return Variant.from_dict(base)
+@pytest.fixture
+def native():
+    return json.loads(SAMPLE.read_text())
 
 
-def test_plan_rejects_qairt_cpu_gpu_without_coercion():
-    v = _v(plugin="qairt", compiled_contexts=["4096"])
-    cells = plan_cells([v], SearchSpace(devices=("cpu", "gpu", "npu")))
-    assert all(c.unsupported_reason for c in cells if c.device in ("cpu", "gpu"))
-    npu = [c for c in cells if c.device == "npu"]
-    assert npu and npu[0].unsupported_reason is None
+@pytest.fixture
+def setup(tmp_path, monkeypatch, native):
+    real_run = subprocess.run
+
+    def execute(cmd, **kwargs):
+        # Run the fake CLI as a separate process on any Python platform.
+        return real_run([sys.executable, *cmd], **kwargs)
+
+    monkeypatch.setattr(t.subprocess, "run", execute)
+    model = tmp_path / "weights.gguf"
+    model.write_bytes(b"test weights only")
+    exe = tmp_path / "fake-bench.py"
+    exe.write_text(f"""
+import json, sys, time
+from pathlib import Path
+a = sys.argv[1:]
+def arg(flag): return a[a.index(flag) + 1]
+# Regression guard: without --output-json there is deliberately no report.
+if "--output-json" not in a:
+    print("no output requested")
+    sys.exit(0)
+data = {native!r}
+n, p, r = int(arg("-n")), int(arg("-p")), int(arg("-r"))
+data.update(plugin=arg("--plugin"), device=arg("--device"),
+            model_path=arg("-m"), cell_id=arg("--cell-id"))
+data["params"].update(warmup=int(arg("--warmup")), repetitions=r, n_prompt=p,
+    n_gen=n, temperature=float(arg("--temperature")), seed=int(arg("--seed")),
+    n_ctx=0 if arg("--plugin") == "qairt" else int(arg("-c")), n_threads=int(arg("-t")))
+data["runs"] = [dict(data["runs"][i % 3], gen_tokens=n, prompt_tokens=p) for i in range(r)]
+mode = Path(arg("-m")).name
+if mode.startswith("partial"):
+    data["runs"][-1].update(gen_tokens=n-1, stop_reason="eos")
+if mode.startswith("wrong"):
+    data["params"]["seed"] += 1
+if mode.startswith("nan"):
+    data["agg"]["decode_tps"]["median"] = float("nan")
+if mode.startswith("sleep"):
+    time.sleep(1)
+print("fake benchmark stdout", flush=True)
+print("fake benchmark stderr", file=sys.stderr, flush=True)
+if mode.startswith("absent"):
+    sys.exit(0)
+target = Path(arg("--output-json"))
+target.write_text("{{" if mode.startswith("broken") else json.dumps(data), encoding="utf-8")
+sys.exit(7 if mode.startswith("nonzero") else 0)
+""")
+    variant = t.Variant("qwen06-q4", str(model), "qwen3", "Q4_0", "llama_cpp", "llm")
+    return exe, variant, tmp_path
 
 
-def test_plan_rejects_unsupported_compiled_context():
-    v = _v(plugin="qairt", compiled_contexts=["1024"])
-    cells = plan_cells([v], SearchSpace(devices=("npu",),
-                                        contexts=(640,)))
-    assert cells[0].unsupported_reason  # -c 640 not registered
-    ok = _v(plugin="qairt", compiled_contexts=["4096"])
-    good = plan_cells([ok], SearchSpace(devices=("npu",), contexts=(4096,)))
-    assert good[0].unsupported_reason is None
+def _row(native, **overrides):
+    row = dict(t._parse_result_json(native, 128, 3), variant_id="qwen06-q4",
+        model_sha256="a" * 64, artifact_sha256={"model": "a" * 64}, architecture="qwen3",
+        quantization="Q4_0", kind="llm", plugin="llama_cpp", workload_id="b" * 64,
+        power_state="ac", power_scope="declared", runtime_sha256="c" * 64,
+        status="completed", gen_tokens=128, prompt_tokens=512, repeats=3, warmup=0)
+    row.update(overrides)
+    return row
 
 
-def test_vlm_requires_image_and_uses_native_flags():
-    bad = _v(kind="vlm", requiredimage=False, mmproj_path="/tmp/mm")
-    assert plan_cells([bad], SearchSpace())[0].unsupported_reason
-    ok = _v(kind="vlm", requiredimage=True, mmproj_path="/tmp/mm")
-    cmd = build_command("bench", ok, plan_cells([ok], SearchSpace())[0],
-                        SearchSpace(), image_path="/tmp/x.jpg")
-    assert "--vlm" in cmd and "--mmproj-path" in cmd and "--image" in cmd
-    with pytest.raises(TuningError):
-        build_command("bench", ok, plan_cells([ok], SearchSpace())[0], SearchSpace())
+def test_actual_native_schema_numeric_medians(native):
+    row = _row(native)
+    assert row["decode_tps"] == pytest.approx(95.950082)
+    assert row["prefill_tps"] == pytest.approx(1578.303262)
+    assert row["ttft_ms"] == pytest.approx(324.606)
+    assert row["latency_s"] == pytest.approx(1.658426)
+    assert row["full_length"] and row["run_count"] == 3
+    assert row["variability_ratio"] > 0
+    assert t.rank_results([row])[0]["score"] == pytest.approx(95.950082)
+    assert t.rank_results([row], "balanced")[0]["score"] == pytest.approx(1 / 1.658426)
 
 
-def test_batch_ubatch_refused_not_fabricated():
-    v = _v()
-    cell = plan_cells([v], SearchSpace())[0]
-    with pytest.raises(TuningError, match="planned"):
-        build_command("bench", v, cell, SearchSpace(batch=128))
-    with pytest.raises(TuningError, match="planned"):
-        build_command("bench", v, cell, SearchSpace(ubatch=128))
+def test_plan_rejects_coercion_and_unselectable_compiled_context(setup):
+    _, v, _ = setup
+    q = replace(v, plugin="qairt", compiled_contexts=(4096,))
+    cells = t.plan_cells([q], t.SearchSpace(devices=("cpu", "gpu", "npu", "hybrid"),
+                                           contexts=(2048, 4096)))
+    valid = [c for c in cells if c.unsupported_reason is None]
+    assert [(c.device, c.context) for c in valid] == [("npu", 4096)]
+    multi = replace(q, compiled_contexts=(2048, 4096))
+    assert all(c.unsupported_reason for c in t.plan_cells([multi], t.SearchSpace(devices=("npu",))))
 
 
-def test_command_has_exactly_the_supported_flags():
-    v = _v()
-    space = SearchSpace(threads=(4,), contexts=(2048,))
-    cmd = build_command("bench", v, plan_cells([v], space)[0], space)
-    for flag in ("-t", "-c", "-p", "-n"):
-        assert flag in cmd
-    assert "-b" not in cmd and "--batch-size" not in cmd
+def test_bounded_validated_search_and_batch_capability(setup):
+    _, v, _ = setup
+    for space in (t.SearchSpace(devices=()), t.SearchSpace(threads=(-1,)),
+                  t.SearchSpace(contexts=(0,)), t.SearchSpace(repeats=0),
+                  t.SearchSpace(threads=tuple(range(257)))):
+        with pytest.raises(t.TuningError):
+            t.plan_cells([v], space)
+    with pytest.raises(t.TuningError, match="duplicate"):
+        t.plan_cells([v, v], t.SearchSpace())
+    for axis in ("batch", "ubatch"):
+        space = t.SearchSpace(**{axis: 128})
+        cell = t.plan_cells([v], space)[0]
+        assert "planned" in cell.unsupported_reason
+        with pytest.raises(t.TuningError, match="unsupported"):
+            t.build_command("bench", v, cell, space)
 
 
-def test_ranking_skips_missing_metrics_instead_of_zero():
-    results = [
-        {"status": "completed", "complete_length_runs": 1,
-         "decode_tps": 10.0, "prefill_tps": 100.0, "repeats": 3},
-        {"status": "completed", "complete_length_runs": 1,
-         "decode_tps": None, "prefill_tps": None},
-        {"status": "failed"},
-        {"status": "completed", "complete_length_runs": 0,
-         "decode_tps": 99.0, "prefill_tps": 99.0},
-    ]
-    ranked = rank_results(results, objective="decode")
-    assert len(ranked) == 1
-    assert ranked[0]["decode_tps"] == 10.0
-    assert ranked[0]["provisional"] is False
+def test_llama_vlm_exact_flags_and_missing_artifacts(setup):
+    exe, v, root = setup
+    image, prompt, projector = [root / x for x in ("image.png", "prompt.txt", "projector.gguf")]
+    for p in (image, prompt, projector):
+        p.write_bytes(b"fixture")
+    v = replace(v, kind="vlm", mmproj_path=str(projector))  # kind itself requires image
+    space = t.SearchSpace()
+    cell = t.plan_cells([v], space)[0]
+    with pytest.raises(t.TuningError, match="image workload"):
+        t.build_command(exe, v, cell, space)
+    cmd = t.build_command(exe, v, cell, space, image, prompt, root / "result.json", "trial")
+    for flag, val in (("--mmproj-path", str(projector)), ("--image", str(image)),
+                      ("--prompt-file", str(prompt)), ("--output-json", str(root / "result.json"))):
+        assert cmd[cmd.index(flag) + 1] == val
+    assert "--vlm" in cmd and "--batch-size" not in cmd and "-b" not in cmd
+    projector.unlink()
+    with pytest.raises(t.TuningError, match="missing local artifact"):
+        t.build_command(exe, v, cell, space, image, prompt)
 
 
-def test_ranking_balanced_across_variants():
-    results = [
-        {"variant_id": "a", "status": "completed", "complete_length_runs": 1,
-         "decode_tps": 8.0, "prefill_tps": 400.0},
-        {"variant_id": "b", "status": "completed", "complete_length_runs": 1,
-         "decode_tps": 10.0, "prefill_tps": 20.0},
-    ]
-    ranked = rank_results(results, objective="balanced")
-    # harmonic means: a ~15.7 (8 decode / 400 prefill),
-    # b ~13.3 (10 decode / 20 prefill): the higher raw decode loses here
-    assert ranked[0]["variant_id"] == "a"
-    assert ranked[1]["variant_id"] == "b"
+def test_qairt_bundle_without_projector_wires_shared_options_and_tokenizer(setup):
+    exe, v, root = setup
+    bundle = root / "bundle"
+    bundle.mkdir()
+    (bundle / "context.bin").write_bytes(b"compiled context fixture")
+    image, prompt, tokenizer = [root / x for x in ("image.png", "prompt.txt", "tokenizer.json")]
+    for p in (image, prompt, tokenizer):
+        p.write_bytes(b"fixture")
+    q = replace(v, path=str(bundle), plugin="qairt", kind="vlm",
+                compiled_contexts=(4096,), tokenizer_path=str(tokenizer))
+    space = t.SearchSpace(devices=("npu",), warmup=2, repeats=3, temperature=0.2, seed=17)
+    cmd = t.build_command(exe, q, t.plan_cells([q], space)[0], space, image, prompt)
+    assert "--vlm" in cmd and "--mmproj-path" not in cmd
+    for flag, val in (("--tokenizer-path", str(tokenizer)), ("--warmup", "2"),
+                      ("-r", "3"), ("--temperature", "0.2"), ("--seed", "17")):
+        assert cmd[cmd.index(flag) + 1] == val
+    record = t.run_tuning(exe, [q], space, root / "qairt-run", image_path=image, prompt_file=prompt)
+    assert record["results"][0]["status"] == "completed"
+    assert record["results"][0]["reported_params"]["n_ctx"] == 0
+    assert record["recommended"]["context"] == 4096
 
 
-def test_export_recommended_writes_full_identity(tmp_path):
-    record = {"objective": "decode", "recommended": {
-        "variant_id": "m1", "plugin": "llama_cpp", "model_sha256": "abc",
-        "device": "cpu", "threads": 6, "context": 4096,
-        "gen_tokens": 128, "provisional": True}}
-    cfg = export_recommended(record, str(tmp_path / "rec.json"))
-    assert cfg["model"]["sha256"] == "abc"
-    on_disk = json.loads((tmp_path / "rec.json").read_text())
-    assert on_disk["tuning"]["threads"] == 6
-    assert on_disk["scope"]["provisional"] is True
+def test_fake_external_command_full_pipeline_incremental_record_and_export(setup):
+    exe, v, root = setup
+    out = root / "run"
+    calls = []
+
+    def progress(done, total):
+        disk = json.loads((out / "record.json").read_text())
+        assert len(disk["results"]) == done
+        assert disk["results"][-1]["status"] == "completed"
+        calls.append((done, total))
+
+    record = t.run_tuning(exe, [v], t.SearchSpace(threads=(0, 6), repeats=3), out,
+                          power_state="ac", progress=progress)
+    assert calls == [(1, 2), (2, 2)]
+    assert len(record["ranking"]) == 2 and record["recommended"]
+    assert len({r["result_path"] for r in record["results"]}) == 2
+    for row in record["results"]:
+        assert row["command"][row["command"].index("--output-json") + 1] == row["result_path"]
+        assert Path(row["result_path"]).is_file()
+        assert "fake benchmark stdout" in Path(row["log_path"]).read_text()
+        assert "fake benchmark stderr" in Path(row["log_path"]).read_text()
+        assert row["tokens_per_joule"] is None and not row["energy_valid"]
+    config = t.export_recommended(record, root / "recommended.json")
+    assert config["model"]["id"] == v.id
+    assert config["model_sha256"] == t._sha256(v.path)
+    assert config["scope"]["workload"]["gen_tokens"] == 128
+    assert config["provisional"] and config["requires_paired_confirmation"]
+    with pytest.raises(FileExistsError):
+        t.run_tuning(exe, [v], t.SearchSpace(), out)
 
 
-def test_fast_and_efficient_objectives():
-    results = [
-        {"status": "completed", "complete_length_runs": 1,
-         "decode_tps": 10.0, "prefill_tps": 20.0, "tokens_per_joule": 0.4},
-        {"status": "completed", "complete_length_runs": 1,
-         "decode_tps": 8.0, "prefill_tps": 400.0, "tokens_per_joule": 0.9},
-    ]
-    fast = rank_results(results, objective="fast")
-    assert fast[0]["decode_tps"] == 10.0
-    efficient = rank_results(results, objective="efficient")
-    assert efficient[0]["tokens_per_joule"] == 0.9
-    # efficient falls back to decode when tokens/J missing
-    no_energy = [{k: v for k, v in r.items() if k != "tokens_per_joule"}
-                 for r in results]
-    assert rank_results(no_energy, objective="efficient")[0]["decode_tps"] == 10.0
+@pytest.mark.parametrize("name,status", [
+    ("partial.gguf", "partial"), ("broken.gguf", "failed"), ("nan.gguf", "failed"),
+    ("absent.gguf", "failed"), ("wrong.gguf", "failed"), ("nonzero.gguf", "failed"),
+    ("sleep.gguf", "timeout"),
+])
+def test_bad_trials_persist_and_are_never_ranked(setup, name, status):
+    exe, v, root = setup
+    bad_path = root / name
+    bad_path.write_bytes(b"bad variant")
+    bad = replace(v, id="bad", path=str(bad_path))
+    rec = t.run_tuning(exe, [bad, v], t.SearchSpace(repeats=3), root / "run",
+                       timeout_s=0.1 if status == "timeout" else 5)
+    assert [r["status"] for r in rec["results"]] == [status, "completed"]
+    assert len(rec["ranking"]) == 1
+    assert rec["recommended"] is None  # cannot recommend globally across two weights
+    if status == "partial":
+        assert rec["results"][0]["complete_length_runs"] == 2
+        assert len(rec["results"][0]["runs"]) == 3
+    assert json.loads((root / "run/record.json").read_text())["results"][0]["status"] == status
 
 
-def test_variability_penalty_applies_only_when_present():
-    results = [
-        {"status": "completed", "complete_length_runs": 1, "decode_tps": 10.0,
-         "variability_ratio": 0.5},
-        {"status": "completed", "complete_length_runs": 1, "decode_tps": 9.0},
-    ]
-    assert rank_results(results, objective="decode")[0]["decode_tps"] == 10.0
-    penalized = rank_results(results, objective="decode", variability_penalty=1.0)
-    assert penalized[0]["decode_tps"] == 9.0  # 10 reduced to 5
+def test_missing_image_retained_as_failure_then_continues(setup):
+    exe, v, root = setup
+    vlm = replace(v, id="vlm", kind="vlm")
+    rec = t.run_tuning(exe, [vlm, v], t.SearchSpace(), root / "run")
+    assert [r["status"] for r in rec["results"]] == ["failed", "completed"]
+    assert "image" in rec["results"][0]["error"]
 
 
-def test_pareto_frontier_excludes_dominated_and_missing():
-    results = [
-        {"status": "completed", "decode_tps": 10.0, "prefill_tps": 100.0},
-        {"status": "completed", "decode_tps": 5.0, "prefill_tps": 50.0},   # dominated
-        {"status": "completed", "decode_tps": 1.0, "prefill_tps": 500.0},  # tradeoff
-        {"status": "completed", "decode_tps": None, "prefill_tps": 999.0}, # ineligible
-        {"status": "failed", "decode_tps": 99.0, "prefill_tps": 99.0},
-    ]
-    frontier = pareto_frontier(results)
-    ids = [(r["decode_tps"], r["prefill_tps"]) for r in frontier]
-    assert (5.0, 50.0) not in ids and len(ids) == 2
-    assert frontier[0]["decode_tps"] == 10.0
+def test_total_budget_prevents_later_launches(setup):
+    exe, v, root = setup
+    sleeper = root / "sleep.gguf"
+    sleeper.write_bytes(b"fixture")
+    rec = t.run_tuning(exe, [replace(v, path=str(sleeper))],
+                       t.SearchSpace(threads=(0, 6, 8)), root / "run", timeout_s=10, budget_s=0.05)
+    assert all(r["status"] == "timeout" for r in rec["results"])
+    assert sum("command" in r for r in rec["results"]) <= 1
+    assert not rec["ranking"]
 
 
-def test_energy_comparability_requires_same_workload_and_quant():
-    base = {"status": "completed", "gen_tokens": 128, "prompt_tokens": 512,
-            "quantization": "q4_k", "architecture": "x1e",
-            "tokens_per_joule": 0.5}
-    same = [dict(base), dict(base)]
-    assert _energy_comparable(same) is None
-    diff_gen = [dict(base), {**base, "gen_tokens": 64}]
-    assert "gen_tokens" in _energy_comparable(diff_gen)
-    diff_quant = [dict(base), {**base, "quantization": "q8"}]
-    assert "quantization" in _energy_comparable(diff_quant)
-    assert _energy_comparable([base]) is None
+def test_all_repeats_full_length_and_always_provisional(native):
+    good = _row(native)
+    bad = copy.deepcopy(native)
+    bad["runs"][-1].update(gen_tokens=2, stop_reason="eos")
+    partial = _row(bad)
+    short = _row(native, run_count=2)
+    ranked = t.rank_results([partial, short, good])
+    assert len(ranked) == 1 and ranked[0]["provisional"]
+    assert ranked[0]["requires_paired_confirmation"]
+    assert len(t.pareto_frontier([partial, short, good])) == 1
+
+
+@pytest.mark.parametrize("metric", [None, {}, {"median": 10}, float("nan"), float("inf"), 0, -1, True])
+def test_missing_or_invalid_metric_is_ineligible(native, metric):
+    row = _row(native, decode_tps=metric)
+    assert t.rank_results([row]) == []
+    assert t.pareto_frontier([row]) == []
+
+
+@pytest.mark.parametrize("field,new", [
+    ("model_sha256", "d" * 64), ("variant_id", "other"),
+    ("architecture", "llama"), ("quantization", "Q8_0"),
+    ("workload_id", "other-prompt"), ("power_state", "battery"),
+    ("artifact_sha256", {"model": "a" * 64, "mmproj": "different"}),
+])
+def test_no_cross_identity_ranking_or_pareto_dominance(native, field, new):
+    first = _row(native, decode_tps=10, prefill_tps=10)
+    second = _row(native, decode_tps=1000, prefill_tps=1000, **{field: new})
+    ranked = t.rank_results([first, second])
+    assert [r["rank"] for r in ranked] == [1, 1]
+    assert len({r["group_id"] for r in ranked}) == 2
+    assert len(t.pareto_frontier([first, second])) == 2
+
+
+def test_efficient_never_falls_back_or_mixes_energy_scopes(native):
+    missing = _row(native, decode_tps=100000, tokens_per_joule=999999)
+    valid = _row(native, energy_valid=True, energy_j=100, energy_duration_s=10,
+                 energy_channel="SYS", energy_scope="full_process_trial")
+    assert t.rank_results([missing], "efficient") == []
+    ranked = t.rank_results([missing, valid], "efficient")
+    assert len(ranked) == 1 and ranked[0]["score"] == pytest.approx(384 / 100)
+    for changes in ({"warmup": 1}, {"power_state": "unavailable"}, {"energy_j": 0},
+                    {"energy_scope": "decode_only"}, {"energy_valid": False},
+                    {"energy_duration_s": None}):
+        assert t.rank_results([{**valid, **changes}], "efficient") == []
+    rail = {**valid, "energy_channel": "GPU", "energy_j": 1}
+    assert [r["rank"] for r in t.rank_results([valid, rail], "efficient")] == [1, 1]
+
+
+def test_efficient_runner_has_no_recommendation_until_meter_is_connected(setup):
+    exe, v, root = setup
+    rec = t.run_tuning(exe, [v], t.SearchSpace(), root / "run", objective="efficient")
+    assert rec["results"][0]["status"] == "completed"
+    assert rec["recommended"] is None and rec["ranking"] == []
+
+
+def test_constraints_variability_and_balanced_latency(native):
+    a = _row(native, decode_tps=10, latency_s=2, variability_ratio=0.8)
+    b = _row(native, decode_tps=9, latency_s=1, variability_ratio=0.01)
+    assert t.rank_results([a, b], "fast")[0]["decode_tps"] == 10
+    assert t.rank_results([a, b], "balanced")[0]["decode_tps"] == 9
+    assert t.rank_results([a, b], variability_penalty=1)[0]["decode_tps"] == 9
+    assert len(t.rank_results([a, b], constraints={"rules": [["decode_tps", "min", 9.5]]})) == 1
+    assert t.rank_results([a], constraints={"rules": [["peak_working_set_mb", "max", 100]]}) == []
+    with pytest.raises(t.TuningError):
+        t.rank_results([a], constraints={"rules": [["decode_tps", "bogus", 1]]})
+
+
+def test_multi_variant_recommendation_requires_explicit_group(setup):
+    exe, v, root = setup
+    other = root / "other.gguf"
+    other.write_bytes(b"other weights")
+    record = t.run_tuning(exe, [v, replace(v, id="other", path=str(other), architecture="llama")],
+                          t.SearchSpace(), root / "run")
+    assert len(record["recommendations"]) == 2 and record["recommended"] is None
+    with pytest.raises(t.TuningError, match="select a group"):
+        t.export_recommended(record, root / "global.json")
+    group = next(iter(record["recommendations"]))
+    assert t.export_recommended(record, root / "scoped.json", group)["scope"]["group_id"] == group
+
+
+def test_malformed_native_shapes_and_media_latency(native):
+    for field, value in (("params", []), ("runs", {}), ("agg", [])):
+        bad = {**native, field: value}
+        with pytest.raises(t.TuningError):
+            t._parse_result_json(bad, 128, 3)
+    with_media = copy.deepcopy(native)
+    for run in with_media["runs"]:
+        run["media_us"] = 1000000
+    assert t._parse_result_json(with_media, 128, 3)["latency_s"] == pytest.approx(2.658426)
+
+
+def test_prompt_contents_and_projector_are_part_of_group_identity(setup):
+    exe, v, root = setup
+    prompt = root / "prompt.txt"
+    prompt.write_text("first prompt")
+    first = t.run_tuning(exe, [v], t.SearchSpace(), root / "one",
+                         prompt_file=prompt, power_state="ac")
+    prompt.write_text("different prompt")
+    second = t.run_tuning(exe, [v], t.SearchSpace(), root / "two",
+                          prompt_file=prompt, power_state="ac")
+    assert first["recommended"]["group_id"] != second["recommended"]["group_id"]
+    assert first["results"][0]["group_id"] == first["recommended"]["group_id"]
+    assert first["results"][0]["workload"]["prompt_file"] == str(prompt)
+
+
+@pytest.mark.parametrize("diagnostic", [None, {}, float("nan"), float("inf"), "unknown"])
+def test_invalid_optional_variability_never_poison_scores(native, diagnostic):
+    row = _row(native, variability_ratio=diagnostic)
+    assert t.rank_results([row])[0]["score"] == pytest.approx(95.950082)
+    assert t.rank_results([row], variability_penalty=0.1) == []

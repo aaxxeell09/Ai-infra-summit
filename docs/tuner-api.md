@@ -1,80 +1,162 @@
-# Tuner engine public API
+# Bounded tuner API (schema v2)
 
-turbo/tuning.py is the bounded tuner core. Stdlib only, no network and no
-hardware required for planning or tests. It plans a search space, constructs
-exact official-bench commands, runs them serially and ranks results.
+Public entry points: `Variant`, `SearchSpace`, `Cell`, `TuningError`,
+`plan_cells`, `build_command`, `rank_results`, `pareto_frontier`, `run_tuning`
+and `export_recommended` in `turbo.tuning`. Python 3.11+, standard library only.
+The HTTP service should execute the blocking runner in its worker thread/process.
 
-## Data classes
+```python
+from turbo.tuning import Variant, SearchSpace, run_tuning, export_recommended
 
-Variant.from_dict(dict) - model registry entry. Required fields: id, path,
-architecture, quantization, plugin (llama_cpp or qairt), kind (llm or vlm).
-Optional: tokenizer_path, mmproj_path, compiled_contexts, requiredimage.
+variants = [Variant.from_dict(v) for v in config["variants"]]
+space = SearchSpace.from_dict(config["search_space"])
+record = run_tuning(
+    bench_exe, variants, space, new_output_dir,
+    objective=config["objective"],
+    prompt_file=config.get("prompt_file"), image_path=config.get("image_path"),
+    timeout_s=config.get("timeout_s", 240), budget_s=config.get("budget_s", 600),
+    power_state=config.get("power_state", "unavailable"),
+    constraints=config.get("constraints"),
+    progress=lambda done, total: update_job(done, total),
+)
+if record["recommended"]:
+    export_recommended(record, recommended_path)
+```
 
-SearchSpace.from_dict(dict) - devices, threads, contexts, prompt/gen token
-counts, warmup, repeats. The batch and ubatch fields exist but raise
-TuningError when set: the current official bench binary supports only
--t -c -p -n, so no batch flag is ever fabricated.
+`power_state` is a caller declaration for the measured session, not a power
+measurement made by this module. Use `"unavailable"` unless it is known. Unknown
+power states are scoped to the current output directory so separate sessions
+cannot be pooled. A caller must split sessions when the power state changes.
 
-## Functions
+## Registry, planning and native command
 
-    from turbo.tuning import (
-        Variant, SearchSpace, Cell, TuningError,
-        plan_cells, build_command, rank_results, run_tuning, export_recommended,
-    )
+`Variant.from_dict(d)` takes required `id`, `path`, `architecture` (model
+architecture), `quantization`, `plugin` (`llama_cpp`/`qairt`), and `kind`
+(`llm`/`vlm`). Optional: `tokenizer_path`, `mmproj_path`, `compiled_contexts`
+(integer context sizes) and `requiredimage`. Paths must be local artifacts.
+No model-manager ids are sent to the benchmark.
 
-plan_cells(variants, space) -> list[Cell]
-    Enumerates every (variant, device, threads, context) combination. Invalid
-    combinations keep an unsupported_reason so they stay visible instead of
-    being dropped or coerced: qairt on cpu/gpu, context outside registered
-    compiled_contexts, and VLM variants without an image workload.
+`SearchSpace.from_dict(d)` accepts `devices`, `threads`, `contexts`,
+`prompt_tokens`, `gen_tokens`, `warmup`, `repeats`, `temperature`, `seed`,
+`batch`, `ubatch`, and reserved `energy_channel`.
 
-build_command(bench_exe, variant, cell, space, image_path=None, prompt_file=None) -> list[str]
-    The exact official-bench invocation. Raises TuningError for batch/ubatch
-    requests or unsupported cells. VLM runs add --vlm --mmproj-path <path>
-    --image <path> plus --prompt-file when a prompt file is supplied.
+`plan_cells(variants, space, max_cells=256)` validates axes and caps the
+Cartesian product before allocating it. Unsupported combinations remain visible
+as `Cell.unsupported_reason`. `batch`/`ubatch` are unsupported planned SDK
+capabilities; no batch flags are emitted. QAIRT accepts only explicit NPU cells.
 
-rank_results(results, objective, constraints=None, variability_penalty=0.0) -> list[dict]
-    objective is decode, prefill, balanced (harmonic mean of decode and
-    prefill), fast (max decode) or efficient (tokens/J when present, decode
-    otherwise). Only completed cells with at least one full-length run are
-    ranked; missing metrics make a cell ineligible rather than scoring zero.
-    variability_penalty in [0,1] discounts the score by the cell's
-    variability_ratio (std/mean of run decode tps) when present. Each ranked
-    row gains rank, score, objective and a provisional flag (true unless the
-    cell recorded 3+ repeats). No thermal or power-state cause is ever
-    inferred from variability.
+**QAIRT context is compiled into the bundle.** The captured official
+`benchmark.c` forces its runtime `n_ctx` to zero. Each QAIRT variant therefore
+requires exactly one registered compiled context and a bundle directory; every
+other context is rejected. Register a distinct variant/path per compiled
+context. `-c` is preserved in the command for reproducibility but does not
+select or recompile a QAIRT context. Its report's `params.n_ctx=0` is retained.
 
-pareto_frontier(results, axes=("decode_tps", "prefill_tps")) -> list[dict]
-    Cells not dominated on the given axes (higher is better). Missing metrics
-    make a cell ineligible. Sorted by the first axis descending.
+`build_command(exe, variant, cell, space, image_path=None, prompt_file=None,
+output_json=None, cell_id=None)` emits supported native flags:
 
-run_tuning(bench_exe, variants, space, output_dir, objective,
-image_path=None, prompt_file=None, timeout_s=240, progress=None) -> dict
-    Serial sweep with a unique per-cell output JSON under output_dir,
-    timeout_s per subprocess, and a progress(done, total) callback after
-    every cell. Returns schema_version, objective, cells_planned, cells_run,
-    results, ranking, pareto_frontier, recommended, energy_comparability and
-    standing caveats.
+- Both plugins receive `--plugin --device -m -t -c -p -n -r --warmup
+  --temperature --seed`.
+- A registered tokenizer is passed using `--tokenizer-path`.
+- VLM requires image and prompt files and receives `--vlm --image --prompt-file`.
+  `llama_cpp` also requires `--mmproj-path`. QAIRT VLM may use a self-contained
+  bundle without a separate projector.
+- QAIRT LLM also requires `--prompt-file`: the captured runner identifies QAIRT
+  as rejecting random input ids. Prompt-file token counts, including QAIRT
+  padding, come from the native report; requested `-p` is not a measured count.
+- The runner always supplies `--output-json` with a unique trial target and
+  `--cell-id`. Prompt files are wired for LLM as well as VLM.
 
-## Energy comparability
+Support was checked against the locally captured official GenieX `options.c`,
+`benchmark.c`, and `run.c` in the parent's `local/geniex-research/`. The raw
+schema-4 fixture is `benchmarks/results/screen-01/cpu-t0.json`. These changes
+were verified offline; no native hardware validation or new network experiments
+were performed.
 
-SearchSpace accepts an optional energy_channel name (for example SYS) that a
-caller-side meter fills into per-cell tokens_per_joule. tokens/J is valid
-only for the same workload (same prompt/gen tokens) on the same model
-quantization and architecture, measured over the full trial interval
-including model load. run_tuning reports energy_comparability across cells
-and states a violation rather than silently comparing across workloads.
+## Runner and failure handling
 
-export_recommended(record, path) -> dict
-    Writes the recommended config JSON: model variant id, plugin, sha256
-    checksum, tuned device/threads/context, and scope (objective, gen_tokens,
-    provisional).
+`run_tuning(exe, variants, space, output_dir, objective="decode",
+image_path=None, prompt_file=None, timeout_s=240, progress=None, *,
+budget_s=600, constraints=None, power_state="unavailable",
+variability_penalty=0.0)`:
 
-## HTTP embedding and model identity
+- Requires a new output directory (`exist_ok=False`), with numbered trial
+  directories containing `bench.log` (stdout and stderr) and `result.json`.
+  Existing directories fail before execution; old results cannot be reused.
+- Runs serially, bounding each subprocess by the smaller of its timeout and
+  the remaining total budget. Model/runtime/workload hashing is included in the
+  budget and checks the deadline between chunks.
+- Atomically writes `record.json` before execution and after each trial.
+  Missing artifacts, build errors, bad JSON, exit failures, short output and
+  timeouts remain visible. One bad trial does not abort the remaining cells.
+  A failed progress callback propagates after evidence has been saved.
+- Preserves per-run results and native reported parameters. Numeric metrics
+  use `agg.<metric>.median`, never an aggregate object. Successful completion
+  requires every requested measured repetition to finish at the requested
+  token count with `stop_reason="length"` and matching native parameters,
+  requested plugin/device, model path and trial id.
+- SHA256 hashes individual files normally. Bundle directories use a sorted
+  manifest digest of relative names (NUL-terminated) and each file's binary
+  SHA256. Tokenizer/projector hashes are included separately. Artifacts must
+  remain immutable throughout a sweep; fingerprints are cached within it.
 
-run_tuning is a plain callable and blocks until the sweep finishes or the
-budget expires, so wrap it in any HTTP handler thread. The parent service
-owns routing and supervision; this module owns planning, command
-construction, execution and ranking. Model identity is preserved per cell:
-each result row stores the variant id and the model sha256, and rankings
-never compare across different weights.
+`results` contains chart-ready per-cell rows, failures included. `ranking`
+contains a flat list of **separate groups**; `rank` starts at 1 in each group.
+`recommendations` maps each `group_id` to its scoped winner. `recommended` is
+populated only when the entire sweep has exactly one comparison group.
+`pareto_frontier` contains eligible non-dominated cells within those same groups.
+No quality calibration or winner across different weights is inferred.
+
+## Eligibility, objectives and export
+
+Groups explicitly include variant id, model SHA256, model architecture,
+quantization, plugin/kind, artifact SHA256s, workload fingerprint, power state
+and its scope, and runtime SHA256. Workload fingerprints include prompt/image
+content, requested lengths, repetitions, warmup, seed and temperature. Runtime
+axes (threads/device/context) are excluded so they can be tuned within a group.
+
+`rank_results(results, objective="decode", constraints=None,
+variability_penalty=0.0)` requires `status="completed"`, all repeats full length,
+and complete grouping metadata. Missing, nonfinite, nonnumeric or nonpositive
+required metrics are ineligible.
+
+- `decode` / `fast`: maximize median decode tokens/s.
+- `prefill`: maximize median prefill tokens/s.
+- `balanced`: minimize median native profile latency
+  `(media_us + prompt_time_us + decode_time_us) / 1e6`. Its score is the reciprocal
+  in 1/s; this includes encoding, prefill and decode, excluding model loading.
+- `efficient`: maximize full-process generated tokens/J. **No decode fallback.**
+
+Constraints use `{"rules": [["decode_tps", "min", 80],
+["peak_working_set_mb", "max", 8000]]}`; missing constrained metrics exclude a
+row. This runner leaves memory/energy unavailable rather than inventing them.
+Energy capture from the parent telemetry layer is deliberately not integrated
+in this correction. Setting `energy_channel` alone does not enable it, and an
+`efficient` sweep consequently returns no recommendation.
+
+An external telemetry adapter may supply `energy_valid=true`, positive
+`energy_j` and `energy_duration_s`, `energy_scope="full_process_trial"`, a
+named `energy_channel`, known AC/battery state and `warmup=0` on otherwise
+eligible rows. Efficiency is derived from full-length token counts divided by
+measured joules. A bare `tokens_per_joule` field is insufficient. Missing,
+stale/reset, partial-interval or warmup-unaccounted measurements must never be
+marked valid. Energy comparisons also separate scope and channel; rails are
+never summed or labeled as wall-socket energy.
+
+Optional variability penalty divides the objective score by
+`1 + penalty * variability_ratio`, with the ratio derived from per-run decode
+standard deviation / mean. Requesting the penalty requires that diagnostic.
+This is observed run variation, not evidence of a thermal cause.
+
+`pareto_frontier(results, axes=("decode_tps", "prefill_tps"))` applies the same
+full-length and identity eligibility, with higher-is-better axes. Including
+`"tokens_per_joule"` requires the same valid energy evidence as `efficient`.
+
+All recommendations are `provisional=true` and
+`requires_paired_confirmation=true`, regardless of repetition count. Independent
+repetitions do not establish paired confirmation.
+
+`export_recommended(record, path, group_id=None)` writes the registered model
+and artifact hashes, plugin, device, threads, context and complete workload,
+power/runtime/objective scope. For multiple groups, the caller must choose
+`group_id`; exporting a global recommendation raises `TuningError`.
