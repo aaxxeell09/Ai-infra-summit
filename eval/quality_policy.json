@@ -1,0 +1,14 @@
+{
+  "max_accuracy_drop_points": 3,
+  "max_category_drop_points": 10,
+  "critical_categories": [
+    "ambiguous",
+    "unsupported",
+    "destructive",
+    "move"
+  ],
+  "critical_tools": [
+    "clarify",
+    "move_file"
+  ]
+}

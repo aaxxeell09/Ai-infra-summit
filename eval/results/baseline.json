@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "type": "baseline",
+  "status": "not_measured",
+  "scope": "first_action_intent",
+  "protocol_version": "toolwire-first-action-v1",
+  "git_commit": "f8f27ccb520e7a4cc1eca0a062fe4742e28a76b2",
+  "branch": "main",
+  "application_worktree_at_capture": "clean before evaluation files were added",
+  "timestamp": "2026-09-15T21:59:39.687929+00:00",
+  "total_prompts": 50,
+  "development_prompts": 35,
+  "heldout_prompts": 15,
+  "metrics": null,
+  "config": null,
+  "comparison": {
+    "status": "NOT_EVALUATED"
+  },
+  "application_sources_sha256": {
+    "turbo/action_codec.py": "4b49dbc4ea977fa9b276580e6b4c17194421db83986eb89499f37de4b9771c90",
+    "turbo/native.py": "bde559efa743abdbccb52f65339ce3eeb22d6a5baabc583d87479cb7e858f67f",
+    "turbo/policy.py": "3b103d7321b06f1a0ad64653025d0d5beb80746819c103039084ea6c583c71c3"
+  },
+  "blockers": [
+    "turbo/secretary.py and production file executor absent in this commit.",
+    "No verified native Windows ARM64 SDK/model configuration available in this Mac session.",
+    "Snapdragon SSH host fingerprint/authentication still unverified; no real inference run performed."
+  ],
+  "run_command": "python eval/run_secretary_eval.py --dataset all --candidate-name reference --config local/secretary-config.json --freeze-baseline --output-dir local/reference"
+}
