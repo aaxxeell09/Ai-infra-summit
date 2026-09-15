@@ -82,6 +82,25 @@ class StateTests(unittest.TestCase):
         self.clock.now += 6
         self.assertFalse(self.hub.snapshot()["board"]["connected"])
 
+    def test_inspection_image_does_not_change_with_live_camera(self):
+        self.hub.inspect(PNG)
+        original_id = self.hub.snapshot()["inspection_frame_id"]
+        self.hub.frame(PNG)
+        self.assertNotEqual(original_id, self.hub.snapshot()["frame_id"])
+        self.assertEqual(original_id, self.hub.snapshot()["inspection_frame_id"])
+        self.finish()
+        self.assertEqual(original_id, self.hub.snapshot()["events"][0]["frame_id"])
+        self.hub.clear()
+        with self.assertRaises(InspectionError): self.hub.image_snapshot(inspected=True)
+
+    def test_board_telemetry_validates_and_marks_stale_reports(self):
+        self.hub.heartbeat("uno-q", 29, 2, {"inspect": 1, "clear": 0, "preset": 2})
+        self.assertEqual(self.hub.snapshot()["board"]["mcu_status"], 2)
+        self.clock.now += 6
+        self.assertFalse(self.hub.snapshot()["board"]["connected"])
+        for payload in ({"modules_mask": True}, {"mcu_status": 5}, {"controls": {"inspect": -1}}):
+            with self.assertRaises(InspectionError): self.hub.heartbeat("uno-q", **payload)
+
     def test_malformed_model_output_is_not_an_ok(self):
         for text in ['OK', '{"status":"OK"}', '{"status":"GREEN","explanation":"yes"}',
                      '{"status":"OK","explanation":"yes","command":"run"}']:

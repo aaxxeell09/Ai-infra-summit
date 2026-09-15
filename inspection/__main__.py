@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import ipaddress
 import json
 import mimetypes
@@ -60,6 +61,10 @@ class Handler(BaseHTTPRequestHandler):
             path = urlsplit(self.path).path
             if path == "/api/state":
                 return self._reply(200, self.server.hub.snapshot())
+            if path in ("/api/frame", "/api/inspection-frame"):
+                image = self.server.hub.image_snapshot(path == "/api/inspection-frame")
+                header, encoded = image.split(",", 1)
+                return self._reply(200, base64.b64decode(encoded), header[5:].split(";")[0])
             static = {"/": "index.html", "/index.html": "index.html", "/app.js": "app.js", "/styles.css": "styles.css"}
             if path not in static:
                 return self._reply(404, {"error": "Not found."})
@@ -97,7 +102,8 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/clear":
                 return self._reply(200, hub.clear())
             if path == "/api/board/heartbeat":
-                return self._reply(200, hub.heartbeat(data.get("device_id")))
+                return self._reply(200, hub.heartbeat(data.get("device_id"), data.get("modules_mask"),
+                    data.get("mcu_status"), data.get("controls")))
             return self._reply(404, {"error": "Not found."})
         except (InspectionError, ValueError, UnicodeError) as error:
             self._reply(getattr(error, "status", 400), {"error": str(error)})

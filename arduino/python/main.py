@@ -75,8 +75,11 @@ class HubClient:
             raise ValueError("Oversized hub response")
         return json.loads(raw)
 
-    def heartbeat(self):
-        return self.request("/api/board/heartbeat", {"device_id": "uno-q"})
+    def heartbeat(self, payload=None):
+        body = {"device_id": "uno-q"}
+        if isinstance(payload, dict):
+            body.update(payload)
+        return self.request("/api/board/heartbeat", body)
 
     def state(self):
         return self.request("/api/state")
@@ -89,6 +92,10 @@ class SimulationBridge:
     def call(self, method, *args, **kwargs):
         if method == "get_action":
             return self.queue.pop(0) if self.queue else 0
+        if method == "get_modules":
+            return 0   # simulated board reports no known modules
+        if method == "get_status":
+            return STATUS_IDLE
         if method == "set_status":
             logger.info("[SIM] %s ttl=%s ms", STATUS_NAMES[args[0]], args[1])
             return True
@@ -101,6 +108,55 @@ class Client:
         self.heartbeat_s = heartbeat_s
         self.next_heartbeat = 0
         self.last_status = None
+        # Cached inventory: get_modules is probed at the first heartbeat and
+        # re-probed only while unknown, never on every 100 ms loop pass.
+        self.modules_mask = None
+        self.next_module_probe = 0.0
+        self.mcu_status = None
+        # Cumulative counts of real get_action events, never HTTP-driven calls.
+        self.controls = {"inspect": 0, "clear": 0, "preset": 0}
+
+    def telemetry(self):
+        # Hub contract: modules_mask 0..63 or null, mcu_status 0..4 or null.
+        # null means "not observed this cycle", never a fabricated zero.
+        return {
+            "modules_mask": self.modules_mask if type(self.modules_mask) is int and 0 <= self.modules_mask <= 63 else None,
+            "mcu_status": self.mcu_status,
+            "controls": dict(self.controls),
+        }
+
+    def probe_modules(self):
+        now = time.monotonic()
+        if self.modules_mask is not None and now < self.next_module_probe:
+            return
+        try:
+            mask = self.bridge.call("get_modules", timeout=0.5)
+        except Exception:
+            mask = None
+        if type(mask) is int and 0 <= mask <= 65535:
+            if mask != self.modules_mask:
+                logger.info("board modules mask: %s", mask)
+            self.modules_mask = mask
+            self.next_module_probe = now + 30.0
+        else:
+            # Unknown inventory must not be invented; retry shortly.
+            self.next_module_probe = now + 3.0
+
+    def refresh_mcu_status(self):
+        try:
+            status = self.bridge.call("get_status", timeout=0.5)
+        except Exception:
+            self.mcu_status = None
+            return
+        self.mcu_status = status if type(status) is int and 0 <= status <= STATUS_UNKNOWN else None
+
+    def record_action(self, code):
+        if code == ACTION_INSPECT:
+            self.controls["inspect"] += 1
+        elif code == ACTION_CLEAR:
+            self.controls["clear"] += 1
+        elif code in (ACTION_CYCLE, ACTION_KNOB):
+            self.controls["preset"] += 1
 
     def push_status(self, status, ttl_ms=3000):
         # Retries use a NEW hub snapshot on the next heartbeat. Never resend
@@ -139,13 +195,22 @@ class Client:
         now = time.monotonic()
         if now >= self.next_heartbeat:
             self.next_heartbeat = now + self.heartbeat_s
-            self.accept_response(*self.hub.heartbeat())
-        try:
-            code, direction = decode_action(self.bridge.call("get_action", timeout=1))
-        except Exception:
-            return
-        if code == ACTION_NONE:
-            return
+            self.probe_modules()
+            self.refresh_mcu_status()
+            self.accept_response(*self.hub.heartbeat(self.telemetry()))
+        # The sketch queues events in a small ring; drain them so a knob turn
+        # and a button press inside the same 100 ms window are both handled.
+        for _ in range(8):
+            try:
+                code, direction = decode_action(self.bridge.call("get_action", timeout=1))
+            except Exception:
+                return
+            if code == ACTION_NONE:
+                return
+            self.record_action(code)
+            self.handle_action(code, direction)
+
+    def handle_action(self, code, direction):
         logger.info("physical control: action=%s direction=%s", code, direction)
         # Invalidate a displayed OK immediately on operator action.
         self.push_status(STATUS_INSPECTING if code == ACTION_INSPECT else STATUS_UNKNOWN)

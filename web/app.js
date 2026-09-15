@@ -12,6 +12,10 @@
   var el = {
     conn: document.getElementById('conn-pill'),
     video: document.getElementById('video'),
+    hubCamera: document.getElementById('hub-camera'),
+    cameraAge: document.getElementById('camera-age'),
+    evidenceWrap: document.getElementById('evidence-wrap'),
+    evidenceImage: document.getElementById('evidence-image'),
     videoPlaceholder: document.getElementById('video-placeholder'),
     btnCamera: document.getElementById('btn-camera'),
     btnSnapshot: document.getElementById('btn-snapshot'),
@@ -26,6 +30,9 @@
     requestId: document.getElementById('request-id'),
     instructionVersion: document.getElementById('instruction-version'),
     boardState: document.getElementById('board-state'),
+    mcuState: document.getElementById('mcu-state'),
+    moduleState: document.getElementById('module-state'),
+    controlCounts: document.getElementById('control-counts'),
     runtimeState: document.getElementById('runtime-state'),
     backendEvidence: document.getElementById('backend-evidence'),
     counters: document.getElementById('counters'),
@@ -53,6 +60,8 @@
   var frameChain = Promise.resolve();
   var frameQueued = false; // a frame post is queued or in flight
   var cameraGen = 0; // bumped on stop; queued camera frames from older generations are dropped
+  var lastHubFrame = null;
+  var lastEvidenceFrame = null;
 
   function setText(node, value) {
     node.textContent = (value === null || value === undefined || value === '') ? '\u2014' : String(value);
@@ -262,14 +271,13 @@
   }
 
   function inspect() {
-    if (inspectBusy || serverBusy || !connected || !pendingFrame) return;
+    if (inspectBusy || serverBusy || !connected || (!pendingFrame && !(state && state.frame_ready))) return;
     if (state && (state.busy === true || state.status === 'INSPECTING')) return;
     if (camera.enabled) {
       var fresh = captureVideoFrame();
       if (fresh) setPendingFrame(fresh, 'camera'); // inspect always sees the live scene
     }
-    if (!pendingFrame) return;
-    var image = pendingFrame.dataUrl;
+    var image = pendingFrame ? pendingFrame.dataUrl : null;
     var sentInstruction = el.instruction.value.trim();
     var applyFirst = null;
     if (instructionDiffersFromServer()) {
@@ -284,7 +292,7 @@
           return;
         }
       }
-      return postJSON('/api/inspect', { image: image });
+      return postJSON('/api/inspect', image ? { image: image } : {});
     }).then(function (res) {
       if (!res) return; // apply-first was rejected and cancelled the inspection
       if (res.status === 409) {
@@ -378,6 +386,9 @@
     setText(el.explanation, 'Connection lost \u2014 the last result may be stale and is hidden until the server responds.');
     el.conn.textContent = 'Offline';
     el.conn.className = 'pill pill-down';
+    el.hubCamera.hidden = true;
+    el.evidenceWrap.hidden = true;
+    setText(el.mcuState, 'Unverified: connection lost');
     renderButtons();
   }
 
@@ -405,6 +416,35 @@
       ? 'Online' + (board.device_id ? ' \u00b7 ' + board.device_id : '') +
         ((board.last_seen_seconds !== null && board.last_seen_seconds !== undefined) ? ' \u00b7 last seen ' + Number(board.last_seen_seconds).toFixed(1) + 's ago' : '')
       : 'Offline';
+    var names = ['IDLE', 'INSPECTING', 'OK', 'CHECK', 'UNKNOWN'];
+    setText(el.mcuState, board.connected && Number.isInteger(board.mcu_status)
+      ? names[board.mcu_status] + ' (device report)' : 'Unverified');
+    var moduleNames = [[1, 'Buttons'], [2, 'Pixels'], [4, 'Knob'], [8, 'Vibro'], [16, 'Matrix'], [32, 'Buzzer']];
+    setText(el.moduleState, board.connected && Number.isInteger(board.modules_mask)
+      ? moduleNames.filter(function (m) { return board.modules_mask & m[0]; }).map(function (m) { return m[1]; }).join(', ') || 'None'
+      : 'Unverified');
+    var controls = board.controls || {};
+    setText(el.controlCounts, board.connected ? 'Inspect ' + (controls.inspect || 0) + ', clear ' + (controls.clear || 0) + ', preset ' + (controls.preset || 0) : 'Unverified');
+
+    el.hubCamera.hidden = camera.enabled || !s.frame_ready;
+    if (!camera.enabled && s.frame_ready) {
+      el.video.hidden = true;
+      el.videoPlaceholder.hidden = true;
+      if (lastHubFrame !== s.frame_id) {
+        lastHubFrame = s.frame_id;
+        el.hubCamera.src = '/api/frame?id=' + encodeURIComponent(s.frame_id);
+      }
+    } else if (!camera.enabled) {
+      el.videoPlaceholder.hidden = false;
+      el.videoPlaceholder.textContent = 'No fresh station image';
+    }
+    setText(el.cameraAge, s.frame_ready ? 'Station image received ' + (s.frame_age_ms / 1000).toFixed(1) + 's ago'
+      : 'No fresh image. Start the camera on the station or upload an image.');
+    el.evidenceWrap.hidden = !s.inspection_frame_id;
+    if (s.inspection_frame_id && lastEvidenceFrame !== s.inspection_frame_id) {
+      lastEvidenceFrame = s.inspection_frame_id;
+      el.evidenceImage.src = '/api/inspection-frame?id=' + encodeURIComponent(s.inspection_frame_id);
+    }
 
     var runtime = s.runtime || {};
     el.runtimeState.textContent = runtime.connected
@@ -481,7 +521,7 @@
 
   function renderButtons() {
     var busy = inspectBusy || serverBusy || (state && (state.busy === true || state.status === 'INSPECTING'));
-    el.btnInspect.disabled = !connected || !pendingFrame || !!busy;
+    el.btnInspect.disabled = !connected || (!pendingFrame && !(state && state.frame_ready)) || !!busy;
     el.btnClear.disabled = !connected || (!!state && state.status === 'IDLE');
     el.btnApply.disabled = !connected;
     updateInstructionPending();

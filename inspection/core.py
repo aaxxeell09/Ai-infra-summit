@@ -117,10 +117,12 @@ class Hub:
         self.latency_ms = None
         self.started = self.expires = 0.0
         self.image, self.frame_at, self.frame_id = None, 0.0, None
+        self.inspection_image, self.inspection_frame_id = None, None
         self.busy = False
         self.runtime_connected = False
         self.backend_evidence = "unverified"
         self.board_id, self.board_seen = None, None
+        self.board_telemetry = {"modules_mask": None, "mcu_status": None, "controls": {}}
         self.events = deque(maxlen=30)
         self.counters = {"inspections": 0, "completed": 0, "unknown": 0}
 
@@ -137,11 +139,20 @@ class Hub:
             self._invalidate("Camera input stopped. Provide a fresh image.")
         return self.snapshot()
 
+    def image_snapshot(self, inspected=False):
+        """Return an in-memory image for local viewing, never a disk recording."""
+        with self.lock:
+            image = self.inspection_image if inspected else self.image
+            if image is None:
+                raise InspectionError("No image is available.", 404)
+            return image
+
     def _unknown(self, reason: str):
         self.status, self.explanation, self.expires = "UNKNOWN", reason, 0
 
     def _record(self):
         self.events.appendleft({"request_id": self.request_id, "status": self.status,
+            "frame_id": self.inspection_frame_id, "instruction": self.instruction,
             "explanation": self.explanation, "latency_ms": self.latency_ms,
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
         self.counters["completed"] += 1
@@ -155,6 +166,7 @@ class Hub:
         else:
             self._unknown(reason)
         self.request_id = None
+        self.inspection_image, self.inspection_frame_id = None, None
 
     def instruction_set(self, instruction: object, preset_id=None):
         if not isinstance(instruction, str) or not instruction.strip() or len(instruction) > 1200:
@@ -180,11 +192,21 @@ class Hub:
             self.status, self.explanation = "IDLE", "Ready for a new inspection."
         return self.snapshot()
 
-    def heartbeat(self, device_id: object):
+    def heartbeat(self, device_id: object, modules_mask=None, mcu_status=None, controls=None):
         if not isinstance(device_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", device_id):
             raise InspectionError("Invalid device identity.")
+        if modules_mask is not None and (type(modules_mask) is not int or not 0 <= modules_mask <= 63):
+            raise InspectionError("Invalid module inventory.")
+        if mcu_status is not None and (type(mcu_status) is not int or not 0 <= mcu_status <= 4):
+            raise InspectionError("Invalid MCU status.")
+        if controls is not None and (not isinstance(controls, dict) or
+                any(k not in ("inspect", "clear", "preset") or type(v) is not int or not 0 <= v <= 2**53-1
+                    for k, v in controls.items())):
+            raise InspectionError("Invalid physical control counts.")
         with self.lock:
             self.board_id, self.board_seen = device_id, self.clock()
+            self.board_telemetry = {"modules_mask": modules_mask, "mcu_status": mcu_status,
+                "controls": dict(controls or {})}
         return self.snapshot()
 
     def inspect(self, image=None):
@@ -201,6 +223,7 @@ class Hub:
             self.busy = True
             self.status, self.explanation = "INSPECTING", "Checking the current image locally."
             self.request_id = uuid.uuid4().hex
+            self.inspection_image, self.inspection_frame_id = self.image, self.frame_id
             self.started, self.expires, self.latency_ms = self.clock(), 0, None
             self.counters["inspections"] += 1
             args = (self.request_id, self.version, self.image, self.instruction, self.started)
@@ -240,8 +263,12 @@ class Hub:
                 "request_id": self.request_id, "explanation": self.explanation,
                 "latency_ms": self.latency_ms, "expires_in_ms": max(0, round((self.expires - now)*1000)),
                 "busy": self.busy, "frame_ready": self.image is not None and now-self.frame_at <= self.frame_ttl,
+                "frame_id": self.frame_id,
+                "frame_age_ms": None if self.image is None else max(0, round((now-self.frame_at)*1000)),
+                "inspection_frame_id": self.inspection_frame_id,
                 "runtime": {"base_url": self.client.base_url, "model": self.client.model,
                     "connected": self.runtime_connected, "backend_evidence": self.backend_evidence},
                 "board": {"connected": board_age is not None and board_age < 5,
-                    "device_id": self.board_id, "last_seen_seconds": board_age},
+                    "device_id": self.board_id, "last_seen_seconds": board_age,
+                    **self.board_telemetry},
                 "counters": dict(self.counters), "events": list(self.events), "presets": PRESETS}

@@ -20,6 +20,7 @@
     <h2 id="capture-heading">Capture</h2>
     <div class="video-wrap">
       <video id="video" playsinline muted></video>
+      <img id="hub-camera" alt="Latest frame received from the station camera" hidden>
       <div id="video-placeholder" class="video-placeholder">Camera off</div>
     </div>
     <div class="btn-row">
@@ -35,6 +36,12 @@
       <img id="preview" alt="Latest captured frame" hidden>
       <div id="preview-empty" class="preview-empty">No frame captured yet</div>
     </div>
+    <p id="camera-age" class="meta"></p>
+    <details id="evidence-wrap" hidden>
+      <summary>Image used for this result</summary>
+      <img id="evidence-image" class="evidence-image" alt="Exact captured image sent for the current inspection">
+      <p class="meta">The result describes this captured image. Live video may have changed.</p>
+    </details>
   </section>
 
   <section class="card card-status" aria-labelledby="status-heading">
@@ -46,6 +53,8 @@
     <dl class="kv">
       <dt>Request latency</dt><dd id="latency">&mdash;</dd>
       <dt>Board</dt><dd id="board-state">&mdash;</dd>
+      <dt>MCU display</dt><dd id="mcu-state">&mdash;</dd>
+      <dt>Modules detected</dt><dd id="module-state">&mdash;</dd>
       <dt>Runtime</dt><dd id="runtime-state">&mdash;</dd>
     </dl>
     <details class="diagnostics">
@@ -55,8 +64,10 @@
       <dt>Instruction version</dt><dd id="instruction-version">&mdash;</dd>
       <dt>Backend evidence</dt><dd id="backend-evidence">&mdash;</dd>
       <dt>Counters</dt><dd id="counters">&mdash;</dd>
+      <dt>Physical controls</dt><dd id="control-counts">&mdash;</dd>
     </dl>
     </details>
+    <p class="meta">A: inspect. B: clear. C or knob: change preset. Matrix: result. Vibro: state change.</p>
     <div class="btn-row">
       <button id="btn-inspect" class="btn btn-primary" type="button" disabled>Inspect</button>
       <button id="btn-clear" class="btn" type="button" disabled>Clear</button>

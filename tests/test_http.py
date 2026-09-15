@@ -43,5 +43,15 @@ class HttpTests(unittest.TestCase):
     def test_network_binding_requires_token(self):
         with self.assertRaises(ValueError): make_server("0.0.0.0", 0, self.hub)
 
+    def test_image_endpoint_preserves_type_and_origin_checks(self):
+        self.hub.frame(PNG)
+        with urllib.request.urlopen(self.url + "/api/frame") as response:
+            self.assertEqual(response.headers["Content-Type"], "image/png")
+            self.assertTrue(response.read().startswith(b"\x89PNG"))
+        request = urllib.request.Request(self.url + "/api/frame", headers={"Origin": "https://untrusted.example"})
+        with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(request)
+        self.assertEqual(error.exception.code, 403)
+        error.exception.close()
+
 
 if __name__ == "__main__": unittest.main()

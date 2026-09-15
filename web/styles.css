@@ -308,3 +308,5 @@ textarea:focus, .btn:focus-visible {
 .diagnostics { color: var(--text-dim); font-size: .8rem; }
 .diagnostics summary { cursor: pointer; }
 .video-wrap video { object-fit: contain; }
+.video-wrap > img { width: 100%; height: 100%; object-fit: contain; }
+.evidence-image { display: block; width: 100%; margin-top: .7rem; }
