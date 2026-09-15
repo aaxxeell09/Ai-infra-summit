@@ -39,3 +39,13 @@ Each cell preserves native timings, arguments, exit status and logs. See [benchm
 Tokens per second, fewer generated tokens and faster completed tasks are separate metrics. Existing prefix caching and speculative decoding belong to their upstream implementations. Our experimental contribution is a portable measured policy combining model, device and context choices; novelty and speedup remain hypotheses until tested.
 
 [SSH setup](docs/ssh.md) uses placeholders. Credentials, device addresses, models and private logs stay out of Git.
+
+## Correctness benchmark
+
+The [Secretary evaluation protocol](docs/secretary-evaluation.md) provides 35 development and 15 held-out first-action cases using the actual ToolWire schema, a native evaluation runner, category regression reports and configurable quality gates. `turbo/secretary.py` is not present in the inspected revision: this evaluates action intent, not completed file operations. The historical reference is explicitly **not measured** until the real Latitude run is completed.
+
+```sh
+python eval/run_secretary_eval.py --dataset all --candidate-name validation --validate-only
+```
+
+See the protocol for the real SDK/model configuration, baseline freeze and one-command candidate evaluation. No runtime tuning or product UI is changed by this evaluation work.

@@ -1,0 +1,12 @@
+{
+  "sdk_dir": "C:/tools/geniex-sdk",
+  "model_path": "C:/models/model.gguf",
+  "device": "cpu",
+  "threads": 4,
+  "threads_batch": 0,
+  "ubatch": 0,
+  "context": 4096,
+  "max_tokens": 128,
+  "grammar": false,
+  "hardware_note": "Record actual Latitude model, power source, power mode and competing workloads"
+}
