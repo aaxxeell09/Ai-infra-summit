@@ -101,17 +101,17 @@ class PreflightTests(unittest.TestCase):
     def test_large_gguf_notes_session_limit(self):
         with tempfile.NamedTemporaryFile(suffix=".gguf") as f:
             f.write(gguf_bytes("llama"))
-            f.write(b"\0" * 3_600_000_000)  # sparse; header check only
+            f.truncate(3_600_000_000)  # sparse, no 3.6GB allocation
             f.flush()
             out = preflight({"format": "gguf"}, f.name)
         self.assertTrue(any("3.5 GB" in n for n in out["notes"]))
 
-    def test_qairt_bundle_ready(self):
+    def test_qairt_bundle_shape_does_not_prove_runtime_support(self):
         with tempfile.TemporaryDirectory() as d:
             Path(d, "geniex.json").write_text('{"chipset": "SM8750"}')
             Path(d, "model.serialized").write_bytes(b"x")
             out = preflight({"format": "qairt", "chipset": "sm8750"}, d)
-        self.assertEqual(out["status"], "ready")
+        self.assertEqual(out["status"], "unknown")
 
     def test_qairt_chipset_mismatch_needs_compile(self):
         with tempfile.TemporaryDirectory() as d:

@@ -10,11 +10,11 @@ Three classes are distinct and never interchangeable:
 2. **Converted HF weights (via GGUF or other routes).** Conversion is a format change only. Verify with a measured load on the target runtime before calling the model portable.
 3. **QAIRT / AI Hub compiled bundles.** Models exported and compiled chipset- and context-bound via Qualcomm AI Hub, shipped as shard files plus geniex.json ([example bundle](https://huggingface.co/yichqian/geniex-qairt-models/blob/main/granite4_micro/geniex.json)). The compiled context is bound at generation time; requesting CPU or GPU on a QAIRT model is coerced to NPU with a warning (pinned run.md, QAIRT section).
 
-MLX is absent on purpose: MLX is an Apple-silicon array framework over Metal ([ml-explore/mlx](https://github.com/ml-explore/mlx), [mlx-framework.org](https://mlx-framework.org/)); there is no MLX backend for Snapdragon Windows ARM64. "MLX on Snapdragon" is not a port target; the analogy target is llama.cpp GGML kernels on Adreno/Hexagon.
+MLX now offers Apple Metal and Linux CUDA/CPU backends ([ml-explore/mlx](https://github.com/ml-explore/mlx), [mlx-framework.org](https://mlx-framework.org/)); we have not found a supported Snapdragon Windows ARM64 backend. "MLX on Snapdragon" is not a port target; the analogy target is llama.cpp GGML kernels on Adreno/Hexagon.
 
 ## Kernel reality on the X1E-80-100
 
-- **ARM CPU.** GGML CPU kernels dispatch at runtime on ARMv8.2+ features (dotprod, i8mm) and use quantized kernels; Apple's [KleidiAI integration](https://github.com/ggml-org/llama.cpp/blob/master/docs/kleidiAI.md) accelerates some quantized matmuls. Measured, not assumed, on this laptop.
+- **ARM CPU.** GGML CPU kernels dispatch at runtime on ARMv8.2+ features (dotprod, i8mm) and use quantized kernels; Arm's [KleidiAI integration](https://github.com/ggml-org/llama.cpp/blob/master/docs/kleidiAI.md) accelerates some quantized matmuls. Measured, not assumed, on this laptop.
 - **Adreno GPU.** llama.cpp has an OpenCL backend targeting Adreno ([Qualcomm blog](https://www.qualcomm.com/developer/blog/2024/11/introducing-new-opn-cl-gpu-backend-llama-cpp-for-qualcomm-adreno-gpu)). GenieX exposes it as the gpu alias (GPUOpenCL) on Windows ARM64 (pinned run.md, compute-unit aliases).
 - **Hexagon NPU (ggml-hexagon).** The backend repacks Q4_0, Q8_0 and MXFP4 into non-host buffers at load; other quants fall back to CPU ([developer.md](https://github.com/ggml-org/llama.cpp/blob/master/docs/backend/snapdragon/developer.md)). One Hexagon session maps about 3.5 GB, so larger models need a multi-device layer split (device list HTP0,HTP1,HTP2,HTP3). GenieX pins quant guidance: Q4_K_M is suboptimal on HTP; Q4_0 gives a clean NPU run (pinned run.md). Windows requires signed DSP libraries (test signing plus cert import).
 - **Unsupported architecture kernels.** A GGUF of an architecture absent from llama.cpp's revision list fails at load; this is not fixable by conversion, only by upstream support or a compiled QAIRT bundle if AI Hub exports the model. Never claim automatic conversion.
@@ -48,7 +48,7 @@ Each experiment needs paired trials, warmup policy, power state, model hash, bin
 - Pinned local capture: /Users/user/Documents/Qualcomm/Ai-infra-summit/local/geniex-research/ (run.md runtime/compute-unit/QAIRT behavior, geniex.h speculative types and profile data, hexagon.md build/env vars, bench.md benchmark CI, device.cpp, params.cpp, threadpool.cpp, run.c, options.c).
 - Upstream llama.cpp: [Hexagon developer docs](https://github.com/ggml-org/llama.cpp/blob/master/docs/backend/snapdragon/developer.md), [Snapdragon README](https://github.com/ggml-org/llama.cpp/blob/master/docs/backend/snapdragon/README.md), [gguf constants](https://github.com/ggml-org/llama.cpp/blob/master/gguf-py/gguf/constants.py), [KleidiAI](https://github.com/ggml-org/llama.cpp/blob/master/docs/kleidiAI.md).
 - GenieX: [GitHub repo](https://github.com/qualcomm/GenieX), [AI Hub page](https://aihub.qualcomm.com/geniex), [QAIRT bundle example](https://huggingface.co/yichqian/geniex-qairt-models/blob/main/granite4_micro/geniex.json).
-- MLX: [ml-explore/mlx](https://github.com/ml-explore/mlx), [mlx-framework.org](https://mlx-framework.org/) - Apple silicon only.
+- MLX: [ml-explore/mlx](https://github.com/ml-explore/mlx), [mlx-framework.org](https://mlx-framework.org/) - Apple Metal plus Linux CUDA/CPU.
 
 ## Caveats
 

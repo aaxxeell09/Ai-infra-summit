@@ -14,7 +14,7 @@ Every entry records the official model card, the quantization repo, the HF revis
 
 ## Entries and why they were selected
 
-**Qwen3-0.6B Q4_0 (downloaded, 382,156,480 B).** Existing verified download; SHA-256 matches the ggml-org/Qwen3-0.6B-GGUF LFS blob at revision `b5f3728`. This is the repo GenieX v0.6.1 itself pins for the 0.6B tier in its bench matrix (`ggml-org/Qwen3-0.6B-GGUF:Q4_0`, devices cpu/npu/gpu). Instruction-tuned; tool-call quality on the secretary workload is still to be measured.
+**Qwen3-0.6B Q4_0 (downloaded, 382,156,480 B).** The actual measured weights are from `unsloth/Qwen3-0.6B-GGUF`, revision `50968a4468ef4233ed78cd7c3de230dd1d61a56b`, SHA-256 `33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb`. CPU/GPU/NPU/hybrid completed; benchmark manifests preserve the evidence. Secretary tool quality remains separate. This is not the different ggml-org blob in the upstream benchmark matrix.
 
 **Qwen3-1.7B Q4_0 (downloading, 1,056,782,912 B).** The parent task is fetching it; hash matches unsloth/Qwen3-1.7B-GGUF at revision `d7f544e`, the repo the v0.6.1 bench matrix pins for this tier. Instruction-tuned. No duplicate download.
 
@@ -28,7 +28,7 @@ Every entry records the official model card, the quantization repo, the HF revis
 
 **Qwen3-VL-4B-Instruct QAIRT w4a16 (candidate, 3,034,262,089 B zip).** The precompiled Snapdragon X Elite bundle, already cached from the public QAI Hub bucket (on the target-PC side, not this Mac). `requires_projector: false` because the projector is compiled into the bundle; context length stays null rather than guessed, since the bundle metadata does not publish it. QAIRT backend status is "unverified" pending on-device dispatch diagnostics; the llama.cpp backend does not apply to this artifact form.
 
-**Gemma 3 270M IT (rejected, kept for traceability).** Google publishes no official GGUF: its HF Gemma GGUF repos carry Q8_0/BF16 only, and the official small quantized artifact is a LiteRT `.task`/`.litertlm` bundle, which GenieX does not load. The only Q4_0 GGUF is a third-party (unsloth) conversion under the Gemma license. The row stays with state `rejected` and the reason inline, so the catalog does not silently pretend an official Q4_0 exists.
+**Gemma 3 270M IT (candidate, third-party conversion).** Google publishes no official GGUF: its HF Gemma GGUF repos carry Q8_0/BF16 only, and the official small quantized artifact is a LiteRT `.task`/`.litertlm` bundle, which GenieX does not load. The only Q4_0 GGUF is a third-party (unsloth) conversion under the Gemma license. Third-party conversion is permitted with provenance; model license and compatibility still need verification.
 
 ## Recommended first additional download
 
@@ -36,14 +36,14 @@ SmolLM2-360M-Instruct Q8_0 - 386,404,992 bytes (~369 MiB, under the ~400 MB budg
 
 ```
 curl -L -o smollm2-360m-instruct-q8_0.gguf \
-  "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF/resolve/main/smollm2-360m-instruct-q8_0.gguf"
+  "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF/resolve/593b5a2e04c8f3e4ee880263f93e0bd2901ad47f/smollm2-360m-instruct-q8_0.gguf"
 shasum -a 256 smollm2-360m-instruct-q8_0.gguf
 # expected: 48ab3034d0dd401fbc721eb1df3217902fee7dab9078992d66431f09b7750201
 ```
 
 ## Rules the loader enforces
 
-- 1..8 entries; unique ids; `kind` in {instruction, base, multimodal}; declared `total_bytes` must equal the sum of pinned file sizes.
+- Any number of registered entries; unique ids; `kind` in {instruction, base, multimodal}; declared `total_bytes` must equal the sum of pinned file sizes.
 - Every entry carries `source` (model card, quant repo, revision, files with sha256+bytes) and `backend_support` keyed `runtime@version`.
 - "supported" is rejected in committed data until a runtime version is measured on the target laptop; tests fail the catalog if anyone sets it.
 - Multimodal GGUF entries must pin two files (model + projector); QAIRT bundles pin one archive and may set `requires_projector: false`.

@@ -29,8 +29,6 @@ def load_catalog(path: str | Path = DEFAULT_CATALOG) -> dict:
 def validate(catalog: dict) -> None:
     if not isinstance(catalog.get("models"), list) or not catalog["models"]:
         raise ValueError("catalog must contain a non-empty models list")
-    if not 1 <= len(catalog["models"]) <= 8:
-        raise ValueError("catalog must hold 1..8 entries")
     ids = set()
     for entry in catalog["models"]:
         missing = REQUIRED_KEYS - entry.keys()

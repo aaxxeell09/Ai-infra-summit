@@ -27,7 +27,7 @@ EVIDENCE = {
     "ggml-hexagon repacks Q4_0, Q8_0 and MXFP4 into non-host buffers at load.",
     "htp-session-limit": "One Hexagon session maps ~3.5 GB; larger models need a "
     "multi-device layer split.",
-    "mlx-platform": "MLX targets Apple silicon via Metal; no Snapdragon Windows "
+    "mlx-platform": "MLX provides Apple Metal and Linux CUDA/CPU builds; no verified Snapdragon Windows "
     "ARM64 backend exists.",
     "spec-llamacpp-only": "Speculative decoding is a llama_cpp-plugin feature, "
     "ignored by qairt; draft-* types need a draft GGUF, ngram-* self-speculate.",
@@ -100,16 +100,16 @@ def preflight(manifest: dict, model_path: str | None = None,
         notes.append("speculation requested but ignored: qairt plugin does not "
                      "support it")
     if fmt in ("mlx", "mlx-lm"):
-        return _result(UNSUPPORTED, "MLX targets Apple silicon via Metal; it has "
-                       "no Snapdragon Windows ARM64 backend", ["mlx-platform"], notes)
+        return _result(UNSUPPORTED, "MLX has Apple Metal and Linux CUDA/CPU backends; we have verified "
+                       "no supported Snapdragon Windows ARM64 backend", ["mlx-platform"], notes)
     if fmt in ("huggingface", "hf", "safetensors"):
         return _result(NEEDS_CONVERSION,
                        "HF weights are not a GenieX runtime input; convert to "
                        "GGUF (llama.cpp) or compile via AI Hub for QAIRT. GGUF "
                        "conversion does not by itself verify runtime arch support",
                        ["geniex-runtimes"],
-                       ["python convert_hf_to_gguf.py <model-dir> --out model.gguf",
-                        "# then re-run preflight with format=gguf"], notes)
+                       notes, ["python convert_hf_to_gguf.py <model-dir> --outfile model.gguf",
+                        "# then re-run preflight with format=gguf"])
     if fmt in ("qairt", "qai-hub", "genie-bundle"):
         return _preflight_qairt(manifest, model_path, notes)
     if fmt == "gguf" or (model_path and model_path.endswith(".gguf")):
@@ -143,7 +143,7 @@ def _preflight_qairt(manifest, model_path, notes):
             return _result(NEEDS_COMPILE,
                            f"bundle context does not reference chipset {want}; "
                            "compiled context is chipset-bound", ["qairt-bundle"], notes)
-    return _result(READY, "QAIRT bundle complete and chipset context matches",
+    return _result(UNKNOWN, "QAIRT bundle shape found; compiled chipset/context compatibility still requires runtime evidence",
                    ["qairt-bundle"], notes)
 
 
@@ -154,7 +154,7 @@ def _preflight_gguf(manifest, model_path, caps, notes):
     p = Path(path)
     try:
         arch = read_gguf_arch(p)
-    except GGUFError as err:
+    except (GGUFError, OSError, OverflowError) as err:
         notes.append(f"gguf parse failed: {err}")
         return _result(UNKNOWN, f"GGUF file unreadable or malformed: {p}", [], notes)
     declared = manifest.get("architecture")
