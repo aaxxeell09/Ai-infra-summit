@@ -21,13 +21,13 @@ def native():
 
 @pytest.fixture
 def setup(tmp_path, monkeypatch, native):
-    real_run = subprocess.run
+    real_popen = subprocess.Popen
 
     def execute(cmd, **kwargs):
         # Run the fake CLI as a separate process on any Python platform.
-        return real_run([sys.executable, *cmd], **kwargs)
+        return real_popen([sys.executable, *cmd], **kwargs)
 
-    monkeypatch.setattr(t.subprocess, "run", execute)
+    monkeypatch.setattr(t.subprocess, "Popen", execute)
     model = tmp_path / "weights.gguf"
     model.write_bytes(b"test weights only")
     exe = tmp_path / "fake-bench.py"

@@ -10,6 +10,7 @@ opt-in. Pure planning: no hardware access, no HTTP, no side effects.
 from __future__ import annotations
 
 import time
+import math
 from dataclasses import dataclass
 from typing import Callable, Iterable
 
@@ -30,6 +31,8 @@ class ModelProfile:
     quality_evidence: str = ""
     calibrated: bool = False
     larger: bool = False
+    tokens_per_joule: float | None = None
+    energy_evidence: str = ""
 
 
 @dataclass(frozen=True)
@@ -41,12 +44,14 @@ class Requirements:
     objective: str = "latency"
     allow_uncalibrated: bool = False
     manual_model: str | None = None
-    quality_band: float = 0.05
+    quality_band: float = 0.03
 
 
 def _measurement_gap(p: ModelProfile) -> str | None:
     if not p.model or not p.runtime or not p.weights_hash:
         return "missing model/runtime/weights hash"
+    if not all(math.isfinite(x) for x in (p.prefill_tps, p.decode_tps, p.load_s)):
+        return "nonfinite measured profile"
     if p.prefill_tps <= 0 or p.decode_tps <= 0 or p.load_s < 0:
         return "missing measured prefill/decode/load"
     return None
@@ -73,6 +78,10 @@ def plan_route(profiles: Iterable[ModelProfile], req: Requirements) -> dict:
                 reason = "measured quality below requirement"
         if not reason and not p.calibrated and not req.allow_uncalibrated:
             reason = "uncalibrated; opt-in required"
+        if not reason and p.calibrated and (p.quality_rate is None or not p.quality_evidence or not 0 <= p.quality_rate <= 1):
+            reason = "calibrated profile lacks valid quality evidence"
+        if not reason and req.objective == 'efficient' and (not p.energy_evidence or p.tokens_per_joule is None or not math.isfinite(p.tokens_per_joule) or p.tokens_per_joule <= 0):
+            reason = "measured energy evidence unavailable"
         if reason:
             rejected.append({"name": p.name, "reason": reason})
         else:
@@ -90,11 +99,12 @@ def plan_route(profiles: Iterable[ModelProfile], req: Requirements) -> dict:
             similar = best_q is None or (p.quality_rate is not None
                                          and p.quality_rate >= best_q - req.quality_band)
             size = 0 if (similar and not p.larger) else (1 if similar else 2)
-            speed = -p.decode_tps if req.objective == "decode" else est_s(p)
+            speed = -p.tokens_per_joule if req.objective == "efficient" else -p.decode_tps if req.objective == "decode" else est_s(p)
             return (size, speed, p.name)
 
         ordered = sorted(candidates, key=rank)
         selected = ordered[0]
+        candidates = ordered
         for p in ordered:
             size = rank(p)[0]
             why = ("fastest similar-quality small model" if size == 0 else
@@ -129,17 +139,20 @@ def run_with_fallback(plan: dict, invoke: Callable, validate: Callable,
     ordered = ([("manual", plan["manual_model"])] if plan.get("manual_model") else [])
     ordered += [("candidate", name) for name in plan.get("candidates", [])]
     planned = {t["model"]: t for t in plan.get("trace", [])}
-    trace, result, total, n = [], None, 0.0, 0
+    trace, result, n = [], None, 0
+    total_start = time.perf_counter()
     for kind, name in ordered[:attempts]:
         n += 1
         info = planned.get(name, {})
         if kind == "manual":
             info = {"why": "explicit manual/bootstrap route", "status": "manual-uncalibrated"}
         start = time.perf_counter()
-        output = invoke(by_name.get(name) if kind == "candidate" else None, req)
+        try:
+            output = invoke(by_name.get(name) if kind == "candidate" else None, req)
+            ok, note = validate(output, req)
+        except Exception as exc:
+            output, ok, note = None, False, type(exc).__name__ + ': ' + str(exc)
         elapsed = time.perf_counter() - start
-        total += elapsed
-        ok, note = validate(output, req)
         trace.append({"model": name, "why": info.get("why", "candidate"),
                       "status": info.get("status", "executed"),
                       "validation": "valid" if ok else "invalid",
@@ -148,6 +161,6 @@ def run_with_fallback(plan: dict, invoke: Callable, validate: Callable,
             result = output
             break
     return {"status": "ok" if result is not None else "failed",
-            "result": result, "attempts": n, "total_s": total, "trace": trace,
+            "result": result, "attempts": n, "total_s": time.perf_counter() - total_start, "trace": trace,
             "predicted_order": [t["model"] for t in plan.get("trace", [])],
             "disclosure": "elapsed_s measured per attempt; plan estimated_s are predictions"}

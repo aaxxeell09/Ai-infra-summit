@@ -150,3 +150,5 @@ Axel's authoritative 35-development / 15-held-out first-action evaluation arrive
 - [ ] Inference router: measured small/large profiles, quality eligibility and explicit escalation on invalid actions, with retries and model-load cost included.
 - [ ] Extensible model registration across supported runtime architectures; unsupported models receive a precise conversion/compilation/kernel requirement.
 - [ ] Optional lightweight Pi client integration after the local service + MCP demo passes; no extra harness dependencies on the critical path.
+
+Latest correctness coordination: wait for Axel/Codex to freeze **secretary-eval-v2**. Establish the official baseline together after that confirmation. Do not modify golden data. Gate: ≤3 percentage-point accuracy drop and no critical move/clarify regression. Serious candidate and evaluation handoffs belong under `eval/results/` with commit/config/command.

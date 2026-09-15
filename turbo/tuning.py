@@ -269,6 +269,52 @@ def pareto_frontier(results, axes=("decode_tps", "prefill_tps")):
         and any(o[a] > r[a] for a in axes) for o in rows)]
 
 
+def _measured_trial(cmd, cwd, stream, timeout, warmup):
+    from .telemetry import EnergyMeter, ProcessMemory, energy_delta, power_state as read_power
+    meter = EnergyMeter()
+    power_before = read_power()
+    before = meter.sample()
+    proc = memory = peak = None
+    expired = False
+    try:
+        start = time.monotonic()
+        proc = subprocess.Popen(cmd, stdout=stream, stderr=subprocess.STDOUT, cwd=cwd)
+        memory = ProcessMemory(proc.pid)
+        while proc.poll() is None:
+            sample = memory.sample()
+            if sample and (peak is None or sample['peak_working_set_mb'] > peak['peak_working_set_mb']):
+                peak = sample
+            if time.monotonic() - start >= timeout:
+                expired = True
+                proc.kill()
+                proc.wait()
+                break
+            time.sleep(0.05)
+    finally:
+        if proc is not None and proc.poll() is None:
+            proc.kill()
+            proc.wait()
+        after = meter.sample()
+        meter.close()
+        if memory:
+            memory.close()
+    power_after = read_power()
+    energy = energy_delta(before, after, None)
+    channel = energy['channels'].get('SYS', {})
+    power = power_before.get('ac_line_status', 'unavailable')
+    if power != power_after.get('ac_line_status'):
+        power = 'changed'
+    return proc.returncode, dict(
+        **(peak or {}), power_state_start=power_before, power_state_end=power_after,
+        power_state=power, power_scope='measured', energy=energy,
+        energy_before=before, energy_after=after,
+        energy_j=channel.get('energy_j'), energy_duration_s=after['monotonic_s']-before['monotonic_s'],
+        energy_scope='full_process_trial', energy_channel='SYS',
+        energy_valid=bool(channel) and warmup == 0 and not expired,
+        energy_reason='full process interval including load, prefill and decode; warmup excluded from efficiency eligibility',
+        timed_out=expired)
+
+
 def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image_path=None,
                prompt_file=None, timeout_s=240, progress=None, *, budget_s=600,
                constraints=None, power_state="unavailable", variability_penalty=0.0):
@@ -332,9 +378,11 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
             if remaining <= 0:
                 raise TimeoutError("total tuning budget exhausted")
             with log.open("w", encoding="utf-8") as stream:
-                proc = subprocess.run(cmd, stdout=stream, stderr=subprocess.STDOUT,
-                                      cwd=Path(bench_exe).resolve().parent, timeout=remaining)
-            row["exit_code"] = proc.returncode
+                exit_code, telemetry = _measured_trial(cmd, Path(bench_exe).resolve().parent, stream, remaining, space.warmup)
+            row.update(telemetry, exit_code=exit_code)
+            row['group_id'] = _group(row)
+            if row['timed_out']:
+                raise TimeoutError('native benchmark exceeded cell deadline')
             data = json.loads(target.read_text(encoding="utf-8-sig"), parse_constant=_invalid_constant)
             row.update(_parse_result_json(data, space.gen_tokens, space.repeats))
             params = data.get("params") or {}
@@ -348,7 +396,10 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
             if (reported != model and (not model.is_dir() or model not in reported.parents)
                     or data.get("cell_id") != trial.name):
                 raise TuningError("native report has mismatched model path or trial id")
-            row["status"] = "failed" if proc.returncode else "completed" if row["full_length"] else "partial"
+            row["status"] = "failed" if exit_code else "completed" if row["full_length"] else "partial"
+            row['tokens_per_joule'] = _efficiency(row) if row['full_length'] else None
+            data['telemetry'] = {k: row.get(k) for k in ('peak_working_set_mb', 'energy_j', 'energy_channel', 'energy_scope', 'tokens_per_joule', 'energy')}
+            target.write_text(json.dumps(data, indent=2, allow_nan=False), encoding='utf-8')
         except (subprocess.TimeoutExpired, TimeoutError) as exc:
             row.update(status="timeout", error=str(exc))
         except (OSError, ValueError, TypeError) as exc:

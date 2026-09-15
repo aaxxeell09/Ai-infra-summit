@@ -41,6 +41,30 @@ def parse_calls(text):
     return calls
 
 
+class TuningJob:
+    def __init__(self, target):
+        self.exit_code = None
+        self.error = None
+        self.completed = 0
+        self.total = 0
+        self.result = None
+        def run():
+            try:
+                self.result = target(self)
+                self.exit_code = 0
+            except Exception as exc:
+                self.error = str(exc)
+                self.exit_code = 1
+        self.thread = threading.Thread(target=run, daemon=True)
+
+    def poll(self):
+        return self.exit_code
+
+    def progress(self, done, total):
+        self.completed, self.total = done, total
+
+
+
 class Engine:
     def __init__(self, config):
         self.config = config
@@ -53,32 +77,64 @@ class Engine:
         self.tuning_dir = None
         self.applied = None
         self.hash_cache = {}
+        state = Path(config.get('data_dir', 'local/demo'))/'last-tuning.json'
+        if state.is_file():
+            prior = json.loads(state.read_text(encoding='utf-8'))
+            if prior.get('model_id') in config['models'] and Path(prior.get('recommendation_file', '')).is_file():
+                config['recommendation_file'] = prior['recommendation_file']
+                config['default'] = prior['model_id']
 
-    def start_tune(self):
+    def start_tune(self, body=None):
+        from .tuning import Variant, SearchSpace, run_tuning, plan_cells
+        body = body or {}
         with self.lock:
             if self.tuning_process and self.tuning_process.poll() is None:
                 raise ValueError('A device sweep is already running')
-            # All inference handles must release shared device resources first.
-            for model in self.loaded.values():
-                model.close()
-            self.loaded.clear()
-            if self.runtime:
-                self.runtime.close()
-                self.runtime = None
             settings = self.config.get('tuner')
             if not settings:
                 raise ValueError('No local benchmark executable configured')
+            model_id = body.get('model_id', self.config['default'])
+            if model_id not in self.config['models']:
+                raise ValueError('Unknown model')
+            spec = self.config['models'][model_id]
+            variant = Variant.from_dict(dict(id=model_id, path=spec['path'],
+                architecture=spec.get('architecture', 'unverified'), quantization=spec.get('quantization', 'unverified'),
+                plugin=spec.get('plugin', 'llama_cpp'), kind=spec.get('kind', 'llm'),
+                compiled_contexts=spec.get('compiled_contexts'), tokenizer_path=spec.get('tokenizer_path'),
+                mmproj_path=spec.get('mmproj_path')))
+            search = dict(devices=['cpu', 'npu'], threads=[0, 10], contexts=[4096],
+                          prompt_tokens=512, gen_tokens=128, repeats=3, warmup=0)
+            search.update(body.get('search_space', {}))
+            space = SearchSpace.from_dict(search)
+            cells = plan_cells([variant], space)
+            objective = body.get('objective', 'fast')
+            if objective not in {'fast', 'efficient', 'balanced', 'decode', 'prefill'}:
+                raise ValueError('Unknown objective')
+            for model in self.loaded.values():
+                model.close()
+            self.loaded.clear()
+            self.applied = None
+            if self.runtime:
+                self.runtime.close()
+                self.runtime = None
             self.tuning_dir = Path(self.config.get('results_dir', 'local/tuning')) / ('run-' + uuid.uuid4().hex[:10])
             self.tuning_dir.parent.mkdir(parents=True, exist_ok=True)
-            cmd = [sys.executable, str(ROOT/'scripts/sweep.py'), '--exe', settings['exe'],
-                   '--model', self.config['models'][self.config['default']]['path'],
-                   '--output', str(self.tuning_dir), '--repeats', str(settings.get('repeats', 3))]
-            log = self.tuning_dir.with_suffix('.log').open('w', encoding='utf-8')
-            try:
-                self.tuning_process = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, cwd=ROOT)
-            finally:
-                log.close()
-            return {'running': True, 'completed': 0, 'total': 10}
+            def execute(job):
+                record = run_tuning(settings['exe'], [variant], space, str(self.tuning_dir),
+                    objective=objective, progress=job.progress, timeout_s=min(300, settings.get('timeout_s', 120)),
+                    budget_s=min(1800, settings.get('budget_s', 600)))
+                if record.get('recommendation_path'):
+                    with self.lock:
+                        self.config['recommendation_file'] = record['recommendation_path']
+                        self.config['default'] = model_id
+                        state = Path(self.config.get('data_dir', 'local/demo'))/'last-tuning.json'
+                        state.parent.mkdir(parents=True, exist_ok=True)
+                        state.write_text(json.dumps({'model_id':model_id, 'recommendation_file':record['recommendation_path']}), encoding='utf-8')
+                return record
+            self.tuning_process = TuningJob(execute)
+            self.tuning_process.total = len(cells)
+            self.tuning_process.thread.start()
+            return {'running': True, 'completed': 0, 'total': len(cells), 'objective': objective}
 
     def modes(self):
         path = Path(self.config.get('recommendation_file', ROOT/'benchmarks/results/recommended.json'))
@@ -240,17 +296,16 @@ class Engine:
                         'complete_length': bool(r.get('runs')) and all(x.get('gen_tokens') == r.get('params', {}).get('n_gen') for x in r.get('runs', []))})
                 except (OSError, ValueError, KeyError):
                     continue
-        tuning = {'running': False, 'completed': 0, 'total': 10, 'error': None}
+        tuning = {'running': False, 'completed': 0, 'total': 0, 'error': None}
         if self.tuning_process:
-            code = self.tuning_process.poll()
-            tuning['running'] = code is None
-            if code not in {None, 0}:
-                tuning['error'] = f'Sweep exited with code {code}; inspect trial logs'
-            manifest = self.tuning_dir/'sweep.json'
-            try:
-                tuning['completed'] = len(json.loads(manifest.read_text()).get('cells', []))
-            except (OSError, ValueError):
-                pass
+            job = self.tuning_process
+            tuning.update(running=job.poll() is None, completed=job.completed,
+                          total=job.total, error=job.error, record=job.result)
+            if job.result is None and self.tuning_dir:
+                try:
+                    tuning['record'] = json.loads((self.tuning_dir/'record.json').read_text(encoding='utf-8'))
+                except (OSError, ValueError):
+                    pass
         try:
             recommendation = self.modes()
         except (OSError, ValueError):
@@ -315,7 +370,7 @@ def handler(engine):
                 if self.path == '/api/apply':
                     return self.send_json(engine.apply(body.get('mode', 'fast'), body.get('model_id')))
                 if self.path == '/api/tune':
-                    return self.send_json(engine.start_tune(), 202)
+                    return self.send_json(engine.start_tune(body), 202)
                 if self.path == '/api/run':
                     if body.get('mode', 'fast') not in {'baseline', 'turbo', 'fast', 'efficient', 'balanced'}:
                         raise ValueError('Invalid mode')

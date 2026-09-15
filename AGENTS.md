@@ -82,3 +82,9 @@ Use the presentation skill for the requested demo deck, and visually verify ever
 - Preserve the user's power settings. A process-scoped keep-awake helper is authorized during development; it must release its request on exit and have a bounded lifetime.
 - Use relevant tests and real-device smoke checks; do not substitute unit tests for hardware execution. Stop expanding tests once the current change is adequately verified.
 - Keep README status and the public recommended configuration consistent with what actually works. A successful tool invocation is not proof that inference, telemetry or a benchmark succeeded.
+
+## Frozen correctness benchmark ownership
+
+Axel/Codex owns the golden dataset, expected outputs, runner and evaluation methodology. Wait for explicit confirmation that **secretary-eval-v2** is frozen, then establish the original/pre-optimization baseline together. Do not modify benchmark data without coordination. Earlier v1 references are superseded.
+
+The candidate gate allows at most a 3 percentage-point overall accuracy drop versus the agreed baseline, with no regression on critical move/clarify cases. Preserve category-level regressions. Commit every serious candidate and its evaluation results under `eval/results/`, including candidate name, actual commit/config and exact command. Small internal performance experiments do not each need the complete correctness suite. Pre-freeze diagnostic outputs remain quarantined and are not official baselines.
