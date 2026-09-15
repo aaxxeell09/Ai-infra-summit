@@ -19,7 +19,7 @@ class ActionCodecTests(unittest.TestCase):
 
     def test_move_expands_without_guessing_destination(self):
         self.assertEqual(self.codec.decode('{"m":[0,"archive/report.txt"]}', snapshot_digest=self.codec.digest),
-            ('move_file', {'path': 'inbox/report.txt', 'destination': 'archive/report.txt'}))
+            ('move_file', {'source': 'inbox/report.txt', 'destination': 'archive/report.txt'}))
 
 
 if __name__ == '__main__':

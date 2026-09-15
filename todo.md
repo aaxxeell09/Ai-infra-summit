@@ -140,3 +140,13 @@ These extend the requested tuner; they do not precede the P0 evidence milestone.
 - [ ] Model import/preflight: distinguish directly loadable GGUF, conversions, architecture support and chipset/context-specific QAIRT compilation. Owner: `feat/kernel-ports`.
 - [ ] Kernel research: compare MLX portability, ARM CPU kernels, Adreno and Hexagon paths against the installed release; require real hardware wins before adoption. Owner: `feat/kernel-ports`.
 - [ ] Speculative decoding: actual supported n-gram screening, then compatible draft models with acceptance and output-correctness checks. Owner: integrator.
+
+## Current integration acceptance
+
+Tune → export measured mode → apply native runtime settings → run a secretary fixture → verify calls and final state → repeat via MCP. The 0.6B model currently fails the invoice semantic task; do not call the full flow successful until repaired or a better model passes.
+
+Axel's authoritative 35-development / 15-held-out first-action evaluation arrived in commit `0470a28`. Preserve its prompts, expected outputs, codec protocol and scoring. It does not execute file actions. An isolated checkout of original primitives plus this evaluator is being measured as an untuned first-action reference, not a verified historical Secretary baseline.
+
+- [ ] Inference router: measured small/large profiles, quality eligibility and explicit escalation on invalid actions, with retries and model-load cost included.
+- [ ] Extensible model registration across supported runtime architectures; unsupported models receive a precise conversion/compilation/kernel requirement.
+- [ ] Optional lightweight Pi client integration after the local service + MCP demo passes; no extra harness dependencies on the critical path.
