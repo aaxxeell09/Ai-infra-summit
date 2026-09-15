@@ -1,7 +1,7 @@
 {
-  "version": 5,
+  "version": 6,
   "product": "Local Turbo",
-  "purpose": "Measure a local model, select a configuration, then finish with a task performed by that same model and configuration. Preview remains explicitly simulated until the device bridge is connected.",
+  "purpose": "Compare recorded local inference configurations, then demonstrate one prompt answered by a default setup and Local Turbo. Speed tuning and model routing are separate experiments.",
   "visual_system": {
     "background": "#f7f8fa",
     "surface": "#ffffff",
@@ -51,7 +51,7 @@
       ],
       "ranking": "Only completed comparable trials; TTFT ascending, throughput descending; keep ties.",
       "primary_action": {
-        "label": "Continue to task",
+        "label": "Continue to demo",
         "next": "demo"
       },
       "secondary_action": {
@@ -72,54 +72,45 @@
       "id": "demo",
       "route": "#demo",
       "nav_label": "In action",
-      "headline": "Your model. In action.",
-      "purpose": "The demo finale: carry the selected model and settings into a file task, show its visible result, and expose measured evidence when the device is connected.",
+      "headline": "See Local Turbo in action.",
+      "purpose": "Finish with readable answers side by side; no file operations.",
       "content": [
-        "selected model and configuration handoff",
-        "fixed task requests",
-        "authoritative workspace returned by task provider",
-        "result-dependent outcome",
-        "collapsed run evidence"
+        "comparison mode: speed or routing",
+        "one shared example prompt",
+        "one launch button",
+        "Default setup answer",
+        "Local Turbo answer and selection reason",
+        "timing and quality placeholders"
       ],
       "primary_action": {
-        "preview_label": "Preview task",
-        "live_label": "Run on the Latitude",
-        "preview_replay": "Replay preview",
-        "live_replay": "Run a new task"
+        "label": "Preview comparison",
+        "running_label": "Playing comparison…",
+        "complete_label": "Replay comparison"
       },
       "scenarios": [
-        "move final file while preserving draft",
-        "request clarification for ambiguous filename"
+        "quick explanation",
+        "reasoning challenge"
       ],
       "states": [
         "idle",
-        "preparing",
-        "running",
-        "completed",
-        "clarification",
+        "running default / turbo queued",
+        "default complete / turbo running",
+        "complete",
+        "stopped",
         "failed"
       ],
       "data_mode": "simulated",
-      "disclosure": "Preview · no model connected",
-      "task_time": null,
-      "model_correctness": null,
-      "real_filesystem_changes": false,
-      "completion": "Leave the result on the final screen; no fourth step or automatic return to the start.",
+      "disclosure": "Preview · scripted answers",
+      "execution": "sequential",
+      "timings": null,
+      "winner": null,
+      "routing_status": "illustrative roles; pending calibration",
+      "completion": "Leave both answers visible on this final screen.",
       "providers": {
-        "default": "createPreviewTaskProvider",
-        "integration": "createLiveTaskProvider(bridge)",
-        "bridge_contract": "task-contract.md",
-        "live_connected": false
-      },
-      "live_behavior": [
-        "Verify exact model/runtime hashes, configuration and fixture before inference.",
-        "Apply selected settings before running; do not infer application from selection.",
-        "Only display timings with a source and scope; missing remains unavailable.",
-        "Task checks require intent, action and file postconditions, not valid JSON alone.",
-        "Handle clarification and failed checks separately from success.",
-        "No silent preview fallback on device failure.",
-        "Invalidate prior task results when selection changes."
-      ]
+        "default": "createPreviewComparisonProvider",
+        "live_connected": false,
+        "contract": "comparison-contract.md"
+      }
     }
   ],
   "rules": [
@@ -131,6 +122,9 @@
     "Preserve the same three-screen UX when a live provider is added, with explicit mode and evidence states.",
     "One persistent mode badge. Benchmark evidence is available from the footer; task evidence belongs with the task result.",
     "Do not animate the whole screen again on every state update.",
-    "The file task illustrates the tuner result; it is not a separate file management product."
+    "The final comparison is about model responses; do not introduce files or file-management tasks.",
+    "Use equal animation pacing for preview lanes. Do not stage a fake speed or quality advantage.",
+    "Model routing requires separately measured model profiles and quality requirements; example roles are not real routing decisions.",
+    "Preserve page one’s existing visual. Arduino UNO Q is part of the user’s demo hardware; its current control role still needs confirmation."
   ]
 }

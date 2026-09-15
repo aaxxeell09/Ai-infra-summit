@@ -14,11 +14,11 @@ Fast, private tool-using AI on a Snapdragon X Elite laptop. We are rebuilding ar
 
 ## Current status
 
-Active development. Benchmark orchestration, routing and context primitives are implemented. The first native Latitude screening records are available in `benchmarks/results/screen-01`, and the local interface compares those measurements. **No confirmed tuning speedup is claimed yet.** The final task screen currently uses a labelled simulation; device configuration application, live file-task execution and quality evaluation remain to be connected through the frontend task contract.
+Active development. Benchmark orchestration, routing and context primitives are implemented. The first native Latitude screening records are available in `benchmarks/results/screen-01`, and the local interface compares those measurements. **No confirmed tuning speedup is claimed yet.** The final demo screen currently previews side-by-side prompt answers; device configuration application, live answer comparison and model-routing calibration remain to be connected through the frontend comparison contract.
 
 ## Local demo interface
 
-The three-screen frontend previews the target machine, compares the recorded Latitude screening results, and demonstrates simulated in-memory file operations. It does not yet run live inference or apply configurations to the device.
+The three-screen frontend previews the target machine, compares the recorded Latitude screening results, and previews default-versus-Local-Turbo answers with separate speed and routing views. It does not yet run live inference or apply configurations to the device.
 
 ```sh
 cd frontend

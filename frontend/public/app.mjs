@@ -1,5 +1,5 @@
 import { createRecordedProvider, METRICS, rankRows, exportConfiguration } from './data.mjs';
-import { SCENARIOS, initialFiles, createTaskRequest, createPreviewTaskProvider } from './demo.mjs';
+import { PROMPTS, createComparisonRequest, comparisonLanes, createPreviewComparisonProvider } from './comparison.mjs';
 
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -7,9 +7,9 @@ const number = (value, digits = 2) => value === null || value === undefined ? 'U
 const date = value => new Date(value).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 const arrow = '<span aria-hidden="true">↗</span>';
 const provider = createRecordedProvider();
-// Replace this one provider with createLiveTaskProvider(deviceBridge) at integration.
-const taskProvider = createPreviewTaskProvider();
-const state = { snapshot: null, page: 'device', metric: 'decode', selected: null, scenario: 'move', demo: 'idle', files: initialFiles(), result: null, session: null, error: null, reveal: false };
+// Replace this provider with a device comparison provider at integration.
+const taskProvider = createPreviewComparisonProvider();
+const state = { snapshot: null, page: 'device', metric: 'decode', selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
 let demoGeneration = 0;
 let taskAbort;
 let toastTimer;
@@ -77,53 +77,46 @@ function calibrationScreen() {
     </div><aside class="selection-panel">
       <div class="selection-top"><span class="eyebrow">SELECTED CONFIGURATION</span><span class="selection-icon" aria-hidden="true">${isLeader ? '↗' : '◇'}</span></div>
       <h2>${chosen ? esc(chosen.label.replace(' · ', '<|>').split('<|>')[0]) : 'No result'}<span>${chosen?.device === 'cpu' ? esc(chosen.threads === 0 ? 'Automatic threads' : `${chosen.threads} threads`) : 'Recorded configuration'}</span></h2>
-      <p class="selection-caption">${isEligible ? (isLeader ? `${leaders.length > 1 ? 'Tied for fastest' : 'Fastest'} at ${metric.best} in this recorded run.` : 'Selected for the task demo. Other settings may be faster.') : esc(chosen?.reason || 'No comparable result available.')}</p>
+      <p class="selection-caption">${isEligible ? (isLeader ? `${leaders.length > 1 ? 'Tied for fastest' : 'Fastest'} at ${metric.best} in this recorded run.` : 'Selected for the answer comparison. Other settings may be faster.') : esc(chosen?.reason || 'No comparable result available.')}</p>
       <p class="ranking-scope">Each tab ranks a different measure. There is no overall winner yet.</p>
       <div class="selection-metrics"><div><span>${secondaryMetric[0]}</span><strong>${number(secondaryMetric[1])}<small>${secondaryMetric[1] == null ? '' : secondaryMetric[2]}</small></strong></div><div><span>Peak process memory</span><strong>${chosen?.memory_mb == null ? 'Unavailable' : number(chosen.memory_mb / 1024, 2)}<small>${chosen?.memory_mb == null ? '' : 'GiB'}</small></strong></div></div>
       <div class="evidence-note"><span class="note-dot"></span><p>Preliminary measurements.<br>Repeat comparison and task checks pending.${chosen && ['npu', 'hybrid'].includes(chosen.device) ? '<br>NPU execution is not yet verified.' : ''}</p></div>
-      <button class="button primary" data-action="try" ${!isEligible ? 'disabled' : ''}>Continue to task ${arrow}</button>
+      <button class="button primary" data-action="try" ${!isEligible ? 'disabled' : ''}>Continue to demo ${arrow}</button>
       <button class="button ghost" data-action="export" ${!isEligible ? 'disabled' : ''}>Export configuration <span aria-hidden="true">↓</span></button>
     </aside></div>
   </section>`;
 }
 
-function fileMarkup(file) {
-  const moved = file.folder === 'Presentation';
-  const kind = file.kind === 'csv' ? 'csv' : 'md';
-  return `<div class="file ${moved ? 'file-arrived' : ''}" data-file="${esc(file.name)}"><span class="file-icon ${kind}" aria-hidden="true">${kind === 'csv' ? '▦' : '≡'}</span><div><strong>${esc(file.name)}</strong><span>${esc(file.size)} · ${file.kind === 'csv' ? 'Spreadsheet' : file.kind === 'md' ? 'Markdown' : 'File'}</span></div>${moved ? '<span class="file-check" aria-hidden="true">✓</span>' : ''}</div>`;
-}
-
 function demoScreen() {
-  const row = currentRow();
-  const scenario = SCENARIOS.find(item => item.id === state.scenario);
-  const busy = ['preparing', 'running'].includes(state.demo);
-  const result = state.result;
-  const preview = taskProvider.mode === 'simulated';
-  const valid = row && rankRows(state.snapshot, state.metric).eligible(row);
-  const source = state.files.filter(file => file.folder === 'Workspace');
-  const destination = state.files.filter(file => file.folder === 'Presentation');
-  const passed = !preview && result?.quality.status === 'passed' && result.status === 'completed';
-  const failed = state.error || result?.status === 'failed' || result?.quality.status === 'failed';
-  const outcomeTitle = failed ? 'This run needs attention.' : result?.status === 'clarification' ? 'A file choice is needed.' : preview ? 'Preview complete.' : passed ? 'Task checks passed.' : 'Task finished. Checks pending.';
-  const configStatus = preview ? 'Selected for preview · not applied' : state.session ? 'Applied on the device' : 'Will be verified before running';
-  const runLabel = busy ? preview ? 'Playing preview…' : state.demo === 'preparing' ? 'Preparing the model…' : 'Running on the Latitude…' : preview ? result ? 'Replay preview' : 'Preview task' : result ? 'Run a new task' : 'Run on the Latitude';
-  const outcome = busy ? `<span class="eyebrow">${preview ? 'TASK PREVIEW' : state.demo === 'preparing' ? 'PREPARING' : 'RUNNING'}</span><p>${preview ? 'Showing the example action and its effect.' : state.demo === 'preparing' ? 'Verifying the model, settings and isolated workspace.' : 'The model is handling the request. Waiting for the device result.'}</p>` : state.error ? `<h2>${outcomeTitle}</h2><p>${esc(state.error)}</p>` : result ? `<span class="outcome-symbol ${passed ? 'verified' : ''}">${failed ? '!' : result.status === 'clarification' ? '?' : passed ? '✓' : '→'}</span><h2>${outcomeTitle}</h2><p>${esc(result.message)}</p>${preview ? '<span class="quiet">Example outcome only. The model has not run.</span>' : `<dl class="task-measures"><div><dt>Total task time</dt><dd>${number(result.task_time_s)}${result.task_time_s == null ? '' : ' s'}</dd></div><div><dt>Time to first token</dt><dd>${number(result.ttft_ms)}${result.ttft_ms == null ? '' : ' ms'}</dd></div></dl><span class="quiet">${esc(result.timing_scope || 'Timing scope unavailable.')}</span>`}` : `<span class="eyebrow">${preview ? 'PREVIEW THE FINAL STEP' : 'READY TO RUN'}</span><p>${preview ? 'The connected version will run this request with the selected model and settings.' : 'Run the selected model, then inspect the file changes and task checks.'}</p>`;
-  return `<section class="screen demo-screen">
-    <div class="section-heading"><div><div class="eyebrow">FROM MEASUREMENTS TO ACTION</div><h1>Your model. In action.</h1></div></div>
-    <div class="run-context"><div><span class="eyebrow">${preview || !state.session ? 'SELECTED MODEL' : 'ACTIVE MODEL'}</span><strong>${esc(state.snapshot.model.replace(/\.gguf$/, ''))}</strong></div><div><strong>${row ? esc(row.label) : 'No configuration selected'}</strong><span>${configStatus}</span></div></div>
-    <div class="demo-layout"><div class="task-panel">
-      <h2 class="eyebrow">THE REQUEST</h2>
-      <div class="scenario-picker" role="group" aria-label="Demo request">${SCENARIOS.map(item => `<button data-scenario="${item.id}" class="${item.id === state.scenario ? 'active' : ''}" aria-pressed="${item.id === state.scenario}" ${busy ? 'disabled' : ''}>${esc(item.label)}</button>`).join('')}</div>
-      <blockquote>${esc(scenario.prompt)}</blockquote>
-      <div class="task-actions"><button class="button primary" data-action="run-demo" ${busy || !valid ? 'disabled' : ''}>${busy ? '<span class="spinner small"></span>' : ''}${runLabel} ${busy ? '' : arrow}</button>${preview ? '<button class="icon-button" data-action="reset-demo" aria-label="Reset preview" title="Reset preview">↺</button>' : ''}</div>
-      <div class="task-outcome ${result ? 'outcome-ready' : ''}" role="status" aria-live="polite">${outcome}</div>
-    </div><div class="workspace-panel">
-      <div class="workspace-head"><span class="folder-outline" aria-hidden="true">▱</span><h2>Task workspace</h2><span class="sandbox-label">${preview ? 'Preview files' : state.session ? 'Device fixture' : 'Awaiting device'}</span></div>
-      <div class="folder-section"><div class="folder-title"><span>Workspace</span><span>${source.length} files</span></div><div class="file-list">${source.map(fileMarkup).join('')}</div></div>
-      <div class="destination-section ${busy && preview && state.scenario === 'move' ? 'receiving' : ''}"><div class="folder-title"><span>▱ &nbsp; Presentation</span><span>${destination.length} ${destination.length === 1 ? 'file' : 'files'}</span></div><div class="file-list">${destination.length ? destination.map(fileMarkup).join('') : '<div class="empty-folder"><p>No files in this folder</p></div>'}</div></div>
-    </div></div>
-    ${result ? `<details class="task-details"><summary>${preview ? 'Preview details' : 'Run evidence'}</summary><dl class="task-detail-list"><div><dt>${preview ? 'Example action' : 'Returned action'}</dt><dd><code>${esc(result.action ? JSON.stringify(result.action) : result.clarification || 'No action returned')}</code></dd></div><div><dt>Task checks</dt><dd>${preview ? 'Not evaluated — no model was run.' : esc(result.quality.status.replaceAll('_', ' '))}</dd></div></dl>${!preview ? `<pre>${esc(JSON.stringify(result, null, 2))}</pre><button class="text-button" data-action="download-task">Download run evidence ↓</button>` : ''}</details>` : ''}
-    <div class="demo-bottom"><button class="text-button" data-action="back">← Back to comparison</button></div>
+  const busy = state.demo === 'running';
+  const scenario = PROMPTS.find(item => item.id === state.scenario);
+  let request; let setupError;
+  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, 'preview-layout'); }
+  catch (error) { setupError = error.message; }
+  const descriptions = request ? comparisonLanes(request) : null;
+  const lanes = ['default', 'turbo'].map(key => {
+    const lane = state.lanes[key] || { status: 'idle', answer: '' };
+    const meta = descriptions?.[key];
+    const status = lane.status === 'running' ? 'Showing example…' : lane.status === 'completed' ? 'Example complete' : busy ? 'Queued' : 'Ready';
+    return `<article class="answer-lane ${key === 'turbo' ? 'turbo-lane' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
+      <header class="answer-lane-head"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="lane-status ${lane.status === 'running' ? 'working' : ''}">${status}</span></header>
+      <div class="answer-model"><strong>${esc(meta?.model || 'Unavailable')}</strong><span>${esc(meta?.configuration || setupError)}</span><p>${esc(meta?.reason || '')}</p></div>
+      <div class="answer-output ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${lane.answer ? esc(lane.answer) : `<span class="answer-placeholder">${busy ? 'Waiting for its turn.' : 'The answer will appear here.'}</span>`}</div>
+      <dl class="answer-measures"><div><dt>Time to finish</dt><dd>Not measured</dd></div><div><dt>Answer check</dt><dd>Not evaluated</dd></div></dl>
+    </article>`;
+  }).join('');
+  return `<section class="screen comparison-demo">
+    <div class="section-heading"><div><div class="eyebrow">ONE PROMPT. TWO APPROACHES.</div><h1>See Local Turbo in action.</h1></div>
+      <div class="comparison-switch" role="group" aria-label="Comparison type"><button data-comparison="speed" aria-pressed="${state.comparison === 'speed'}" ${busy ? 'disabled' : ''}>Speed</button><button data-comparison="routing" aria-pressed="${state.comparison === 'routing'}" ${busy ? 'disabled' : ''}>Model routing</button></div>
+    </div>
+    <p class="comparison-intent">${state.comparison === 'speed' ? 'Same model, same prompt. Default settings versus your selected configuration.' : 'Same prompt. A fixed model versus a model chosen for the request.'}</p>
+    <div class="prompt-stage"><div class="prompt-top"><span class="eyebrow">TRY A PROMPT</span><div class="prompt-examples" role="group" aria-label="Example prompt">${PROMPTS.map(item => `<button data-scenario="${item.id}" aria-pressed="${state.scenario === item.id}" ${busy ? 'disabled' : ''}>${item.label}</button>`).join('')}</div></div>
+      <p class="comparison-prompt">${esc(scenario.prompt)}</p>
+      <div class="prompt-bottom"><button class="button primary" data-action="run-demo" ${busy || setupError ? 'disabled' : ''}>${busy ? '<span class="spinner small"></span> Playing comparison…' : state.result ? 'Replay comparison' : 'Preview comparison'} ${busy ? '' : arrow}</button><button class="text-button" data-action="reset-demo">${busy ? 'Stop preview' : 'Reset'}</button><span class="preview-explanation">Scripted answers · animation speed is illustrative</span></div>
+    </div>
+    <div class="answer-lanes">${lanes}</div>
+    <div class="comparison-outcome" role="status" aria-live="polite">${state.error || setupError ? esc(state.error || setupError) : state.result ? 'Preview complete. A live comparison will report actual times and answer checks.' : busy ? 'One launch, two runs. Each takes its turn so they do not compete for the laptop’s resources.' : state.comparison === 'routing' ? 'Routing preview: candidate roles are illustrative. Model choices need measured speed and quality profiles.' : 'Live trials will run one at a time. This preview does not show a measured speed advantage.'}</div>
+    <div class="demo-bottom"><button class="text-button" data-action="back">← Back to configurations</button>${state.result ? '<details class="comparison-evidence"><summary>Preview details</summary><p>Both answers are scripted examples, shown at the same animation pace. No model was run, no answer was graded, and no winner is claimed.</p></details>' : ''}</div>
   </section>`;
 }
 
@@ -133,7 +126,7 @@ function render({ focus = false } = {}) {
     if (link.dataset.step === state.page) link.setAttribute('aria-current', 'step');
     else link.removeAttribute('aria-current');
   });
-  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Preview · no model connected' : 'Device task' : 'Recorded results'}`;
+  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Preview · scripted answers' : 'Device task' : 'Recorded results'}`;
   $('#main').innerHTML = state.page === 'device' ? deviceScreen() : state.page === 'calibration' ? calibrationScreen() : demoScreen();
   if (!focus && !state.reveal) $('#main .screen')?.classList.add('static-screen');
   if (focus) { $('#main').focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
@@ -152,27 +145,35 @@ function navigate() {
 
 function resetDemo() {
   taskAbort?.abort();
-  demoGeneration++; state.demo = 'idle'; state.files = taskProvider.mode === 'simulated' ? initialFiles() : [];
-  state.result = null; state.session = null; state.error = null;
+  demoGeneration++; state.demo = 'idle'; state.lanes = {};
+  state.result = null; state.error = null;
 }
 
 async function runDemo() {
   if (['preparing', 'running'].includes(state.demo)) return;
-  if (!rankRows(state.snapshot, state.metric).eligible(currentRow())) return;
   resetDemo(); const generation = demoGeneration;
-  const request = createTaskRequest(state.snapshot, currentRow(), METRICS[state.metric].key, state.scenario, crypto.randomUUID());
+  let request;
+  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, crypto.randomUUID()); }
+  catch (error) { state.error = error.message; render(); return; }
   const controller = new AbortController(); taskAbort = controller;
   const timer = setTimeout(() => controller.abort(new Error('The device did not finish within two minutes. Its execution status is unknown; check the device before retrying.')), 120000);
   let rejectOnAbort;
   const interrupted = new Promise((_, reject) => { rejectOnAbort = () => reject(controller.signal.reason); controller.signal.addEventListener('abort', rejectOnAbort, { once: true }); });
-  state.demo = taskProvider.mode === 'simulated' ? 'running' : 'preparing'; render();
+  state.demo = 'running'; render();
   try {
-    const result = await Promise.race([interrupted, taskProvider.execute(request, { signal: controller.signal, onPrepared(session) {
+    const result = await Promise.race([interrupted, taskProvider.execute(request, { signal: controller.signal, onEvent(event) {
       if (generation !== demoGeneration) return;
-      state.session = session; state.files = session.files; state.demo = 'running'; render();
+      if (event.type === 'text') {
+        state.lanes[event.lane].answer = event.answer;
+        const output = document.querySelector(`[data-answer="${event.lane}"]`);
+        if (output) output.textContent = event.answer;
+      } else {
+        state.lanes[event.lane] = event.type === 'complete' ? event.result : { status: 'running', answer: '' };
+        render();
+      }
     } })]);
     if (generation !== demoGeneration) return;
-    state.result = result; state.files = result.files; state.demo = 'complete'; render();
+    state.result = result; state.lanes = result.lanes; state.demo = 'complete'; render();
   } catch (error) {
     if (generation !== demoGeneration) return;
     state.error = error.message || 'The device run could not be verified. Check its status before retrying.';
@@ -189,7 +190,7 @@ function download(data, filename) {
 function showEvidence() {
   if (!state.snapshot) return;
   const s = state.snapshot; const row = currentRow();
-  $('#evidence-content').innerHTML = `<div class="evidence-summary"><span class="mode-tag">Recorded screening</span><p>Measurements from the Dell Latitude, not this browser’s host. These observations do not establish a confirmed speedup or file-task accuracy.</p></div>
+  $('#evidence-content').innerHTML = `<div class="evidence-summary"><span class="mode-tag">Recorded screening</span><p>Measurements from the Dell Latitude, not this browser’s host. These observations do not establish a confirmed speedup or answer quality.</p></div>
     <dl class="evidence-list"><div><dt>Recorded</dt><dd>${esc(new Date(s.recordedAt).toUTCString())}</dd></div><div><dt>Timing source</dt><dd>${esc(s.timingSource)}</dd></div><div><dt>Source</dt><dd>${esc(s.source)}</dd></div><div><dt>Model SHA-256</dt><dd class="mono hash">${esc(s.modelHash)}</dd></div><div><dt>Runtime SHA-256</dt><dd class="mono hash">${esc(s.runtimeHash)}</dd></div><div><dt>Workload</dt><dd>${row?.params ? `${row.params.n_prompt} input · ${row.params.n_gen} output · ${row.params.n_ctx} context · ${row.params.warmup} warmup · ${row.params.repetitions} repetitions` : 'Unavailable'}</dd></div><div><dt>Reported device</dt><dd>${esc(row?.resolvedDevice || 'Not reported')} · ${esc(row?.dispatch)}</dd></div><div><dt>Energy scope</dt><dd>SYS channel, full process including initialization and warmup. Energy efficiency unavailable: warmup token counts are missing.</dd></div></dl>
     <details><summary>Inspect selected raw result</summary><pre>${esc(JSON.stringify(row?.raw ?? {}, null, 2))}</pre></details><button class="button ghost" data-action="download-evidence">Download recorded evidence ↓</button>`;
   $('#evidence-dialog').showModal();
@@ -207,6 +208,7 @@ document.addEventListener('click', event => {
   if (target.dataset.select) {
     resetDemo(); state.selected = target.dataset.select; render(); document.querySelector(`[data-select="${CSS.escape(state.selected)}"]`)?.focus({ preventScroll: true }); return;
   }
+  if (target.dataset.comparison) { state.comparison = target.dataset.comparison; resetDemo(); render(); document.querySelector(`[data-comparison="${state.comparison}"]`)?.focus(); return; }
   if (target.dataset.scenario) { state.scenario = target.dataset.scenario; resetDemo(); render(); document.querySelector(`[data-scenario="${state.scenario}"]`)?.focus(); return; }
   switch (target.dataset.action) {
     case 'explore': state.reveal = true; location.hash = 'calibration'; break;

@@ -1,4 +1,6 @@
-# Task finale integration contract
+# Previous file-task integration contract
+
+Superseded for the presentation UI by [comparison-contract.md](comparison-contract.md). Retained as a backend reference; the current In action screen does not use this adapter.
 
 Status: **frontend adapter implemented; device bridge not connected**. This is a view-facing contract, not an assertion that HTTP endpoints exist. Keep credentials and device addresses on the local server.
 

@@ -16,26 +16,21 @@ npm test
 
 ## What works
 
-- Three responsive screens, hash navigation and browser history, reduced-motion support.
-- All ten actual recorded screening configurations, ranking by generation speed, prefill speed or TTFT.
-- Selection details, provisional configuration export, raw evidence inspection/download.
-- Deterministic in-memory move and clarification scenarios with reset/replay. These are explicitly simulated and never call a model or touch user files.
-- Explicit unavailable/error states; no fabricated metrics or silent sample fallback.
+- Three responsive screens: machine identity, recorded configuration comparison, prompt/answer finale.
+- All ten recorded screening configurations and provisional configuration/evidence export.
+- The final screen compares **Default setup** with **Local Turbo**, using one shared prompt and launch button.
+- **Speed** carries the recorded default and the selected settings for the same model. **Model routing** illustrates candidate roles for a quick explanation or reasoning question; no calibrated model choice is claimed.
+- Two sequential scripted answers, equal animation pacing, stop/reset and stale-result protection. Timings and quality remain unavailable; no fabricated winner.
 
 ## What is not connected
 
-There is no live Latitude connection, benchmark execution, model loading, filesystem executor, or quality grader in this frontend. “Compare configurations” displays recorded results and an animation; it does not start a benchmark. Configuration export downloads a JSON recommendation, not an applied device setting. The task screen sends the selected model/configuration into a task-provider contract. Its default preview provider records that context but does not execute it. The injectable live provider requires configuration application, matching result identity and task evidence before rendering success; see [task contract](task-contract.md).
+The answer comparison is a preview. It does not call inference, execute a calibrated router, apply settings or grade answers. The single provider in `public/app.mjs` is `createPreviewComparisonProvider()` from `public/comparison.mjs`. The live request/result handoff is specified in [comparison-contract.md](comparison-contract.md); a live bridge and its rendering bindings are still needed.
+
+The earlier `public/demo.mjs`, its tests and `task-contract.md` preserve the previous file-task adapter for reference. They are **not used by the current screen**. File operations are no longer the presentation workflow.
 
 ## Backend boundary
 
-The only implemented frontend-server endpoints are:
-
-| Endpoint | Behavior |
-| --- | --- |
-| `GET /api/health` | Reports recorded mode and `live_backend: false`. |
-| `GET /api/recorded` | Reads the existing sanitized `benchmarks/results/screen-01` manifest and companion files. Returns `local-turbo.recorded.v1`. Missing/corrupt data returns 503. |
-
-`public/data.mjs` translates these backend records into view data. `public/app.mjs` renders the view; `public/demo.mjs` owns isolated examples, the request/result contract and the injectable live task provider. Add the real bridge behind a separate provider rather than fetching directly from components.
+Implemented server endpoints remain read-only: `GET /api/health` reports recorded mode; `GET /api/recorded` reads sanitized `screen-01` records. No live execution endpoint is claimed. `public/data.mjs` normalizes recorded evidence and `public/comparison.mjs` owns the new prompt comparison preview.
 
 ### Recorded response
 
@@ -68,22 +63,8 @@ The device identity is repository-provided target metadata, not detection of the
 
 Rank only completed, full-length comparable trials with valid provenance. Keep ties. Current ranking is a metric-specific recorded comparison, **not a call to `turbo.policy.choose`** and not quality-calibrated model routing. Do not use the `bench.v1` client-observed measurements in this native chart without a separate explicit normalization and timing-source label.
 
-### Integration still to agree with backend owner
+### Live integration
 
-No endpoints below are claimed to exist. The live provider will need these capabilities:
+See [comparison-contract.md](comparison-contract.md). Keep device addresses/credentials on the local server. Configuration tuning must use identical model weights; multi-model routing is a separate experiment. Never silently replace failed live runs with scripted answers.
 
-1. Read target/runtime health and locally available model identities, including supported configurations.
-2. Start one bounded calibration job and receive queued/running/completed/failed cell events plus original result records. Support cancellation and reconnects without restarting a benchmark.
-3. Return a recommendation with objective, rejected candidates, provenance, confirmation and measured-quality status. Preserve `estimate_only` for router latency predictions.
-4. Apply a selected configuration and report whether application succeeded before executing a task.
-5. Execute a request inside disposable fixtures, returning snapshot-bound tool actions, clarification, before/after inventories, correctness verdict with grading evidence, retries and real task time. A valid tool schema alone is not a correctness verdict.
-
-Use relative URLs through the local frontend server for the bridge. Keep addresses and credentials outside public code. Do not silently change data modes when a live request fails. Never infer NPU dispatch from its requested flag or a reported device ID alone. Energy and power need their own explicitly scoped views; do not mix full-process SYS energy with decode-only speed.
-
-`ux-spec.json` is the versioned screen/state specification for continued design iteration.
-
-## UX quality check
-
-The final screen is the end of the demonstration: same model and selected settings, request, visible workspace result, then optional run evidence. It does not jump back to the start after completion. Preview has no invented latency or model-quality verdict. Changing the selected configuration clears the previous task outcome.
-
-The request/result and error paths are covered by Node tests; browser checks cover the three-screen flow, selection handoff, both scenarios, reset and evidence. See [quality review](quality-review.md).
+`ux-spec.json` is the current versioned UX source. The initial file-task quality review is historical; the prompt comparison has five additional tests covering baseline identity, illustrative routing, sequential preview events, abort and unsupported prompts.
