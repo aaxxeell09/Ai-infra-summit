@@ -8,10 +8,10 @@ Status: September 15, 2026. No implementation milestones have passed. Work start
 - [x] Record the Latitude, UNO Q and available modules.
 - [x] Confirm that Codex is installed on the Latitude, as reported by the team.
 - [x] Prepare a dedicated SSH client key on the development Mac, kept outside this repository.
-- [ ] Confirm Windows OpenSSH Server setup, verify the host fingerprint and establish a connection.
+- [x] Confirm Windows OpenSSH Server setup, verify the host fingerprint and establish a connection.
 - [ ] Confirm camera input, board connectivity and installed model/runtime versions.
 
-The team reports that the Mac and Latitude are on the same Wi-Fi. Windows setup instructions have been handed to the operator; their successful execution has not been reported. Keep private keys, credentials and connection addresses in local setup notes. Follow [Microsoft's Windows OpenSSH instructions](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse) for remote access.
+SSH connection and remote checks succeeded on September 15; see [the verified status](ssh.md). Keep private keys, credentials and connection addresses in local setup notes. Follow [Microsoft's Windows OpenSSH instructions](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse) for remote access.
 
 ## Milestone 1: establish hardware feasibility
 

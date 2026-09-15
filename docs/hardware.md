@@ -23,9 +23,9 @@ The team reports access to Modulino Vibro, Knob, Buzzer, Buttons (three buttons)
 | [Buttons](https://docs.arduino.cc/hardware/modulino-buttons) | Three push buttons | Start, retry, acknowledge |
 | [Pixels](https://docs.arduino.cc/hardware/modulino-pixels) | Eight RGB LEDs | Show pass, check, and unknown states |
 
-Vibro produces vibration; it does not measure vibration. No distance, temperature, or movement sensor is confirmed. Camera availability remains unknown. Start with one of each needed module; duplicate modules require checking address configuration and power before connecting them together.
+Vibro produces vibration; it does not measure vibration. No distance, temperature, or movement sensor is confirmed. The team confirms UNO Q is connected to the Latitude and there is no USB webcam. Initial development will use uploaded images and evaluate the laptop's built-in camera. Start with one of each needed module; duplicate modules require checking address configuration and power before connecting them together.
 
-Codex is installed on the Latitude, as reported by the team. The development Mac and Latitude are reported to share a Wi-Fi network. A dedicated SSH client key has been prepared on the Mac, and Windows setup instructions have been provided. Remote access to the Latitude is not yet verified. Keep connection details outside this public repository.
+Codex is installed on the Latitude, as reported by the team. SSH from the development Mac is now verified with a pinned host key and a dedicated client key. The Windows service is running and the inspected SSH firewall rules are restricted to the development Mac. See [SSH verification](ssh.md); keep connection details outside this public repository.
 
 ## Initial device checks
 

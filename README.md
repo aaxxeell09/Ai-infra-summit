@@ -6,14 +6,14 @@ This is the working repository for our entry in the [AI Infra Summit Hackathon's
 
 ## Current status
 
-**Planning and device setup, September 15, 2026.** The hardware is in hand. This repository currently contains documentation only: there is no application, trained model, working router, or measured benchmark yet. SSH setup between the development Mac and the Latitude is in progress; a successful connection has not been verified.
+**Implementation starting, September 15, 2026.** The hardware is in hand. SSH from the development Mac to the Latitude is verified; see [the executed checks](docs/ssh.md). Application development has been authorized and is beginning. No model, physical inspection loop or performance benchmark has been validated yet.
 
 | Confirmed by the team | Still to verify |
 |---|---|
 | Dell Latitude 7455, Snapdragon X Elite X1E-80-100, 32 GB RAM | GenieX installation, compatible model, actual NPU execution and latency |
 | Arduino UNO Q ABX00162 | Board setup, software version, camera input and device communication |
 | Access to Modulino Vibro, Knob, Buzzer, Buttons and Pixels; multiple units available | Exact module quantities, wiring and functioning firmware |
-| Codex installed on the Latitude | Remote SSH access |
+| Codex installed on the Latitude; SSH access verified | Application and hardware integration |
 
 ## The demo we want to build
 
@@ -37,6 +37,7 @@ The first prototype will use explicit button-triggered inspection. A fixed trigg
 - [Project brief](docs/project.md): problem, use cases, intended value and scope.
 - [Architecture](docs/architecture.md): device responsibilities, data flow, result handling and routing extensions.
 - [Hardware](docs/hardware.md): actual kit, available modules and vendor references.
+- [SSH setup](docs/ssh.md): setup procedure and verified remote access status.
 - [Execution plan](docs/plan.md): setup, milestones, evaluation and demo checklist.
 
 There are no installation or launch commands for this project yet. They will be added after the first working implementation. Passwords, private keys, device addresses and raw camera captures belong outside the public repository.
