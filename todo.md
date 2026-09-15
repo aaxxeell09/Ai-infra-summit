@@ -92,3 +92,31 @@ Pitch: “Getting a model onto a Snapdragon is easy; getting it fast is guesswor
 - [ ] Fable 5.1 review through Claude Code on `henry.qin@algosoup.ai` when the saved login is restored. Account currently reports unauthenticated; no silent fallback.
 - [ ] Continue higher-level adversarial review and integrate useful findings.
 - [ ] Check PRs and remote changes before pushing; preserve collaborators' files and branches.
+
+## Feature ledger from the full conversation
+
+These are retained requirements; a new tuner direction does not silently remove them. Delivery order is evidence first, integrated tuner next, then workload/context improvements with their own ablations.
+
+| Requested capability | Implementation / next evidence | Owner |
+| --- | --- | --- |
+| Automatic model/device tuning | Registered quantization/runtime/context/thread/batch candidates; export a measured recommendation | Tuner worktree + integrator |
+| Raw speed beyond a stock install | Same-weights default-auto and strong CPU baselines; independently tuned upstream comparison before broader claims | Integrator |
+| Small and large local model routing | Hardware profiles plus task-quality eligibility, resident-model/loading/prefix costs | Integrator |
+| Local secretary and structured tool use | File fixture, exact action/state evaluator, clarification/negation tests | Integrator |
+| Agentic coding harness integration | Document and smoke-test an actual supported OpenAI client/harness; identify unsupported streaming/tools explicitly | Integrator |
+| Agent swarms | Measure concurrent-request/model contention and throughput before enabling; retain sequential low-latency mode | Integrator |
+| Prefill optimization | Context/prompt buckets, separate batch threads and microbatch sweeps | Tuner + integrator |
+| KV cache and prefix reuse | Stable system/schema prefix; cold versus warm experiment; avoid compression invalidating earlier cache | Context + integrator |
+| Parsec-like context reduction fully local | Deterministic projection/retrieval first; optional local learned scorer with measured overhead | Context worktree |
+| Local LLMLingua-style alternative | Verify checkpoint/runtime/ARM64 compatibility; measure quality and compressor cost rather than assuming a win | Catalog/context + integrator |
+| RTK-style tool-output reduction | Explicit eligible outputs, preserved exit/error information and exact raw recovery | Context worktree |
+| Caveman-style efficiency | Optional concise prose budgets; preserve JSON, code, paths, numbers and required detail | Context worktree |
+| Compact tool/action representation | Snapshot-bound ToolWire, optional grammar, same semantic task checks and actual generated-token counts | Integrator |
+| Portable architecture/kernel optimizations | Speculation first; investigate runtime-supported kernels/SSM/multimodal paths with dispatch proof | Integrator + catalog |
+| Original contribution | Measured combination of calibration, routing and compact local actions; compare prior art without claiming invention prematurely | Integrator |
+| Broad model families | Qwen sizes, a second tiny dense family, Granite/Mamba candidate, multimodal and compatible QNN bundles | Catalog worktree |
+| High-level/adversarial reviews | Independent measurement audit; Fable through selected Claude Code account when login works | Review worktree + integrator |
+| Demo deck and actual E2E demonstration | Teammate frontend/design; agent data/API/deck support; actual laptop execution and reproducible charts | Humans + integrator |
+| Frequent GitHub commits and PR awareness | Inspect open PRs/remotes before pushes, small working commits, isolated worker branches | Everyone |
+
+Superseded by explicit user pivot: workshop safety camera, Arduino sensor/actuator orchestration and inspection-station UI. Preserve their archive without spending the current inference-tuner critical path on them.
