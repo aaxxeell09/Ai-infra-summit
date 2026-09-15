@@ -150,7 +150,7 @@ TOOLS = [
         "name": "read_file",
         "description": "Read a text file from the workspace.",
         "parameters": {"type": "object", "properties": {
-            "path": {"type": "string", "description": "workspace-relative path"},
+            "path": {"type": "string", "description": "exact workspace-relative path including every parent folder"},
         }, "required": ["path"]},
     }},
     {"type": "function", "function": {
@@ -162,7 +162,7 @@ TOOLS = [
     }},
     {"type": "function", "function": {
         "name": "move_file",
-        "description": "Move a file. Refuses to overwrite or leave the workspace.",
+        "description": "Move a file. Both path and destination must be complete workspace-relative filenames, including parent folders and file extension. destination is a filename, never only a directory. Refuses overwrite or escape.",
         "parameters": {"type": "object", "properties": {
             "path": {"type": "string"},
             "destination": {"type": "string"},

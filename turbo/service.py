@@ -191,7 +191,7 @@ class Engine:
             workspace = Path(self.config.get('data_dir', 'local/demo')) / run_id
             inventory = create_fixture(workspace)
             messages = [
-                {'role': 'system', 'content': 'You are a local file secretary. Emit the required tool calls only, at most four, and preserve exact paths and constraints. Use clarify when essential information is missing. Never invent file contents. Available files:\n' + '\n'.join(f['path'] for f in inventory)},
+                {'role': 'system', 'content': 'You are a local file secretary. Emit the required tool calls only, at most four, and preserve exact paths and constraints. Both source and destination are full workspace-relative filenames. Preserve the basename when moving into a folder. Copy source paths exactly from the inventory, including parent folders. Use clarify when essential information is missing. Never invent file contents. Available files:\n' + '\n'.join(f['path'] for f in inventory)},
                 {'role': 'user', 'content': prompt},
             ]
             result = self.completion({'messages': messages, 'tools': TOOLS, 'max_tokens': 256}, mode)
