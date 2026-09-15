@@ -1,0 +1,142 @@
+{
+  "version": 9,
+  "product": "Local Turbo",
+  "purpose": "Compare recorded local inference configurations, then demonstrate one prompt answered by a default setup and Local Turbo. Speed tuning and model routing are separate experiments.",
+  "visual_system": {
+    "background": "#f7f8fa",
+    "surface": "#ffffff",
+    "text": "#171b25",
+    "accent": "#1557ff",
+    "typography": "locally bundled Manrope for the wordmark; local system sans serif for UI; monospace for metrics",
+    "motion": "screen entrance, chart reveal, file arrival; respects reduced motion",
+    "navigation": "one persistent three-step navigation; no secondary sidebar"
+  },
+  "screens": [
+    {
+      "id": "device",
+      "route": "#device",
+      "nav_label": "Machine",
+      "headline": "Tune your model. For this machine.",
+      "purpose": "Identify the recorded target and model before exploring calibration.",
+      "content": [
+        "target device identity",
+        "model",
+        "runtime",
+        "recorded date",
+        "configuration count"
+      ],
+      "primary_action": {
+        "label": "Compare configurations",
+        "next": "calibration",
+        "starts_benchmark": false
+      },
+      "data_mode": "recorded"
+    },
+    {
+      "id": "calibration",
+      "route": "#calibration",
+      "nav_label": "Compare",
+      "headline": "Choose how it runs.",
+      "purpose": "Compare one metric at a time and inspect the selected configuration.",
+      "metrics": [
+        "decode",
+        "prefill",
+        "ttft"
+      ],
+      "content": [
+        "all attempted configurations",
+        "selected result details",
+        "provisional status",
+        "evidence dialog"
+      ],
+      "ranking": "Only completed comparable trials; TTFT ascending, throughput descending; keep ties.",
+      "primary_action": {
+        "label": "Continue to demo",
+        "next": "demo"
+      },
+      "secondary_action": {
+        "label": "Export configuration",
+        "applies_to_device": false
+      },
+      "data_mode": "recorded",
+      "empty_state": "No comparable result available.",
+      "failure_state": "Keep failed/incomplete rows visible with no numeric bar.",
+      "metric_labels": {
+        "prefill": "Read the prompt",
+        "ttft": "Start responding",
+        "decode": "Write the answer"
+      },
+      "metric_help": "Show one explanation for the active measure above the chart, define its unit, and state that rankings are per measure rather than an overall winner."
+    },
+    {
+      "id": "demo",
+      "route": "#demo",
+      "nav_label": "In action",
+      "headline": "Compare answers",
+      "purpose": "Finish with readable answers side by side; no file operations.",
+      "content": [
+        "compact Speed / Model routing control",
+        "one shared prompt with example selector",
+        "one Run preview / Stop / Replay button",
+        "one split surface for Default setup and Local Turbo answers",
+        "one-line model and configuration identity",
+        "optional comparison explanation"
+      ],
+      "primary_action": {
+        "label": "Run preview",
+        "running_label": "Stop",
+        "complete_label": "Replay"
+      },
+      "scenarios": [
+        "quick explanation",
+        "reasoning challenge"
+      ],
+      "states": [
+        "idle",
+        "running default / turbo queued",
+        "default complete / turbo running",
+        "complete",
+        "stopped",
+        "failed"
+      ],
+      "data_mode": "simulated",
+      "disclosure": "Preview · scripted answers",
+      "execution": "sequential",
+      "timings": null,
+      "winner": null,
+      "routing_status": "illustrative roles; pending calibration",
+      "completion": "Leave both answers visible on this final screen.",
+      "providers": {
+        "default": "createPreviewComparisonProvider",
+        "live_connected": false,
+        "contract": "comparison-contract.md"
+      },
+      "layout": "Prompt spans both answer columns. Equal-width answer columns share one surface and a single divider; stack on mobile. Model identity stays beside its answer; omit the redundant route explanation.",
+      "progressive_disclosure": "Keep the preview badge visible. Hide method, simulation details and calibration caveats under How this comparison works. Do not display empty metric rows.",
+      "research": [
+        "https://www.nngroup.com/articles/progressive-disclosure/",
+        "https://m1.material.io/style/writing.html",
+        "https://design-system.service.gov.uk/patterns/question-pages/"
+      ],
+      "timing": {
+        "preview": "Independent browser animation clock per answer; excludes queue time, freezes on completion, resets on stop/replay. Never an inference measurement or speedup.",
+        "live": "Use backend total_time_s with explicit source and scope; never substitute browser animation time."
+      },
+      "example_picker": "Styled disclosure with selected-state buttons, outside-click dismissal, Escape, and keyboard focus restoration."
+    }
+  ],
+  "rules": [
+    "Never present animated recorded results as a live benchmark.",
+    "Never use invented performance numbers or treat null as zero.",
+    "Never label screening gains as confirmed speedups.",
+    "Never infer verified NPU computation from a requested or reported device alone.",
+    "No duplicate navigation, metric-card grid, unrelated marketing sections, or camera/Arduino workflow.",
+    "Preserve the same three-screen UX when a live provider is added, with explicit mode and evidence states.",
+    "One persistent mode badge. Benchmark evidence is available from the footer; task evidence belongs with the task result.",
+    "Do not animate the whole screen again on every state update.",
+    "The final comparison is about model responses; do not introduce files or file-management tasks.",
+    "Use equal animation pacing for preview lanes. Do not stage a fake speed or quality advantage.",
+    "Model routing requires separately measured model profiles and quality requirements; example roles are not real routing decisions.",
+    "Preserve page one’s existing visual. Arduino UNO Q is part of the user’s demo hardware; its current control role still needs confirmation."
+  ]
+}

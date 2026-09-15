@@ -14,9 +14,22 @@ Fast, private tool-using AI on a Snapdragon X Elite laptop. We are rebuilding ar
 
 ## Current status
 
-Active development with real Latitude results. A same-model CPU confirmation measured 88.65 versus 75.86 aggregate decode tok/s across 9,600 generated tokens per configuration (+16.9% in this run), with intermittent slowdowns in both legs and essentially unchanged pooled energy efficiency. Full distributions and limitations are in [the results report](benchmarks/results/README.md). Native SDK inference and actual Hexagon operation dispatch have also been verified. Broader model coverage, context optimizations and the integrated tuner are in progress.
+Actual Latitude measurements show **2.67× aggregate decode throughput** for CPU/10 versus default auto/NPU on the same 0.6B weights. The stronger CPU-default comparison measured +16.9% aggregate but only +3.2% median individual-run throughput, with substantial variability. See [results and limits](benchmarks/results/README.md).
 
-## Run tests
+The live HTTP tuner now exports CPU/NPU configurations that are applied through actual MCP and native inference. A simple file task passed; the invoice task failed in both modes. [Integration evidence](benchmarks/results/integration-01/README.md) retains those failures. All serious correctness candidates still fail the frozen quality gate. The teammate frontend below remains a recorded-results and scripted-answer preview; its live bridge and quality-aware model routing are not connected yet. [GOAL.md](GOAL.md) records the full acceptance criteria.
+
+## Local demo interface
+
+The three-screen frontend previews the target machine, compares the recorded Latitude screening results, and previews default-versus-Local-Turbo answers with separate speed and routing views. It does not yet run live inference or apply configurations to the device.
+
+```sh
+cd frontend
+npm run dev
+```
+
+Open `http://127.0.0.1:4173`. Node.js 20+ is required; no package installation is needed. See [frontend setup and backend integration](frontend/README.md) and the [versioned UX specification](frontend/ux-spec.json).
+
+## Core tests
 
 Python 3.11+; the core project uses the standard library.
 

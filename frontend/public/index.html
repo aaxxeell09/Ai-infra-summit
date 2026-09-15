@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8fa">
+  <title>localturbo — Local inference tuning</title>
+  <meta name="description" content="Explore recorded Snapdragon inference calibration and an interactive file-task demo.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="app-shell">
+    <header class="app-header">
+      <a class="wordmark" href="#device" aria-label="localturbo home">
+        <span class="identity-name"><span class="identity-local">local</span><span class="identity-turbo">turbo</span></span>
+      </a>
+      <nav class="step-nav" aria-label="Demo screens">
+        <a href="#device" data-step="device"><span>01</span> Machine</a>
+        <a href="#calibration" data-step="calibration"><span>02</span> Compare</a>
+        <a href="#demo" data-step="demo"><span>03</span> In action</a>
+      </nav>
+      <span class="mode-tag" id="mode-tag"><span class="mode-dot"></span>Recorded results</span>
+    </header>
+    <main id="main" tabindex="-1"><div class="loading-state"><span class="spinner"></span><p>Opening recorded results…</p></div></main>
+    <footer class="app-footer"><span>localturbo <span class="footer-divider">/</span> AI INFRA SUMMIT 2026</span><button class="text-button" id="evidence-button">Benchmark evidence <span aria-hidden="true">↗</span></button></footer>
+  </div>
+  <dialog id="evidence-dialog" aria-labelledby="evidence-title"><div class="dialog-head"><div><span class="eyebrow">MEASUREMENTS & PROVENANCE</span><h2 id="evidence-title">Behind the numbers.</h2></div><button class="icon-button" id="close-dialog" aria-label="Close evidence">✕</button></div><div id="evidence-content"></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
