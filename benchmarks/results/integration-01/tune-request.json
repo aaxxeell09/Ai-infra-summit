@@ -1,0 +1,20 @@
+{
+  "model_id": "qwen06",
+  "objective": "fast",
+  "search_space": {
+    "devices": [
+      "cpu",
+      "npu"
+    ],
+    "threads": [
+      10
+    ],
+    "contexts": [
+      4096
+    ],
+    "prompt_tokens": 512,
+    "gen_tokens": 128,
+    "repeats": 3,
+    "warmup": 0
+  }
+}

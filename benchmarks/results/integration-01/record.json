@@ -1,0 +1,1903 @@
+{
+  "schema_version": "turbo.tuning.v2",
+  "objective": "fast",
+  "constraints": null,
+  "variability_penalty": 0.0,
+  "results": [
+    {
+      "variant_id": "qwen06",
+      "device": "cpu",
+      "threads": 10,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 3,
+      "gen_tokens": 128,
+      "prompt_tokens": 512,
+      "warmup": 0,
+      "model": {
+        "id": "qwen06",
+        "path": "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 1.453925657721843,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-t",
+        "10",
+        "-r",
+        "3",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+        "--cell-id",
+        "trial-0000"
+      ],
+      "artifact_sha256": {
+        "model": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb"
+      },
+      "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+      "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "workload": {
+        "prompt_tokens": 512,
+        "gen_tokens": 128,
+        "warmup": 0,
+        "repeats": 3,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": null,
+        "image_sha256": null,
+        "prompt_sha256": null
+      },
+      "workload_id": "bdced7e3e6812ea8797ed8525818bccf912cf53a98defb1ded7f3db4ad601d0b",
+      "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+      "peak_working_set_mb": 1532.140625,
+      "working_set_mb": 1527.046875,
+      "private_mb": 2698.23828125,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "energy": {
+        "duration_s": 5.770519100129604,
+        "channels": {
+          "SYS": {
+            "energy_j": 264.1125410784,
+            "average_power_w": 45.769286349380266,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 44.2339398756,
+            "average_power_w": 7.665504456021386,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 55.7491558968,
+            "average_power_w": 9.661029610931863,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 56.2237728408,
+            "average_power_w": 9.743278180907023,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2419737.170104,
+        "channels_pwh": {
+          "SYS": 64377879935565,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13869249986928,
+          "CPU_CLUSTER_1": 4411862607197,
+          "CPU_CLUSTER_2": 3615995863040
+        },
+        "error": null
+      },
+      "energy_after": {
+        "monotonic_s": 2419742.9406231,
+        "channels_pwh": {
+          "SYS": 64451244530309,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13881537192449,
+          "CPU_CLUSTER_1": 4427348483835,
+          "CPU_CLUSTER_2": 3631613577718
+        },
+        "error": null
+      },
+      "energy_j": 264.1125410784,
+      "energy_duration_s": 5.770519100129604,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 97.2114,
+      "prefill_tps": 1581.760326,
+      "ttft_ms": 324.116,
+      "latency_s": 1.640408,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 341744,
+          "media_us": 0,
+          "prompt_time_us": 341459,
+          "decode_time_us": 1320360,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1499.447957,
+          "decode_tps": 96.943258,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 323746,
+          "media_us": 0,
+          "prompt_time_us": 323400,
+          "decode_time_us": 1314906,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1583.178726,
+          "decode_tps": 97.345362,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 2,
+          "ttft_us": 324116,
+          "media_us": 0,
+          "prompt_time_us": 323690,
+          "decode_time_us": 1316718,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1581.760326,
+          "decode_tps": 97.2114,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 3,
+      "run_count": 3,
+      "full_length": true,
+      "device_id": null,
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 3,
+        "n_prompt": 512,
+        "n_gen": 128,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 10,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.002107196438383002
+    },
+    {
+      "variant_id": "qwen06",
+      "device": "npu",
+      "threads": 10,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 3,
+      "gen_tokens": 128,
+      "prompt_tokens": 512,
+      "warmup": 0,
+      "model": {
+        "id": "qwen06",
+        "path": "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0001\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0001\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 1.5083578222840632,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "npu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-t",
+        "10",
+        "-r",
+        "3",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0001\\result.json",
+        "--cell-id",
+        "trial-0001"
+      ],
+      "artifact_sha256": {
+        "model": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb"
+      },
+      "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+      "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "workload": {
+        "prompt_tokens": 512,
+        "gen_tokens": 128,
+        "warmup": 0,
+        "repeats": 3,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": null,
+        "image_sha256": null,
+        "prompt_sha256": null
+      },
+      "workload_id": "bdced7e3e6812ea8797ed8525818bccf912cf53a98defb1ded7f3db4ad601d0b",
+      "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+      "peak_working_set_mb": 1186.65625,
+      "working_set_mb": 1185.09375,
+      "private_mb": 1000.67578125,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "energy": {
+        "duration_s": 13.777972499839962,
+        "channels": {
+          "SYS": {
+            "energy_j": 254.5815020328,
+            "average_power_w": 18.477428521196213,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 61.527688002,
+            "average_power_w": 4.465656177112756,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 31.9006192068,
+            "average_power_w": 2.3153348003249783,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 27.8070713532,
+            "average_power_w": 2.018226655157208,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2419742.9461816,
+        "channels_pwh": {
+          "SYS": 64451244530309,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13881537192449,
+          "CPU_CLUSTER_1": 4427348483835,
+          "CPU_CLUSTER_2": 3631613577718
+        },
+        "error": null
+      },
+      "energy_after": {
+        "monotonic_s": 2419756.7241541,
+        "channels_pwh": {
+          "SYS": 64521961614207,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13898628216894,
+          "CPU_CLUSTER_1": 4436209766948,
+          "CPU_CLUSTER_2": 3639337764205
+        },
+        "error": null
+      },
+      "energy_j": 254.5815020328,
+      "energy_duration_s": 13.777972499839962,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 32.611731,
+      "prefill_tps": 1615.152146,
+      "ttft_ms": 317.372,
+      "latency_s": 4.253789,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 317372,
+          "media_us": 0,
+          "prompt_time_us": 316998,
+          "decode_time_us": 3901309,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1615.152146,
+          "decode_tps": 32.809501,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 316410,
+          "media_us": 0,
+          "prompt_time_us": 315992,
+          "decode_time_us": 3937797,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1620.294185,
+          "decode_tps": 32.505485,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 2,
+          "ttft_us": 332341,
+          "media_us": 0,
+          "prompt_time_us": 331958,
+          "decode_time_us": 3924968,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1542.363793,
+          "decode_tps": 32.611731,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 3,
+      "run_count": 3,
+      "full_length": true,
+      "device_id": "HTP0",
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 3,
+        "n_prompt": 512,
+        "n_gen": 128,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 10,
+        "n_gpu_layers": -1
+      },
+      "variability_ratio": 0.004726606636036406
+    }
+  ],
+  "cells_planned": 2,
+  "ranking": [
+    {
+      "variant_id": "qwen06",
+      "device": "cpu",
+      "threads": 10,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 3,
+      "gen_tokens": 128,
+      "prompt_tokens": 512,
+      "warmup": 0,
+      "model": {
+        "id": "qwen06",
+        "path": "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 1.453925657721843,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-t",
+        "10",
+        "-r",
+        "3",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+        "--cell-id",
+        "trial-0000"
+      ],
+      "artifact_sha256": {
+        "model": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb"
+      },
+      "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+      "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "workload": {
+        "prompt_tokens": 512,
+        "gen_tokens": 128,
+        "warmup": 0,
+        "repeats": 3,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": null,
+        "image_sha256": null,
+        "prompt_sha256": null
+      },
+      "workload_id": "bdced7e3e6812ea8797ed8525818bccf912cf53a98defb1ded7f3db4ad601d0b",
+      "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+      "peak_working_set_mb": 1532.140625,
+      "working_set_mb": 1527.046875,
+      "private_mb": 2698.23828125,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "energy": {
+        "duration_s": 5.770519100129604,
+        "channels": {
+          "SYS": {
+            "energy_j": 264.1125410784,
+            "average_power_w": 45.769286349380266,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 44.2339398756,
+            "average_power_w": 7.665504456021386,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 55.7491558968,
+            "average_power_w": 9.661029610931863,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 56.2237728408,
+            "average_power_w": 9.743278180907023,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2419737.170104,
+        "channels_pwh": {
+          "SYS": 64377879935565,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13869249986928,
+          "CPU_CLUSTER_1": 4411862607197,
+          "CPU_CLUSTER_2": 3615995863040
+        },
+        "error": null
+      },
+      "energy_after": {
+        "monotonic_s": 2419742.9406231,
+        "channels_pwh": {
+          "SYS": 64451244530309,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13881537192449,
+          "CPU_CLUSTER_1": 4427348483835,
+          "CPU_CLUSTER_2": 3631613577718
+        },
+        "error": null
+      },
+      "energy_j": 264.1125410784,
+      "energy_duration_s": 5.770519100129604,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 97.2114,
+      "prefill_tps": 1581.760326,
+      "ttft_ms": 324.116,
+      "latency_s": 1.640408,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 341744,
+          "media_us": 0,
+          "prompt_time_us": 341459,
+          "decode_time_us": 1320360,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1499.447957,
+          "decode_tps": 96.943258,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 323746,
+          "media_us": 0,
+          "prompt_time_us": 323400,
+          "decode_time_us": 1314906,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1583.178726,
+          "decode_tps": 97.345362,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 2,
+          "ttft_us": 324116,
+          "media_us": 0,
+          "prompt_time_us": 323690,
+          "decode_time_us": 1316718,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1581.760326,
+          "decode_tps": 97.2114,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 3,
+      "run_count": 3,
+      "full_length": true,
+      "device_id": null,
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 3,
+        "n_prompt": 512,
+        "n_gen": 128,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 10,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.002107196438383002,
+      "score": 97.2114,
+      "objective": "fast",
+      "provisional": true,
+      "requires_paired_confirmation": true,
+      "rank": 1
+    },
+    {
+      "variant_id": "qwen06",
+      "device": "npu",
+      "threads": 10,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 3,
+      "gen_tokens": 128,
+      "prompt_tokens": 512,
+      "warmup": 0,
+      "model": {
+        "id": "qwen06",
+        "path": "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0001\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0001\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 1.5083578222840632,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "npu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-t",
+        "10",
+        "-r",
+        "3",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0001\\result.json",
+        "--cell-id",
+        "trial-0001"
+      ],
+      "artifact_sha256": {
+        "model": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb"
+      },
+      "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+      "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "workload": {
+        "prompt_tokens": 512,
+        "gen_tokens": 128,
+        "warmup": 0,
+        "repeats": 3,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": null,
+        "image_sha256": null,
+        "prompt_sha256": null
+      },
+      "workload_id": "bdced7e3e6812ea8797ed8525818bccf912cf53a98defb1ded7f3db4ad601d0b",
+      "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+      "peak_working_set_mb": 1186.65625,
+      "working_set_mb": 1185.09375,
+      "private_mb": 1000.67578125,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "energy": {
+        "duration_s": 13.777972499839962,
+        "channels": {
+          "SYS": {
+            "energy_j": 254.5815020328,
+            "average_power_w": 18.477428521196213,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 61.527688002,
+            "average_power_w": 4.465656177112756,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 31.9006192068,
+            "average_power_w": 2.3153348003249783,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 27.8070713532,
+            "average_power_w": 2.018226655157208,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2419742.9461816,
+        "channels_pwh": {
+          "SYS": 64451244530309,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13881537192449,
+          "CPU_CLUSTER_1": 4427348483835,
+          "CPU_CLUSTER_2": 3631613577718
+        },
+        "error": null
+      },
+      "energy_after": {
+        "monotonic_s": 2419756.7241541,
+        "channels_pwh": {
+          "SYS": 64521961614207,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13898628216894,
+          "CPU_CLUSTER_1": 4436209766948,
+          "CPU_CLUSTER_2": 3639337764205
+        },
+        "error": null
+      },
+      "energy_j": 254.5815020328,
+      "energy_duration_s": 13.777972499839962,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 32.611731,
+      "prefill_tps": 1615.152146,
+      "ttft_ms": 317.372,
+      "latency_s": 4.253789,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 317372,
+          "media_us": 0,
+          "prompt_time_us": 316998,
+          "decode_time_us": 3901309,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1615.152146,
+          "decode_tps": 32.809501,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 316410,
+          "media_us": 0,
+          "prompt_time_us": 315992,
+          "decode_time_us": 3937797,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1620.294185,
+          "decode_tps": 32.505485,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 2,
+          "ttft_us": 332341,
+          "media_us": 0,
+          "prompt_time_us": 331958,
+          "decode_time_us": 3924968,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1542.363793,
+          "decode_tps": 32.611731,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 3,
+      "run_count": 3,
+      "full_length": true,
+      "device_id": "HTP0",
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 3,
+        "n_prompt": 512,
+        "n_gen": 128,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 10,
+        "n_gpu_layers": -1
+      },
+      "variability_ratio": 0.004726606636036406,
+      "score": 32.611731,
+      "objective": "fast",
+      "provisional": true,
+      "requires_paired_confirmation": true,
+      "rank": 2
+    }
+  ],
+  "pareto_frontier": [
+    {
+      "variant_id": "qwen06",
+      "device": "cpu",
+      "threads": 10,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 3,
+      "gen_tokens": 128,
+      "prompt_tokens": 512,
+      "warmup": 0,
+      "model": {
+        "id": "qwen06",
+        "path": "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 1.453925657721843,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-t",
+        "10",
+        "-r",
+        "3",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+        "--cell-id",
+        "trial-0000"
+      ],
+      "artifact_sha256": {
+        "model": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb"
+      },
+      "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+      "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "workload": {
+        "prompt_tokens": 512,
+        "gen_tokens": 128,
+        "warmup": 0,
+        "repeats": 3,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": null,
+        "image_sha256": null,
+        "prompt_sha256": null
+      },
+      "workload_id": "bdced7e3e6812ea8797ed8525818bccf912cf53a98defb1ded7f3db4ad601d0b",
+      "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+      "peak_working_set_mb": 1532.140625,
+      "working_set_mb": 1527.046875,
+      "private_mb": 2698.23828125,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "energy": {
+        "duration_s": 5.770519100129604,
+        "channels": {
+          "SYS": {
+            "energy_j": 264.1125410784,
+            "average_power_w": 45.769286349380266,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 44.2339398756,
+            "average_power_w": 7.665504456021386,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 55.7491558968,
+            "average_power_w": 9.661029610931863,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 56.2237728408,
+            "average_power_w": 9.743278180907023,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2419737.170104,
+        "channels_pwh": {
+          "SYS": 64377879935565,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13869249986928,
+          "CPU_CLUSTER_1": 4411862607197,
+          "CPU_CLUSTER_2": 3615995863040
+        },
+        "error": null
+      },
+      "energy_after": {
+        "monotonic_s": 2419742.9406231,
+        "channels_pwh": {
+          "SYS": 64451244530309,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13881537192449,
+          "CPU_CLUSTER_1": 4427348483835,
+          "CPU_CLUSTER_2": 3631613577718
+        },
+        "error": null
+      },
+      "energy_j": 264.1125410784,
+      "energy_duration_s": 5.770519100129604,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 97.2114,
+      "prefill_tps": 1581.760326,
+      "ttft_ms": 324.116,
+      "latency_s": 1.640408,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 341744,
+          "media_us": 0,
+          "prompt_time_us": 341459,
+          "decode_time_us": 1320360,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1499.447957,
+          "decode_tps": 96.943258,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 323746,
+          "media_us": 0,
+          "prompt_time_us": 323400,
+          "decode_time_us": 1314906,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1583.178726,
+          "decode_tps": 97.345362,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 2,
+          "ttft_us": 324116,
+          "media_us": 0,
+          "prompt_time_us": 323690,
+          "decode_time_us": 1316718,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1581.760326,
+          "decode_tps": 97.2114,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 3,
+      "run_count": 3,
+      "full_length": true,
+      "device_id": null,
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 3,
+        "n_prompt": 512,
+        "n_gen": 128,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 10,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.002107196438383002
+    },
+    {
+      "variant_id": "qwen06",
+      "device": "npu",
+      "threads": 10,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 3,
+      "gen_tokens": 128,
+      "prompt_tokens": 512,
+      "warmup": 0,
+      "model": {
+        "id": "qwen06",
+        "path": "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0001\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0001\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 1.5083578222840632,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "npu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-t",
+        "10",
+        "-r",
+        "3",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0001\\result.json",
+        "--cell-id",
+        "trial-0001"
+      ],
+      "artifact_sha256": {
+        "model": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb"
+      },
+      "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+      "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "workload": {
+        "prompt_tokens": 512,
+        "gen_tokens": 128,
+        "warmup": 0,
+        "repeats": 3,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": null,
+        "image_sha256": null,
+        "prompt_sha256": null
+      },
+      "workload_id": "bdced7e3e6812ea8797ed8525818bccf912cf53a98defb1ded7f3db4ad601d0b",
+      "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+      "peak_working_set_mb": 1186.65625,
+      "working_set_mb": 1185.09375,
+      "private_mb": 1000.67578125,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "energy": {
+        "duration_s": 13.777972499839962,
+        "channels": {
+          "SYS": {
+            "energy_j": 254.5815020328,
+            "average_power_w": 18.477428521196213,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 61.527688002,
+            "average_power_w": 4.465656177112756,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 31.9006192068,
+            "average_power_w": 2.3153348003249783,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 27.8070713532,
+            "average_power_w": 2.018226655157208,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2419742.9461816,
+        "channels_pwh": {
+          "SYS": 64451244530309,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13881537192449,
+          "CPU_CLUSTER_1": 4427348483835,
+          "CPU_CLUSTER_2": 3631613577718
+        },
+        "error": null
+      },
+      "energy_after": {
+        "monotonic_s": 2419756.7241541,
+        "channels_pwh": {
+          "SYS": 64521961614207,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13898628216894,
+          "CPU_CLUSTER_1": 4436209766948,
+          "CPU_CLUSTER_2": 3639337764205
+        },
+        "error": null
+      },
+      "energy_j": 254.5815020328,
+      "energy_duration_s": 13.777972499839962,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 32.611731,
+      "prefill_tps": 1615.152146,
+      "ttft_ms": 317.372,
+      "latency_s": 4.253789,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 317372,
+          "media_us": 0,
+          "prompt_time_us": 316998,
+          "decode_time_us": 3901309,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1615.152146,
+          "decode_tps": 32.809501,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 316410,
+          "media_us": 0,
+          "prompt_time_us": 315992,
+          "decode_time_us": 3937797,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1620.294185,
+          "decode_tps": 32.505485,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 2,
+          "ttft_us": 332341,
+          "media_us": 0,
+          "prompt_time_us": 331958,
+          "decode_time_us": 3924968,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1542.363793,
+          "decode_tps": 32.611731,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 3,
+      "run_count": 3,
+      "full_length": true,
+      "device_id": "HTP0",
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 3,
+        "n_prompt": 512,
+        "n_gen": 128,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 10,
+        "n_gpu_layers": -1
+      },
+      "variability_ratio": 0.004726606636036406
+    }
+  ],
+  "recommendations": {
+    "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d": {
+      "variant_id": "qwen06",
+      "device": "cpu",
+      "threads": 10,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 3,
+      "gen_tokens": 128,
+      "prompt_tokens": 512,
+      "warmup": 0,
+      "model": {
+        "id": "qwen06",
+        "path": "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 1.453925657721843,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-t",
+        "10",
+        "-r",
+        "3",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+        "--cell-id",
+        "trial-0000"
+      ],
+      "artifact_sha256": {
+        "model": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb"
+      },
+      "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+      "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "workload": {
+        "prompt_tokens": 512,
+        "gen_tokens": 128,
+        "warmup": 0,
+        "repeats": 3,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": null,
+        "image_sha256": null,
+        "prompt_sha256": null
+      },
+      "workload_id": "bdced7e3e6812ea8797ed8525818bccf912cf53a98defb1ded7f3db4ad601d0b",
+      "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+      "peak_working_set_mb": 1532.140625,
+      "working_set_mb": 1527.046875,
+      "private_mb": 2698.23828125,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 99,
+        "battery_flag": 9
+      },
+      "energy": {
+        "duration_s": 5.770519100129604,
+        "channels": {
+          "SYS": {
+            "energy_j": 264.1125410784,
+            "average_power_w": 45.769286349380266,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 44.2339398756,
+            "average_power_w": 7.665504456021386,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 55.7491558968,
+            "average_power_w": 9.661029610931863,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 56.2237728408,
+            "average_power_w": 9.743278180907023,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2419737.170104,
+        "channels_pwh": {
+          "SYS": 64377879935565,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13869249986928,
+          "CPU_CLUSTER_1": 4411862607197,
+          "CPU_CLUSTER_2": 3615995863040
+        },
+        "error": null
+      },
+      "energy_after": {
+        "monotonic_s": 2419742.9406231,
+        "channels_pwh": {
+          "SYS": 64451244530309,
+          "GPU": 150806504584,
+          "CPU_CLUSTER_0": 13881537192449,
+          "CPU_CLUSTER_1": 4427348483835,
+          "CPU_CLUSTER_2": 3631613577718
+        },
+        "error": null
+      },
+      "energy_j": 264.1125410784,
+      "energy_duration_s": 5.770519100129604,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 97.2114,
+      "prefill_tps": 1581.760326,
+      "ttft_ms": 324.116,
+      "latency_s": 1.640408,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 341744,
+          "media_us": 0,
+          "prompt_time_us": 341459,
+          "decode_time_us": 1320360,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1499.447957,
+          "decode_tps": 96.943258,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 323746,
+          "media_us": 0,
+          "prompt_time_us": 323400,
+          "decode_time_us": 1314906,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1583.178726,
+          "decode_tps": 97.345362,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 2,
+          "ttft_us": 324116,
+          "media_us": 0,
+          "prompt_time_us": 323690,
+          "decode_time_us": 1316718,
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "prefill_tps": 1581.760326,
+          "decode_tps": 97.2114,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 3,
+      "run_count": 3,
+      "full_length": true,
+      "device_id": null,
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 3,
+        "n_prompt": 512,
+        "n_gen": 128,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 10,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.002107196438383002,
+      "score": 97.2114,
+      "objective": "fast",
+      "provisional": true,
+      "requires_paired_confirmation": true,
+      "rank": 1
+    }
+  },
+  "recommended": {
+    "variant_id": "qwen06",
+    "device": "cpu",
+    "threads": 10,
+    "context": 4096,
+    "kind": "llm",
+    "plugin": "llama_cpp",
+    "unsupported_reason": null,
+    "repeats": 3,
+    "gen_tokens": 128,
+    "prompt_tokens": 512,
+    "warmup": 0,
+    "model": {
+      "id": "qwen06",
+      "path": "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "plugin": "llama_cpp",
+      "kind": "llm",
+      "tokenizer_path": null,
+      "mmproj_path": null,
+      "compiled_contexts": null,
+      "requiredimage": false
+    },
+    "architecture": "qwen3",
+    "quantization": "Q4_0",
+    "power_state": "ac",
+    "power_scope": "measured",
+    "result_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+    "log_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\bench.log",
+    "status": "completed",
+    "tokens_per_joule": 1.453925657721843,
+    "energy_valid": true,
+    "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+    "command": [
+      "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+      "--plugin",
+      "llama_cpp",
+      "--device",
+      "cpu",
+      "-m",
+      "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+      "-c",
+      "4096",
+      "-p",
+      "512",
+      "-n",
+      "128",
+      "-t",
+      "10",
+      "-r",
+      "3",
+      "--warmup",
+      "0",
+      "--temperature",
+      "0",
+      "--seed",
+      "42",
+      "--output-json",
+      "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+      "--cell-id",
+      "trial-0000"
+    ],
+    "artifact_sha256": {
+      "model": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb"
+    },
+    "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+    "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+    "workload": {
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "warmup": 0,
+      "repeats": 3,
+      "temperature": 0,
+      "seed": 42,
+      "image_path": null,
+      "prompt_file": null,
+      "image_sha256": null,
+      "prompt_sha256": null
+    },
+    "workload_id": "bdced7e3e6812ea8797ed8525818bccf912cf53a98defb1ded7f3db4ad601d0b",
+    "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+    "peak_working_set_mb": 1532.140625,
+    "working_set_mb": 1527.046875,
+    "private_mb": 2698.23828125,
+    "power_state_start": {
+      "ac_line_status": "ac",
+      "battery_percent": 99,
+      "battery_flag": 9
+    },
+    "power_state_end": {
+      "ac_line_status": "ac",
+      "battery_percent": 99,
+      "battery_flag": 9
+    },
+    "energy": {
+      "duration_s": 5.770519100129604,
+      "channels": {
+        "SYS": {
+          "energy_j": 264.1125410784,
+          "average_power_w": 45.769286349380266,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_0": {
+          "energy_j": 44.2339398756,
+          "average_power_w": 7.665504456021386,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_1": {
+          "energy_j": 55.7491558968,
+          "average_power_w": 9.661029610931863,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_2": {
+          "energy_j": 56.2237728408,
+          "average_power_w": 9.743278180907023,
+          "tokens_per_joule": null
+        }
+      },
+      "unit": "picowatt-hours",
+      "scope": "full process trial including model initialization and any warmup",
+      "error": null
+    },
+    "energy_before": {
+      "monotonic_s": 2419737.170104,
+      "channels_pwh": {
+        "SYS": 64377879935565,
+        "GPU": 150806504584,
+        "CPU_CLUSTER_0": 13869249986928,
+        "CPU_CLUSTER_1": 4411862607197,
+        "CPU_CLUSTER_2": 3615995863040
+      },
+      "error": null
+    },
+    "energy_after": {
+      "monotonic_s": 2419742.9406231,
+      "channels_pwh": {
+        "SYS": 64451244530309,
+        "GPU": 150806504584,
+        "CPU_CLUSTER_0": 13881537192449,
+        "CPU_CLUSTER_1": 4427348483835,
+        "CPU_CLUSTER_2": 3631613577718
+      },
+      "error": null
+    },
+    "energy_j": 264.1125410784,
+    "energy_duration_s": 5.770519100129604,
+    "energy_scope": "full_process_trial",
+    "energy_channel": "SYS",
+    "timed_out": false,
+    "exit_code": 0,
+    "decode_tps": 97.2114,
+    "prefill_tps": 1581.760326,
+    "ttft_ms": 324.116,
+    "latency_s": 1.640408,
+    "runs": [
+      {
+        "run_idx": 0,
+        "ttft_us": 341744,
+        "media_us": 0,
+        "prompt_time_us": 341459,
+        "decode_time_us": 1320360,
+        "prompt_tokens": 512,
+        "gen_tokens": 128,
+        "prefill_tps": 1499.447957,
+        "decode_tps": 96.943258,
+        "stop_reason": "length"
+      },
+      {
+        "run_idx": 1,
+        "ttft_us": 323746,
+        "media_us": 0,
+        "prompt_time_us": 323400,
+        "decode_time_us": 1314906,
+        "prompt_tokens": 512,
+        "gen_tokens": 128,
+        "prefill_tps": 1583.178726,
+        "decode_tps": 97.345362,
+        "stop_reason": "length"
+      },
+      {
+        "run_idx": 2,
+        "ttft_us": 324116,
+        "media_us": 0,
+        "prompt_time_us": 323690,
+        "decode_time_us": 1316718,
+        "prompt_tokens": 512,
+        "gen_tokens": 128,
+        "prefill_tps": 1581.760326,
+        "decode_tps": 97.2114,
+        "stop_reason": "length"
+      }
+    ],
+    "complete_length_runs": 3,
+    "run_count": 3,
+    "full_length": true,
+    "device_id": null,
+    "reported_params": {
+      "warmup": 0,
+      "repetitions": 3,
+      "n_prompt": 512,
+      "n_gen": 128,
+      "temperature": 0.0,
+      "seed": 42,
+      "n_ctx": 4096,
+      "n_threads": 10,
+      "n_gpu_layers": 0
+    },
+    "variability_ratio": 0.002107196438383002,
+    "score": 97.2114,
+    "objective": "fast",
+    "provisional": true,
+    "requires_paired_confirmation": true,
+    "rank": 1
+  },
+  "cells_run": 2,
+  "output_dir": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777",
+  "recommendation": {
+    "schema_version": "turbo.recommended.v2",
+    "model_id": "qwen06",
+    "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+    "model": {
+      "id": "qwen06",
+      "path": "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "plugin": "llama_cpp",
+      "kind": "llm",
+      "tokenizer_path": null,
+      "mmproj_path": null,
+      "compiled_contexts": null,
+      "requiredimage": false
+    },
+    "plugin": "llama_cpp",
+    "artifact_sha256": {
+      "model": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb"
+    },
+    "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+    "scope": {
+      "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+      "workload": {
+        "prompt_tokens": 512,
+        "gen_tokens": 128,
+        "warmup": 0,
+        "repeats": 3,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": null,
+        "image_sha256": null,
+        "prompt_sha256": null
+      },
+      "power_state": "ac",
+      "power_scope": "measured",
+      "quality_calibrated": false,
+      "cold_kv": true,
+      "evidence": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\record.json",
+      "provisional": true,
+      "requires_paired_confirmation": true
+    },
+    "modes": {
+      "fast": {
+        "device": "cpu",
+        "threads": 10,
+        "context": 4096,
+        "metrics": {
+          "decode_tps": 97.2114,
+          "prefill_tps": 1581.760326,
+          "latency_s": 1.640408,
+          "tokens_per_joule": 1.453925657721843,
+          "median_decode_tps": 97.2114,
+          "median_ttft_ms": 324.116,
+          "median_peak_mib": 1532.140625
+        },
+        "evidence": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+        "command": [
+          "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+          "--plugin",
+          "llama_cpp",
+          "--device",
+          "cpu",
+          "-m",
+          "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+          "-c",
+          "4096",
+          "-p",
+          "512",
+          "-n",
+          "128",
+          "-t",
+          "10",
+          "-r",
+          "3",
+          "--warmup",
+          "0",
+          "--temperature",
+          "0",
+          "--seed",
+          "42",
+          "--output-json",
+          "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+          "--cell-id",
+          "trial-0000"
+        ],
+        "provisional": true,
+        "requires_paired_confirmation": true
+      },
+      "efficient": {
+        "device": "npu",
+        "threads": 10,
+        "context": 4096,
+        "metrics": {
+          "decode_tps": 32.611731,
+          "prefill_tps": 1615.152146,
+          "latency_s": 4.253789,
+          "tokens_per_joule": 1.5083578222840632,
+          "median_decode_tps": 32.611731,
+          "median_ttft_ms": 317.372,
+          "median_peak_mib": 1186.65625
+        },
+        "evidence": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0001\\result.json",
+        "command": [
+          "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+          "--plugin",
+          "llama_cpp",
+          "--device",
+          "npu",
+          "-m",
+          "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+          "-c",
+          "4096",
+          "-p",
+          "512",
+          "-n",
+          "128",
+          "-t",
+          "10",
+          "-r",
+          "3",
+          "--warmup",
+          "0",
+          "--temperature",
+          "0",
+          "--seed",
+          "42",
+          "--output-json",
+          "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0001\\result.json",
+          "--cell-id",
+          "trial-0001"
+        ],
+        "provisional": true,
+        "requires_paired_confirmation": true
+      },
+      "balanced": {
+        "device": "cpu",
+        "threads": 10,
+        "context": 4096,
+        "metrics": {
+          "decode_tps": 97.2114,
+          "prefill_tps": 1581.760326,
+          "latency_s": 1.640408,
+          "tokens_per_joule": 1.453925657721843,
+          "median_decode_tps": 97.2114,
+          "median_ttft_ms": 324.116,
+          "median_peak_mib": 1532.140625
+        },
+        "evidence": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+        "command": [
+          "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+          "--plugin",
+          "llama_cpp",
+          "--device",
+          "cpu",
+          "-m",
+          "${QUALCOMM_TOOLS}\\Qwen3-0.6B-Q4_0.gguf",
+          "-c",
+          "4096",
+          "-p",
+          "512",
+          "-n",
+          "128",
+          "-t",
+          "10",
+          "-r",
+          "3",
+          "--warmup",
+          "0",
+          "--temperature",
+          "0",
+          "--seed",
+          "42",
+          "--output-json",
+          "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\trial-0000\\result.json",
+          "--cell-id",
+          "trial-0000"
+        ],
+        "provisional": true,
+        "requires_paired_confirmation": true
+      }
+    },
+    "unavailable_modes": {}
+  },
+  "recommendation_path": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\recommended.json"
+}

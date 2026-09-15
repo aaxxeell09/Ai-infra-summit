@@ -136,7 +136,7 @@ These extend the requested tuner; they do not precede the P0 evidence milestone.
 
 ## Added September 15: agent control, ports and kernels
 
-- [ ] Agent-facing MCP: local model/status tools, bounded local worker calls, explicit fast/efficient/balanced mode selection and tuning requests. Owner: `feat/agent-interface`.
+- [x] Agent-facing MCP tools implemented and integrated. Actual mode application and invoice inference exercised on the Latitude; both invoice tasks failed semantic checks. Evidence: `benchmarks/results/integration-01/`. Accepted task-quality demonstration remains open.
 - [ ] Model import/preflight: distinguish directly loadable GGUF, conversions, architecture support and chipset/context-specific QAIRT compilation. Owner: `feat/kernel-ports`.
 - [ ] Kernel research: compare MLX portability, ARM CPU kernels, Adreno and Hexagon paths against the installed release; require real hardware wins before adoption. Owner: `feat/kernel-ports`.
 - [ ] Speculative decoding: actual supported n-gram screening, then compatible draft models with acceptance and output-correctness checks. Owner: integrator.
@@ -156,3 +156,11 @@ Latest correctness coordination: **v2 frozen; confirmed baseline measured** at `
 ## Active isolated Codex work
 
 Separate CLI Codex processes using GLM-5.3-Flash successfully run in isolated worktrees. The native session cap and provider request-rate limits still apply to their respective routes; no unlimited-capacity claim. Current scopes: integration correctness review, saved performance-evidence audit, constrained-tool grammar experiment, and UNO Q adapter hardening. Only the parent owns hardware inference during official evaluations.
+
+## Latest live integration and model queue
+
+- [x] Run the HTTP tuner on the Latitude and export measured CPU/NPU configurations.
+- [x] Apply both configurations through actual stdio MCP and execute invoice requests; preserve both failures.
+- [ ] Correct the failed invoice behavior and pass the unchanged quality gate.
+- [ ] Complete pinned Qwen3-8B Q4_K_M and gpt-oss-20b MXFP4 downloads queued on the Latitude; checksum, memory, runtime and tool-parser checks precede admission.
+- [ ] Finish Qwen3-4B-Instruct-2507 download and prioritize its secretary evaluation.

@@ -52,7 +52,10 @@ This sequence is verified by the focused test suite: unit tests over fixtures
 captured from the real parent gateway, plus stub-dylib integration tests that
 boot the real parent Engine over loopback HTTP and drive a piped stdio MCP
 subprocess (read endpoints and /api/apply only; no inference, no tune, no
-hardware calls). Latitude end-to-end on-device verification has not been run.
+hardware calls). Actual Latitude tune/apply/inference via MCP is now recorded in
+[the integration smoke evidence](../benchmarks/results/integration-01/README.md).
+Mode changes reached the runtime, but both invoice tasks failed final-state
+checks. This is not a successful invoice demo or an accepted quality candidate.
 
 ## Tools
 
