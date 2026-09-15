@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "turbo-local": {
+      "command": "python3",
+      "args": ["-m", "turbo.mcp_server"],
+      "env": {
+        "TURBO_BASE_URL": "http://127.0.0.1:8080"
+      }
+    }
+  }
+}
