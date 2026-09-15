@@ -37,18 +37,18 @@ Codex is installed on the Latitude, as reported by the team. SSH from the develo
 | GenieX | 0.6.1, QAIRT 2.45; `geniex model list` includes `qualcomm/Qwen3-VL-4B-Instruct` for this device |
 | Git | Native ARM64 Git 2.55.0.windows.5; repository cloned |
 | UNO Q | Linux aarch64; Arduino App CLI and daemon 0.12.1; Arduino CLI 1.5.1; zephyr platform 0.56.0 |
-| Connection | Authenticated USB ADB; board HTTP request through `adb reverse tcp:8080 tcp:8080` reaches the real Latitude hub |
+| Connection | Authenticated USB ADB; a shared filesystem socket forwards HTTP from the App Lab container to the real Latitude hub |
 | Hub | Python service running on Latitude loopback port 8080; status API responds |
 
-The real Latitude camera was subsequently verified in Edge at 1280×720, delivering fresh frames to the hub with no JavaScript errors. The model bundle is still downloading; there is no verified model inference, NPU utilization or model-quality result yet.
+The real Latitude camera was subsequently verified in Edge at 1280×720, delivering fresh frames to the hub with no JavaScript errors. The model bundle is installed and real inference has been verified with QAIRT/HTP logs. See [the results](verification.md); NPU utilization and broad model quality remain unmeasured.
 
-The current development processes run as user-level Windows Scheduled Tasks: `Qualcomm-Hub`, `Qualcomm-ADB` and a temporary model-download task. They have no recurring trigger. Logging out of Codex does not stop SSH; signing out of Windows can stop these interactive tasks. Startup wrappers and download logs live under `%LOCALAPPDATA%\QualcommTools`, outside Git.
+The current development processes run as user-level Windows Scheduled Tasks: `Qualcomm-Hub`, `Qualcomm-ADB` and `Qualcomm-GenieX`. They have no recurring trigger. Logging out of Codex does not stop SSH; signing out of Windows can stop these interactive tasks. Startup wrappers and download logs live under `%LOCALAPPDATA%\QualcommTools`, outside Git.
 
 ## Still to verify
 
-- Actual captured images reaching the model and producing useful answers.
-- Model quality, memory use, inference latency and active NPU backend.
-- Physical Modulino wiring, controls and feedback.
+- Broader tests of physical inspection scenes.
+- Model quality, end-to-end physical latency and resource measurements beyond the initial runtime checks.
+- Physical controls and visual feedback (firmware reports Buttons, Knob, Vibro and matrix present; Pixels absent).
 - Full inspection loop with internet disconnected after setup.
 
 Passwords, private keys, local addresses and raw captures are not stored in this repository.

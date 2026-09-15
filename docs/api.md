@@ -29,6 +29,6 @@ The browser and MCU additionally expire displayed results locally. Board connect
 
 GenieX must be a loopback HTTP endpoint, by default `http://127.0.0.1:18181/v1`. `runtime.connected` reports server reachability; it does not prove model loading or NPU execution. `runtime.backend_evidence` defaults to `unverified`. Set `INSPECTION_BACKEND_EVIDENCE` only to a description backed by actual runtime observations.
 
-For USB transport, `adb reverse tcp:8080 tcp:8080` makes the Latitude hub available at `http://127.0.0.1:8080` on UNO Q. This avoids opening a new Windows network listener. App Lab's Python container must be able to access the board's host loopback.
+For USB transport, run `scripts/connect-board.ps1` on the Latitude. ADB reverse maps a board filesystem socket to Latitude loopback port 8080. The board client uses that socket inside App Lab's shared app directory; no venue-facing TCP port or container host networking is needed. A plain TCP reverse mapping was useful during initial transport checks, but has been replaced because ADB listens on all board interfaces in that mode.
 
 For a deliberate LAN setup, bind with `--host 0.0.0.0`, set `INSPECTION_DEVICE_TOKEN`, and add the actual laptop address to `INSPECTION_ALLOWED_HOSTS`. Non-loopback requests must include the matching `X-Device-Token` header. Keep these values outside Git. The current browser console is intended for localhost; use a tunnel rather than putting a device token into browser source. Cross-origin writes and unexpected Host headers are rejected.

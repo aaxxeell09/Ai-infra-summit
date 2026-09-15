@@ -6,14 +6,14 @@ This is the working repository for our entry in the [AI Infra Summit Hackathon's
 
 ## Current status
 
-**Prototype in development, September 15, 2026.** The Python hub and browser console run on the Latitude. The connected UNO Q can reach the hub over USB. GenieX 0.6.1 is installed; the compatible Qwen3-VL model is downloading. Model inference, NPU execution and the complete physical inspection loop are still unverified.
+**Prototype in development, September 15, 2026.** The Python hub and browser console run on the Latitude. The connected UNO Q can reach the hub over USB. GenieX 0.6.1 runs Qwen3-VL-4B on the Hexagon HTP backend, and real camera tests returned OK/CHECK/UNKNOWN. The real result reaches the UNO Q MCU, whose independent expiry check passes. A physical button walkthrough is awaiting onsite confirmation. See [the measured checks and limitations](docs/verification.md).
 
 | Implemented or verified | Remaining |
 |---|---|
-| Windows ARM64 Python hub; offline browser assets; image upload and camera capture code | Useful model answers and tested inspection scenarios |
-| Versioned instructions, one in-flight request, strict answer validation and expiring results | Actual NPU/backend evidence and measured inference latency |
-| Dedicated SSH access; USB ADB reverse tunnel from UNO Q to the hub | Board firmware compilation, physical controls and feedback |
-| 17 automated hub/API and board-client tests | Repeatable OK/CHECK/UNKNOWN demonstrations and offline hardware test |
+| Windows ARM64 Python hub; offline browser assets; image upload and camera capture code | Broader inspection scenarios and repeatable object demonstrations |
+| Versioned instructions, one in-flight request, strict answer validation and expiring results | Physical trigger-to-display latency and broader evaluation |
+| Dedicated SSH access; USB ADB reverse tunnel from UNO Q to the hub | Onsite button press and visual feedback confirmation |
+| 17 tests passed on both Mac and Windows ARM64 | Full Wi-Fi-disconnected rehearsal; process-level offline test passed |
 
 ## Run the hub
 
@@ -28,7 +28,7 @@ Open **http://127.0.0.1:8080** on the computer running the hub. Upload an image,
 On our Windows installation, the launcher finds the native ARM64 Python under the user's local `QualcommTools` folder:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-hub.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-hub.ps1 -Model local/qwen3-vl-4b-x-elite
 ```
 
 In another terminal, after installing [GenieX](https://geniex.aihub.qualcomm.com/en/run/cli/install) and downloading the compatible model:
@@ -39,7 +39,7 @@ geniex pull qualcomm/Qwen3-VL-4B-Instruct
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-geniex.ps1
 ```
 
-The server listens on loopback port 18181. The hub uses its OpenAI-compatible `/v1/chat/completions` endpoint. `--compute npu` requests the NPU; the console keeps backend evidence **unverified** until actual execution is checked. If importing a local bundle under another model name, pass that name to `start-hub.ps1 -Model NAME` or `python -m inspection --model NAME`.
+The server listens on loopback port 18181. The hub uses its OpenAI-compatible `/v1/chat/completions` endpoint. `--compute npu` requests the NPU; the console keeps backend evidence **unverified** until actual execution is checked. Our tested bundle is imported as `local/qwen3-vl-4b-x-elite`: use `start-hub.ps1 -Model local/qwen3-vl-4b-x-elite` on this kit. For another imported name, pass it with `-Model NAME` or `python -m inspection --model NAME`.
 
 ```bash
 python -m unittest discover -s tests -v
@@ -66,6 +66,8 @@ The first prototype will use explicit button-triggered inspection. A fixed trigg
 
 ## Project documentation
 
+- [Demo walkthrough](docs/demo.md): launch the kit, show the current loop, and explain its limits.
+- [Verification](docs/verification.md): measured device checks and unresolved acceptance steps.
 - [Project brief](docs/project.md): problem, use cases, intended value and scope.
 - [Architecture](docs/architecture.md): device responsibilities, data flow, result handling and routing extensions.
 - [Hardware](docs/hardware.md): actual kit, available modules and vendor references.

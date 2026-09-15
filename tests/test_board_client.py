@@ -1,5 +1,9 @@
 import importlib.util
+import os
 from pathlib import Path
+import socket
+import tempfile
+import threading
 import unittest
 
 spec = importlib.util.spec_from_file_location("board_client", Path(__file__).resolve().parents[1] / "arduino/python/main.py")
@@ -12,7 +16,7 @@ class Bridge:
         self.calls = []
         self.fail = False
 
-    def call(self, name, *args):
+    def call(self, name, *args, **kwargs):
         if name == "get_action":
             return 0
         if self.fail:
@@ -57,6 +61,25 @@ class BoardClientTests(unittest.TestCase):
         self.bridge.fail = False
         self.client.apply_hub_state({"status": "CHECK", "expires_in_ms": 1000})
         self.assertEqual(self.bridge.calls, [(board.STATUS_CHECK, 910)])
+
+    @unittest.skipIf(os.name == "nt", "Board Unix socket transport is tested on Unix")
+    def test_usb_unix_socket_http_transport(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = str(Path(temp) / "hub.sock")
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as listener:
+                listener.bind(path)
+                listener.listen(1)
+                def respond():
+                    conn, _ = listener.accept()
+                    with conn:
+                        conn.recv(8192)
+                        body = b'{"status":"UNKNOWN"}'
+                        conn.sendall(b'HTTP/1.0 200 OK\r\nContent-Length: '+str(len(body)).encode()+b'\r\n\r\n'+body)
+                thread = threading.Thread(target=respond, daemon=True)
+                thread.start()
+                hub = board.HubClient("http://localhost:8080", socket_path=path)
+                self.assertEqual(hub.state(), (200, {"status":"UNKNOWN"}))
+                thread.join(2)
 
 
 if __name__ == "__main__":

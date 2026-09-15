@@ -12,9 +12,11 @@ Status: September 15, 2026. The hub/API is implemented and unit tested, and USB 
 - [x] Confirm Windows ARM64 tools, GenieX 0.6.1 and board USB connectivity.
 - [x] Run the hub on the Latitude and reach its API from UNO Q over USB.
 - [x] Implement the browser console, image upload, camera capture code and fail-closed hub state.
-- [ ] Finish the model download, confirm real image inference and inspect active backend evidence.
+- [x] Finish the model download, confirm real image inference and inspect active HTP backend evidence.
 - [x] Verify the real Latitude camera in Edge at 1280×720.
-- [ ] Verify physical controls and feedback.
+- [x] Compile/flash the sketch, verify real MCU communication and test independent result expiry.
+- [x] Verify inference with outbound traffic blocked for the local AI executables.
+- [ ] Confirm the actual button press and visible/tactile feedback onsite.
 
 SSH connection and remote checks succeeded on September 15; see [the verified status](ssh.md). Keep private keys, credentials and connection addresses in local setup notes. Follow [Microsoft's Windows OpenSSH instructions](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse) for remote access.
 

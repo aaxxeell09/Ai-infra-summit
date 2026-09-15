@@ -1,6 +1,6 @@
 # Architecture and routing extensions
 
-The hub and browser console are implemented; the Latitude-to-UNO-Q USB transport is verified. Firmware integration and real model inference are in progress. This document separates that first prototype from later routing work.
+The hub and browser console are implemented; the Latitude-to-UNO-Q USB transport is verified. Real model inference on the HTP backend is verified; firmware integration is in progress. This document separates that first prototype from later routing work.
 
 ## First prototype
 
@@ -21,7 +21,7 @@ flowchart LR
 
 There is no USB webcam in the kit. The first capture path runs in the Latitude browser, with image upload as a fallback. The board requests an inspection of the latest fresh frame and handles controls and results. This does not yet demonstrate independent edge camera capture or an edge vision model.
 
-The verified transport is USB ADB reverse forwarding: board port 8080 reaches the Latitude's loopback hub port 8080. There is no need to open the hub to the venue network. An independent board camera or [phone-to-UNO-Q camera stream](https://blog.arduino.cc/2026/03/06/turn-your-smartphone-into-a-real-time-vision-input-for-arduino-uno-q/) remains an extension.
+The verified transport is USB ADB reverse forwarding: a board Unix socket in the shared app directory reaches the Latitude's loopback hub port 8080. This also works inside App Lab's default container network, without exposing a board TCP listener. An independent board camera or [phone-to-UNO-Q camera stream](https://blog.arduino.cc/2026/03/06/turn-your-smartphone-into-a-real-time-vision-input-for-arduino-uno-q/) remains an extension.
 
 ## Device responsibilities
 
@@ -37,7 +37,7 @@ The verified transport is USB ADB reverse forwarding: board port 8080 reaches th
 
 ## Model and runtime
 
-[Qwen3-VL-4B-Instruct](https://aihub.qualcomm.com/models/qwen3_vl_4b_instruct) is a candidate: Qualcomm documents a GenieX deployment and X Elite support. GenieX 0.6.1 lists `qualcomm/Qwen3-VL-4B-Instruct` as compatible on our Latitude. The X Elite QAIRT bundle is downloading. Real image inference and its quality have not yet been tested.
+[Qwen3-VL-4B-Instruct](https://aihub.qualcomm.com/models/qwen3_vl_4b_instruct) is a candidate: Qualcomm documents a GenieX deployment and X Elite support. GenieX 0.6.1 lists `qualcomm/Qwen3-VL-4B-Instruct` as compatible on our Latitude. The X Elite QAIRT bundle has been imported and real image inference passed three integration checks. See [verification and limits](verification.md).
 
 The intended target is the Latitude's Hexagon NPU. A model name, `--compute npu` request or vendor TOPS figure is not proof of active NPU execution. Record runtime/backend logs and corroborating device evidence. A fallback backend must be labelled accurately. Do not assume UNO Q has the same NPU or model support as X Elite.
 

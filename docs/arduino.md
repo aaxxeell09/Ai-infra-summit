@@ -1,6 +1,6 @@
 # UNO Q inspection controls
 
-The `arduino/` folder is an Arduino App Lab app for UNO Q ABX00162. The Linux client uses Arduino Bridge to talk to the MCU and HTTP to reach the Latitude hub. The first hardware build is in progress; visual output and button operation remain acceptance checks.
+The `arduino/` folder is an Arduino App Lab app for UNO Q ABX00162. The Linux client uses Arduino Bridge to talk to the MCU and HTTP to reach the Latitude hub. The sketch has compiled and flashed, and the real Linux client reaches the hub. The board reports Buttons, Knob, Vibro and the onboard matrix; Pixels is not detected. Physical button/indicator checks are in progress.
 
 ## Controls and feedback
 
@@ -15,14 +15,15 @@ Pixels show neutral, blue progress, green OK, red CHECK or amber UNKNOWN. The on
 
 ## Run on the connected kit
 
-On the Latitude, start the hub, then forward the board's loopback port through USB:
+On the Latitude, start the hub and connect the authorized UNO Q:
 
 ```powershell
-adb devices
-adb reverse tcp:8080 tcp:8080
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/connect-board.ps1
 ```
 
-`adb` is installed under `%LOCALAPPDATA%\QualcommTools\platform-tools` on our kit. A user-level `Qualcomm-ADB` task keeps its server alive between SSH sessions. Reapply the reverse mapping after reconnecting USB or restarting the ADB server.
+This creates an ADB reverse mapping from the board's filesystem socket at `/home/arduino/ArduinoApps/inspection-station/data/hub.sock` to the Latitude's loopback port 8080. App Lab shares that app folder into its container, so the client reaches the socket as `/app/data/hub.sock`. No TCP listener is opened on the board. The socket is restricted to the app's user.
+
+`adb` is installed under `%LOCALAPPDATA%\QualcommTools\platform-tools` on our kit. A user-level `Qualcomm-ADB` task keeps its server alive between SSH sessions. Re-run the connection script after reconnecting USB or restarting the ADB server.
 
 Copy the contents of `arduino/` into `/home/arduino/ArduinoApps/inspection-station` on the board. Run these commands on UNO Q via ADB shell or SSH:
 
@@ -34,7 +35,7 @@ arduino-app-cli app stop /home/arduino/ArduinoApps/inspection-station
 
 App CLI 0.12.1 has no separate `app build` command. `app start` installs dependencies, compiles/uploads the sketch and launches Python. The profile pins zephyr 0.56.0 and its libraries. The first run needs internet for any missing dependencies.
 
-The Python client defaults to `http://127.0.0.1:8080`. Its App Lab container must use host networking for this USB reverse path; check the generated container configuration during deployment. For a deliberate LAN setup, configure `INSPECTION_HUB_URL` and `INSPECTION_DEVICE_TOKEN` outside Git and follow the [hub authentication rules](api.md).
+The real Python client defaults to the shared Unix socket. `INSPECTION_HUB_SOCKET` overrides its path. `--simulate` uses loopback HTTP on the development machine. For a deliberate LAN setup, configure `INSPECTION_HUB_URL` and `INSPECTION_DEVICE_TOKEN` outside Git and follow the [hub authentication rules](api.md). The tested app uses App Lab's normal bridge network; host networking is unnecessary.
 
 ## Result expiry
 
@@ -42,7 +43,7 @@ The Linux client requests a fresh hub snapshot once per second, and polls contro
 
 For OK/CHECK, the MCU receives the smaller of three seconds and the remaining hub validity, conservatively reduced by the HTTP round trip and a short transport margin. The MCU expires the result independently if Python stops responding. Exact physical timing still needs hardware measurement. This is demonstration feedback, not an industrial machine interlock.
 
-All display operations happen in the MCU loop. RPC handlers exchange packed state atomically; they do not write the I2C bus. The single-slot operator queue may coalesce very rapid presses.
+All display operations happen in the MCU loop. RPC handlers exchange packed state atomically; they do not write the I2C bus. `set_status` uses signed `int` arguments to match the installed RPClite decoder; the initial unsigned signature was rejected and has been corrected. The single-slot operator queue may coalesce very rapid presses.
 
 | Bridge RPC | Result |
 |---|---|

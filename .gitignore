@@ -26,5 +26,7 @@ node_modules/
 dist/
 build/
 *.log
+.cache/
+arduino/data/
 .DS_Store
 Thumbs.db

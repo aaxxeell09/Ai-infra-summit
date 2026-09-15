@@ -1,8 +1,10 @@
 """UNO Q controls and fail-closed result relay. Use --simulate without hardware."""
 import argparse
+import http.client
 import json
 import logging
 import os
+import socket
 import time
 import urllib.error
 import urllib.request
@@ -21,29 +23,57 @@ def decode_action(raw):
     return raw & 255, direction - 256 if direction > 127 else direction
 
 
+class UnixConnection(http.client.HTTPConnection):
+    def __init__(self, path):
+        super().__init__("localhost", timeout=1.5)
+        self.path = path
+
+    def connect(self):
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.sock.settimeout(self.timeout)
+        self.sock.connect(self.path)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()
+
+
 class HubClient:
-    def __init__(self, base_url, token=""):
+    def __init__(self, base_url, token="", socket_path=None):
         self.base_url, self.token = base_url.rstrip("/"), token
+        self.socket_path = socket_path
         self.last_elapsed_ms = 0
 
     def request(self, path, payload=None):
         started = time.monotonic()
         data = None if payload is None else json.dumps(payload).encode()
+        headers = {"Content-Type": "application/json", "X-Device-Token": self.token}
         request = urllib.request.Request(self.base_url + path, data=data,
-            headers={"Content-Type": "application/json", "X-Device-Token": self.token})
+            headers=headers)
         try:
+            if self.socket_path:
+                with UnixConnection(self.socket_path) as connection:
+                    connection.request("GET" if payload is None else "POST", path, data, headers)
+                    with connection.getresponse() as response:
+                        return response.status, self.read_body(response)
             with urllib.request.urlopen(request, timeout=1.5) as response:
-                raw = response.read(100_001)
-                if len(raw) > 100_000:
-                    raise ValueError("Oversized hub response")
-                return response.status, json.loads(raw)
+                return response.status, self.read_body(response)
         except urllib.error.HTTPError as error:
             error.close()
             return error.code, None
-        except (OSError, ValueError):
+        except (OSError, ValueError, http.client.HTTPException):
             return None, None
         finally:
             self.last_elapsed_ms = round((time.monotonic() - started) * 1000)
+
+    @staticmethod
+    def read_body(response):
+        raw = response.read(100_001)
+        if len(raw) > 100_000:
+            raise ValueError("Oversized hub response")
+        return json.loads(raw)
 
     def heartbeat(self):
         return self.request("/api/board/heartbeat", {"device_id": "uno-q"})
@@ -56,7 +86,7 @@ class SimulationBridge:
     def __init__(self):
         self.queue = []
 
-    def call(self, method, *args):
+    def call(self, method, *args, **kwargs):
         if method == "get_action":
             return self.queue.pop(0) if self.queue else 0
         if method == "set_status":
@@ -76,7 +106,7 @@ class Client:
         # Retries use a NEW hub snapshot on the next heartbeat. Never resend
         # an old OK with a freshly extended deadline after a communication fault.
         try:
-            if not self.bridge.call("set_status", status, ttl_ms):
+            if not self.bridge.call("set_status", status, ttl_ms, timeout=1):
                 raise RuntimeError("Sketch rejected state")
             if status != self.last_status:
                 logger.info("state -> %s", STATUS_NAMES[status])
@@ -111,11 +141,12 @@ class Client:
             self.next_heartbeat = now + self.heartbeat_s
             self.accept_response(*self.hub.heartbeat())
         try:
-            code, direction = decode_action(self.bridge.call("get_action"))
+            code, direction = decode_action(self.bridge.call("get_action", timeout=1))
         except Exception:
             return
         if code == ACTION_NONE:
             return
+        logger.info("physical control: action=%s direction=%s", code, direction)
         # Invalidate a displayed OK immediately on operator action.
         self.push_status(STATUS_INSPECTING if code == ACTION_INSPECT else STATUS_UNKNOWN)
         if code == ACTION_INSPECT:
@@ -139,7 +170,10 @@ def main():
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     url = os.getenv("INSPECTION_HUB_URL", "http://127.0.0.1:8080")
-    hub = HubClient(url, os.getenv("INSPECTION_DEVICE_TOKEN", ""))
+    socket_path = os.getenv("INSPECTION_HUB_SOCKET")
+    if not args.simulate and not os.getenv("INSPECTION_HUB_URL"):
+        socket_path = socket_path or "/app/data/hub.sock"
+    hub = HubClient(url, os.getenv("INSPECTION_DEVICE_TOKEN", ""), socket_path)
     if args.simulate:
         bridge = SimulationBridge()
         logger.info("[SIM] fake controls; real HTTP to %s", url)

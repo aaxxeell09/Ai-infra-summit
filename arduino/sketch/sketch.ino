@@ -194,8 +194,9 @@ static void hapticTick() {
 
 // ---- Bridge RPC handlers ----
 // Pack into one uint32 word and store atomically. No I2C here.
-bool set_status(uint8_t status, unsigned long ttl_ms) {
-  if (status > STATUS_UNKNOWN) return false;
+bool set_status(int status, int ttl_ms) {
+  // RPClite expects signed int parameters for Python's MessagePack integers.
+  if (status < 0 || status > STATUS_UNKNOWN || ttl_ms < 0 || ttl_ms > 3000) return false;
   // No upward clamp: a small TTL (even 10 ms after /10 packing) expires on
   // schedule. Only a defensive 60 s cap so the bitfield cannot overflow.
   uint32_t word = packReq(status, ttl_ms);
