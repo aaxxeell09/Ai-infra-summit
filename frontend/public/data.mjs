@@ -2,9 +2,15 @@
 const finite = value => typeof value === 'number' && Number.isFinite(value) ? value : null;
 const positive = value => finite(value) !== null && value > 0 ? value : null;
 export const METRICS = {
-  decode: { label: 'Generation speed', unit: 'tok/s', key: 'decode_tps', direction: 'max', hint: 'Higher is faster' },
-  prefill: { label: 'Prompt processing', unit: 'tok/s', key: 'prefill_tps', direction: 'max', hint: 'Higher is faster' },
-  ttft: { label: 'Time to first token', unit: 'ms', key: 'ttft_ms', direction: 'min', hint: 'Lower is faster' },
+  decode: { label: 'Answer writing speed', tab: 'Write the answer', unit: 'tok/s', key: 'decode_tps', direction: 'max', hint: 'Higher is faster',
+    description: 'How quickly the model writes its answer once it has started responding.',
+    units: 'Tokens per second. A token is a small piece of text, not necessarily a whole word.', best: 'writing the answer' },
+  prefill: { label: 'Prompt reading speed', tab: 'Read the prompt', unit: 'tok/s', key: 'prefill_tps', direction: 'max', hint: 'Higher is faster',
+    description: 'How quickly the model processes your request and supplied text before answering.',
+    units: 'Tokens per second. A token is a small piece of text, not necessarily a whole word.', best: 'processing the prompt' },
+  ttft: { label: 'Wait before the answer starts', tab: 'Start responding', unit: 'ms', key: 'ttft_ms', direction: 'min', hint: 'Lower is faster',
+    description: 'How long you wait before the model produces the first piece of its answer.',
+    units: 'Milliseconds of waiting. 1,000 ms = 1 second. This is not the time to finish the answer.', best: 'starting the answer' },
 };
 const arg = (command, key) => {
   const at = command?.indexOf(key) ?? -1;

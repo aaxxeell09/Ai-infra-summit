@@ -57,7 +57,7 @@ function calibrationScreen() {
   const chartRows = rows.map((row, index) => {
     const valid = eligible(row); const winner = leaders.includes(row.id); const selected = chosen?.id === row.id;
     const value = row.metrics[state.metric];
-    const annotation = winner ? (leaders.length > 1 ? 'Tied best' : 'Best measured') : row.id === 'cpu-t0' ? 'Default' : '';
+    const annotation = winner ? (leaders.length > 1 ? 'Tied here' : 'Best here') : row.id === 'cpu-t0' ? 'Default' : '';
     return `<button class="result-row ${winner ? 'winner' : ''} ${selected ? 'selected' : ''} ${!valid ? 'invalid' : ''}" data-select="${esc(row.id)}" aria-pressed="${selected}" aria-label="${esc(row.label)}, ${valid ? `${number(value)} ${metric.unit}` : esc(row.reason || 'Not comparable')}" style="--delay:${Math.min(index * 55, 500)}ms">
       <span class="row-label">${esc(row.label)}${annotation ? `<span class="row-annotation">${annotation}</span>` : ''}</span>
       <span class="bar-track"><span class="bar" style="--bar:${valid ? value / max * 100 : 0}%"></span></span>
@@ -66,17 +66,19 @@ function calibrationScreen() {
   }).join('');
   const isEligible = chosen && eligible(chosen);
   const isLeader = chosen && leaders.includes(chosen.id);
-  const secondaryMetric = state.metric === 'ttft' ? ['Generation speed', chosen?.metrics.decode, 'tok/s'] : ['Time to first token', chosen?.metrics.ttft, 'ms'];
+  const secondaryMetric = state.metric === 'ttft' ? ['Answer writing speed', chosen?.metrics.decode, 'tok/s'] : ['Wait before answer', chosen?.metrics.ttft, 'ms'];
   return `<section class="screen calibration-screen ${state.reveal ? 'reveal' : ''}">
     <div class="section-heading"><div><div class="eyebrow">SAME MODEL. SAME WORKLOAD.</div><h1>Choose how it runs.</h1></div><span class="record-label">${esc(s.model.replace(/\.gguf$/, ''))}</span></div>
     <div class="calibration-layout"><div class="chart-panel">
-      <div class="chart-toolbar"><div class="metric-tabs" role="group" aria-label="Measurement to compare">${Object.entries(METRICS).map(([key, m]) => `<button data-metric="${key}" aria-pressed="${state.metric === key}" class="${state.metric === key ? 'active' : ''}">${key === 'decode' ? 'Generation' : key === 'prefill' ? 'Prompt processing' : 'First token'}</button>`).join('')}</div><span class="chart-unit">${metric.unit} · ${metric.hint}</span></div>
+      <div class="chart-toolbar"><div class="metric-tabs" role="group" aria-label="Measurement to compare" aria-describedby="metric-explanation">${['prefill', 'ttft', 'decode'].map(key => `<button data-metric="${key}" aria-pressed="${state.metric === key}" class="${state.metric === key ? 'active' : ''}">${METRICS[key].tab}</button>`).join('')}</div><span class="chart-unit">${metric.unit} · ${metric.hint}</span></div>
+      <div class="metric-explanation" id="metric-explanation"><p>${metric.description}</p><span>${metric.units}</span></div>
       <div class="chart" aria-label="${esc(metric.label)} comparison">${chartRows}</div>
       <div class="chart-foot"><span>${baseline?.params ? `Median of ${baseline.params.repetitions} repetitions · ${baseline.params.n_prompt} input / ${baseline.params.n_gen} output tokens` : 'No comparable workload available'}</span></div>
     </div><aside class="selection-panel">
       <div class="selection-top"><span class="eyebrow">SELECTED CONFIGURATION</span><span class="selection-icon" aria-hidden="true">${isLeader ? '↗' : '◇'}</span></div>
       <h2>${chosen ? esc(chosen.label.replace(' · ', '<|>').split('<|>')[0]) : 'No result'}<span>${chosen?.device === 'cpu' ? esc(chosen.threads === 0 ? 'Automatic threads' : `${chosen.threads} threads`) : 'Recorded configuration'}</span></h2>
-      <p class="selection-caption">${isEligible ? (isLeader ? `Best measured ${state.metric === 'ttft' ? 'time to first token' : state.metric === 'prefill' ? 'prompt processing speed' : 'generation speed'} in this run.` : 'Selected for the task demo. Other settings may be faster.') : esc(chosen?.reason || 'No comparable result available.')}</p>
+      <p class="selection-caption">${isEligible ? (isLeader ? `${leaders.length > 1 ? 'Tied for fastest' : 'Fastest'} at ${metric.best} in this recorded run.` : 'Selected for the task demo. Other settings may be faster.') : esc(chosen?.reason || 'No comparable result available.')}</p>
+      <p class="ranking-scope">Each tab ranks a different measure. There is no overall winner yet.</p>
       <div class="selection-metrics"><div><span>${secondaryMetric[0]}</span><strong>${number(secondaryMetric[1])}<small>${secondaryMetric[1] == null ? '' : secondaryMetric[2]}</small></strong></div><div><span>Peak process memory</span><strong>${chosen?.memory_mb == null ? 'Unavailable' : number(chosen.memory_mb / 1024, 2)}<small>${chosen?.memory_mb == null ? '' : 'GiB'}</small></strong></div></div>
       <div class="evidence-note"><span class="note-dot"></span><p>Preliminary measurements.<br>Repeat comparison and task checks pending.${chosen && ['npu', 'hybrid'].includes(chosen.device) ? '<br>NPU execution is not yet verified.' : ''}</p></div>
       <button class="button primary" data-action="try" ${!isEligible ? 'disabled' : ''}>Continue to task ${arrow}</button>

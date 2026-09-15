@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "product": "Local Turbo",
   "purpose": "Measure a local model, select a configuration, then finish with a task performed by that same model and configuration. Preview remains explicitly simulated until the device bridge is connected.",
   "visual_system": {
@@ -60,7 +60,13 @@
       },
       "data_mode": "recorded",
       "empty_state": "No comparable result available.",
-      "failure_state": "Keep failed/incomplete rows visible with no numeric bar."
+      "failure_state": "Keep failed/incomplete rows visible with no numeric bar.",
+      "metric_labels": {
+        "prefill": "Read the prompt",
+        "ttft": "Start responding",
+        "decode": "Write the answer"
+      },
+      "metric_help": "Show one explanation for the active measure above the chart, define its unit, and state that rankings are per measure rather than an overall winner."
     },
     {
       "id": "demo",

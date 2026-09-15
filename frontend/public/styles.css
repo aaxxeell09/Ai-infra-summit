@@ -25,3 +25,11 @@
 @media(max-width:850px){.run-context{margin-top:0}.run-context strong{font-size:14px}.task-panel{padding:0}.demo-layout{gap:18px}.task-outcome{padding-bottom:12px}}
 @media(max-width:560px){.run-context{align-items:flex-start;gap:14px;flex-direction:column}.run-context>div:last-child{text-align:left}.run-context strong{font-size:14px}.run-context>div>span:last-child{font-size:12px}.task-detail-list>div{grid-template-columns:1fr;gap:6px}.mode-tag{font-size:10px}.file strong{font-size:12px}.scenario-picker button{font-size:12px}.task-outcome p{font-size:14px}.demo-bottom{flex-direction:row;align-items:center}.demo-bottom .button{font-size:12px}.step-nav a{font-size:13px}.section-heading .eyebrow{font-size:10px}.selection-panel .button{min-height:48px;font-size:12px}.selection-caption,.evidence-note{font-size:12px}.selection-panel .primary,.selection-panel .ghost{grid-column:1/-1}.selection-panel .ghost{margin-top:10px}.row-annotation{font-size:8px}.row-label{font-size:11px}}
 .screen.static-screen{animation:none}
+/* Explain the selected measurement next to its controls, before the chart. */
+.metric-explanation{padding:0 22px 18px;border-bottom:1px solid var(--line)}
+.metric-explanation p{font-size:14px;line-height:1.55;color:var(--ink)}
+.metric-explanation>span{display:block;margin-top:6px;font-size:12px;line-height:1.5;color:var(--muted)}
+.ranking-scope{font-size:12px;line-height:1.6;color:var(--muted);margin-top:10px}
+.chart-toolbar:has(+.metric-explanation){border-bottom:0}
+@media(max-width:850px){.ranking-scope{grid-column:1;grid-row:4}}
+@media(max-width:560px){.metric-explanation{padding:0 14px 16px}.metric-tabs button{font-size:11px;white-space:normal;min-height:44px}.ranking-scope{font-size:12px}}
