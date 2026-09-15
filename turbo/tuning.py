@@ -1,15 +1,11 @@
-"""Bounded configurable tuner engine: plan, run and rank benchmark cells.
+"""Bounded tuner engine: plan, run and rank official-bench cells.
 
-Stdlib only. The runner shells out to the official llama-bench binary with the
-exact supported flags (-t -c -p -n). Batch/ubatch flags are NOT supported by
-the current binary and are reported as a planned capability, never fabricated.
+Stdlib only. Emits only flags the official llama-bench supports
+(-t -c -p -n). Batch/ubatch are planned capability, never fabricated.
 """
 from __future__ import annotations
 
-import hashlib
-import json
-import subprocess
-import time
+import hashlib, json, subprocess, time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -59,6 +55,8 @@ class SearchSpace:
     repeats: int = 1
     batch: int | None = None
     ubatch: int | None = None
+    # Optional energy channel name (e.g. "SYS") for caller-side tokens/J.
+    energy_channel: str | None = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "SearchSpace":
@@ -72,6 +70,7 @@ class SearchSpace:
             repeats=data.get("repeats", 1),
             batch=data.get("batch"),
             ubatch=data.get("ubatch"),
+            energy_channel=data.get("energy_channel"),
         )
 
 
@@ -95,12 +94,7 @@ def _sha256(path: str) -> str:
 
 
 def plan_cells(variants: list[Variant], space: SearchSpace) -> list[Cell]:
-    """Enumerate valid (variant, device, threads, context) cells.
-
-    Invalid combos carry unsupported_reason so they stay visible instead of
-    being dropped or silently coerced: qairt CPU/GPU, compiled context
-    mismatch, VLM without an image workload.
-    """
+    """Enumerate cells; invalid combos carry unsupported_reason."""
     cells: list[Cell] = []
     for v in variants:
         for device in space.devices:
@@ -132,13 +126,8 @@ def build_command(
     bench_exe: str, variant: Variant, cell: Cell, space: SearchSpace,
     image_path: str | None = None, prompt_file: str | None = None,
 ) -> list[str]:
-    """Construct the exact official llama-bench invocation.
-
-    Only the flags the current binary supports are emitted. Batch/ubatch raise
-    TuningError until the SDK runner supports them, so an unsupported flag is
-    never silently added. VLM runs use --vlm --mmproj-path --image and,
-    when provided, --prompt-file.
-    """
+    """Exact official bench invocation; TuningError on batch/ubatch or
+    unsupported cells."""
     if space.batch is not None or space.ubatch is not None:
         raise TuningError(
             "batch/ubatch tuning is planned but not supported by the current "
@@ -167,7 +156,7 @@ def build_command(
 
 
 def _parse_result_json(data: dict, gen_tokens: int) -> dict:
-    """Extract metrics from one llama-bench output JSON; None if incomplete."""
+    """Metrics from one bench JSON; None when no full-length run."""
     runs = data.get("runs") or []
     full = [r for r in runs if r.get("gen_tokens") == gen_tokens]
     agg = data.get("agg") or {}
@@ -182,15 +171,18 @@ def _parse_result_json(data: dict, gen_tokens: int) -> dict:
 def rank_results(
     results: list[dict], objective: str = "decode",
     constraints: dict | None = None,
+    variability_penalty: float = 0.0,
 ) -> list[dict]:
     """Rank successful full-length cells only.
 
-    objective: "decode" | "prefill" | "balanced" (harmonic mean of decode and
-    prefill). Missing metrics exclude a cell from ranking rather than being
-    treated as zero. Ties preserve input order. Each ranked row carries
-    provisional=True unless it recorded at least 3 repeats.
+    objective: decode | prefill | balanced (harmonic mean) | fast (max
+    decode) | efficient (tokens/J when present, decode otherwise). Missing
+    metrics make a cell ineligible, never zero. variability_penalty in [0,1]
+    discounts by variability_ratio (std/mean of run decode tps) when present.
+    provisional=True unless the cell recorded 3+ repeats. No thermal cause
+    is inferred.
     """
-    if objective not in ("decode", "prefill", "balanced"):
+    if objective not in ("decode", "prefill", "balanced", "fast", "efficient"):
         raise TuningError(f"unknown objective {objective!r}")
     constraints = constraints or {}
     scored: list[tuple[float, dict]] = []
@@ -202,10 +194,18 @@ def rank_results(
         d, p = r.get("decode_tps"), r.get("prefill_tps")
         if objective == "balanced":
             score = (2 / (1 / d + 1 / p)) if (d and p) else None
+        elif objective == "fast":
+            score = d
+        elif objective == "efficient":
+            e = r.get("tokens_per_joule")
+            score = e if e is not None else d
         else:
             score = r.get({"decode": "decode_tps", "prefill": "prefill_tps"}[objective])
         if score is None or score <= 0:
             continue
+        vr = r.get("variability_ratio")
+        score = score * (1 - variability_penalty * min(vr, 1.0)) if (
+            variability_penalty > 0 and vr is not None) else score
         passed = all(
             r.get(f) is not None and (r.get(f) >= b if op == "min" else r.get(f) <= b)
             for f, op, b in constraints.get("rules", [])
@@ -222,18 +222,45 @@ def rank_results(
     return out
 
 
+def pareto_frontier(
+    results: list[dict],
+    axes: tuple[str, ...] = ("decode_tps", "prefill_tps"),
+) -> list[dict]:
+    """Cells not dominated on the axes (higher is better); missing metrics
+    are ineligible. Sorted by the first axis descending."""
+    eligible = [
+        r for r in results
+        if r.get("status") == "completed"
+        and all(r.get(a) is not None for a in axes)
+    ]
+    frontier = [
+        r for r in eligible
+        if not any(
+            other is not r and all(other[a] >= r[a] for a in axes)
+            and any(other[a] > r[a] for a in axes)
+            for other in eligible
+        )
+    ]
+    return sorted(frontier, key=lambda r: -r[axes[0]])
+
+
+def _energy_comparable(rows: list[dict]) -> str | None:
+    """Energy rows share workload and model identity, else a reason."""
+    if len(rows) < 2:
+        return None
+    for k in ("gen_tokens", "prompt_tokens", "quantization", "architecture"):
+        if len({r.get(k) for r in rows}) > 1:
+            return f"not comparable: differing {k} across energy rows"
+    return None
+
+
 def run_tuning(
     bench_exe: str, variants: list[Variant], space: SearchSpace,
     output_dir: str, objective: str = "decode",
     image_path: str | None = None, prompt_file: str | None = None,
     timeout_s: int = 240, progress=None,
 ) -> dict:
-    """Serial, time-bounded sweep over all planned cells.
-
-    progress(done, total) fires after every cell, including unsupported ones.
-    Each cell gets a unique output JSON path under output_dir. timeout_s
-    bounds each subprocess launch.
-    """
+    """Serial bounded sweep; progress(done, total) after every cell."""
     if space.batch is not None or space.ubatch is not None:
         raise TuningError(
             "batch/ubatch tuning is planned but unsupported by the official bench; "
@@ -278,6 +305,8 @@ def run_tuning(
         if progress:
             progress(i + 1, len(cells))
     ranked = rank_results(results, objective=objective)
+    frontier = pareto_frontier(results)
+    energy_rows = [r for r in results if r.get("tokens_per_joule") is not None]
     return {
         "schema_version": "turbo.tuning.v1",
         "objective": objective,
@@ -285,16 +314,19 @@ def run_tuning(
         "cells_run": sum(1 for r in results if r.get("status") == "completed"),
         "results": results,
         "ranking": ranked,
+        "pareto_frontier": frontier,
         "recommended": ranked[0] if ranked else None,
+        "energy_comparability": _energy_comparable(energy_rows),
         "caveats": [
             "batch/ubatch: planned capability, current official bench lacks flags; not measured",
             "provisional rankings need paired confirm runs before headline claims",
+            "tokens/J compares only same workload + same model quantization over the full trial interval",
         ],
     }
 
 
 def export_recommended(record: dict, path: str) -> dict:
-    """Write a recommended config JSON with full model identity and scope."""
+    """Recommended config JSON: full model identity and scope."""
     rec = record.get("recommended")
     if not rec:
         raise TuningError("no successful cell to recommend")

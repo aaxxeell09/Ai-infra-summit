@@ -33,19 +33,37 @@ build_command(bench_exe, variant, cell, space, image_path=None, prompt_file=None
     requests or unsupported cells. VLM runs add --vlm --mmproj-path <path>
     --image <path> plus --prompt-file when a prompt file is supplied.
 
-rank_results(results, objective, constraints=None) -> list[dict]
-    objective is decode, prefill or balanced (harmonic mean of decode and
-    prefill). Only completed cells with at least one full-length run are
-    ranked; missing metrics exclude a cell rather than scoring zero. Each
-    ranked row gains rank, score, objective and a provisional flag (true
-    unless the cell recorded 3+ repeats).
+rank_results(results, objective, constraints=None, variability_penalty=0.0) -> list[dict]
+    objective is decode, prefill, balanced (harmonic mean of decode and
+    prefill), fast (max decode) or efficient (tokens/J when present, decode
+    otherwise). Only completed cells with at least one full-length run are
+    ranked; missing metrics make a cell ineligible rather than scoring zero.
+    variability_penalty in [0,1] discounts the score by the cell's
+    variability_ratio (std/mean of run decode tps) when present. Each ranked
+    row gains rank, score, objective and a provisional flag (true unless the
+    cell recorded 3+ repeats). No thermal or power-state cause is ever
+    inferred from variability.
+
+pareto_frontier(results, axes=("decode_tps", "prefill_tps")) -> list[dict]
+    Cells not dominated on the given axes (higher is better). Missing metrics
+    make a cell ineligible. Sorted by the first axis descending.
 
 run_tuning(bench_exe, variants, space, output_dir, objective,
 image_path=None, prompt_file=None, timeout_s=240, progress=None) -> dict
     Serial sweep with a unique per-cell output JSON under output_dir,
     timeout_s per subprocess, and a progress(done, total) callback after
     every cell. Returns schema_version, objective, cells_planned, cells_run,
-    results, ranking, recommended and standing caveats.
+    results, ranking, pareto_frontier, recommended, energy_comparability and
+    standing caveats.
+
+## Energy comparability
+
+SearchSpace accepts an optional energy_channel name (for example SYS) that a
+caller-side meter fills into per-cell tokens_per_joule. tokens/J is valid
+only for the same workload (same prompt/gen tokens) on the same model
+quantization and architecture, measured over the full trial interval
+including model load. run_tuning reports energy_comparability across cells
+and states a violation rather than silently comparing across workloads.
 
 export_recommended(record, path) -> dict
     Writes the recommended config JSON: model variant id, plugin, sha256

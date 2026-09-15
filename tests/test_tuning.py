@@ -3,7 +3,8 @@ import pytest
 
 from turbo.tuning import (
     Variant, SearchSpace, TuningError,
-    plan_cells, build_command, rank_results, export_recommended,
+    plan_cells, build_command, rank_results, pareto_frontier,
+    _energy_comparable, export_recommended,
 )
 
 
@@ -101,3 +102,58 @@ def test_export_recommended_writes_full_identity(tmp_path):
     on_disk = json.loads((tmp_path / "rec.json").read_text())
     assert on_disk["tuning"]["threads"] == 6
     assert on_disk["scope"]["provisional"] is True
+
+
+def test_fast_and_efficient_objectives():
+    results = [
+        {"status": "completed", "complete_length_runs": 1,
+         "decode_tps": 10.0, "prefill_tps": 20.0, "tokens_per_joule": 0.4},
+        {"status": "completed", "complete_length_runs": 1,
+         "decode_tps": 8.0, "prefill_tps": 400.0, "tokens_per_joule": 0.9},
+    ]
+    fast = rank_results(results, objective="fast")
+    assert fast[0]["decode_tps"] == 10.0
+    efficient = rank_results(results, objective="efficient")
+    assert efficient[0]["tokens_per_joule"] == 0.9
+    # efficient falls back to decode when tokens/J missing
+    no_energy = [{k: v for k, v in r.items() if k != "tokens_per_joule"}
+                 for r in results]
+    assert rank_results(no_energy, objective="efficient")[0]["decode_tps"] == 10.0
+
+
+def test_variability_penalty_applies_only_when_present():
+    results = [
+        {"status": "completed", "complete_length_runs": 1, "decode_tps": 10.0,
+         "variability_ratio": 0.5},
+        {"status": "completed", "complete_length_runs": 1, "decode_tps": 9.0},
+    ]
+    assert rank_results(results, objective="decode")[0]["decode_tps"] == 10.0
+    penalized = rank_results(results, objective="decode", variability_penalty=1.0)
+    assert penalized[0]["decode_tps"] == 9.0  # 10 reduced to 5
+
+
+def test_pareto_frontier_excludes_dominated_and_missing():
+    results = [
+        {"status": "completed", "decode_tps": 10.0, "prefill_tps": 100.0},
+        {"status": "completed", "decode_tps": 5.0, "prefill_tps": 50.0},   # dominated
+        {"status": "completed", "decode_tps": 1.0, "prefill_tps": 500.0},  # tradeoff
+        {"status": "completed", "decode_tps": None, "prefill_tps": 999.0}, # ineligible
+        {"status": "failed", "decode_tps": 99.0, "prefill_tps": 99.0},
+    ]
+    frontier = pareto_frontier(results)
+    ids = [(r["decode_tps"], r["prefill_tps"]) for r in frontier]
+    assert (5.0, 50.0) not in ids and len(ids) == 2
+    assert frontier[0]["decode_tps"] == 10.0
+
+
+def test_energy_comparability_requires_same_workload_and_quant():
+    base = {"status": "completed", "gen_tokens": 128, "prompt_tokens": 512,
+            "quantization": "q4_k", "architecture": "x1e",
+            "tokens_per_joule": 0.5}
+    same = [dict(base), dict(base)]
+    assert _energy_comparable(same) is None
+    diff_gen = [dict(base), {**base, "gen_tokens": 64}]
+    assert "gen_tokens" in _energy_comparable(diff_gen)
+    diff_quant = [dict(base), {**base, "quantization": "q8"}]
+    assert "quantization" in _energy_comparable(diff_quant)
+    assert _energy_comparable([base]) is None
