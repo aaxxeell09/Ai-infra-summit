@@ -10,5 +10,8 @@
   "critical_tools": [
     "clarify",
     "move_file"
-  ]
+  ],
+  "max_invalid_action_rate": 0.02,
+  "max_invalid_action_increase_points": 2,
+  "max_clarification_drop_points": 0
 }

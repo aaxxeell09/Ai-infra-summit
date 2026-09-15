@@ -1,15 +1,11 @@
-# Secretary reference — not measured
+# Secretary official baseline — not measured
 
-Application commit: `f8f27ccb520e7a4cc1eca0a062fe4742e28a76b2` (clean at capture).
+Golden benchmark: `secretary-eval-v2`.
 
-Accuracy, tool/action/argument rates and latency: **not measured**. No model run was performed.
+Henry has not yet confirmed the official original Secretary model/runtime/backend/configuration or application commit. Historical inspected code: `f8f27cc`; this is not an approved official baseline.
 
-Missing: production Secretary module, verified native SDK/model configuration and verified SSH access to the Latitude. The implemented benchmark measures first-action intent through the existing ActionCodec/native adapter; it does not execute file tools.
+Accuracy, action/argument/clarification scores and latency: **not measured**. No model call was made for this baseline.
 
-Run on the Latitude after configuring the real SDK/model:
+The actual Secretary module was inspected at `06aeed3`. Evaluation now checks its single-action decisions and real execution in disposable synthetic workspaces; full routed multi-step performance is outside this protocol. Native model/SDK configuration and verified device access remain unavailable in this session.
 
-```sh
-python eval/run_secretary_eval.py --dataset all --candidate-name reference --config local/secretary-config.json --freeze-baseline --output-dir local/reference
-```
-
-See [the evaluation protocol](../../docs/secretary-evaluation.md). Do not reuse prior performance sweep results as correctness evidence.
+See [the protocol](../../docs/secretary-evaluation.md) for Henry confirmation and exact run commands. The pending `baseline_manifest.json` is not authorization and cannot pass the freeze guard.

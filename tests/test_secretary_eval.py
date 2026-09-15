@@ -38,7 +38,7 @@ class EvaluationTests(unittest.TestCase):
     def test_tool_and_action_and_argument_selection(self):
         good = score(self.case, '{"r":0}', self.codec)
         self.assertTrue(good['task_success'])
-        self.assertEqual(good['action'], 'r')
+        self.assertEqual(good['action'], 'read_file')
         wrong_path = score(self.case, '{"r":1}', self.codec)
         self.assertTrue(wrong_path['tool_correct'])
         self.assertFalse(wrong_path['arguments_correct'])
@@ -64,7 +64,11 @@ class EvaluationTests(unittest.TestCase):
     def report(self):
         rows = execute([self.case], self.codec, lambda messages:{'text':'{"r":0}'})
         rows[0]['latency_ms'] = 10
-        return {'status':'measured','dataset_sha256':'a','fixture_sha256':'b','protocol_version':PROTOCOL,
+        return {'status':'measured','type':'baseline','dirty':False,
+                'baseline_approval':{'status':'confirmed','confirmed_by':'Henry','application_commit':'test','config_sha256':'cfg'},
+                'git_commit':'test','config_sha256':'cfg','model_sha256':'model','benchmark_version':'v2',
+                'action_schema_sha256':'schema','evaluator_sha256':{'test':'hash'},'generation_protocol':{'reset':True},
+                'dataset_sha256':'a','fixture_sha256':'b','protocol_version':PROTOCOL,
                 'metrics':summarize(rows),'results':rows}
 
     def test_metric_denominators_and_errors(self):

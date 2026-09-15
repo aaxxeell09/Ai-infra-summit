@@ -1,0 +1,5 @@
+{
+  "fixture": true,
+  "path": "config/settings.json",
+  "description": "Synthetic Secretary evaluation content; not a measured model result."
+}
