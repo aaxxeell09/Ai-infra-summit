@@ -1,0 +1,153 @@
+{
+  "schema_version": "4",
+  "cell_id": "cpu-t0",
+  "plugin": "llama_cpp",
+  "device": "cpu",
+  "device_id": null,
+  "model_path": "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+  "model_size_bytes": 382156480,
+  "qairt_version": "2.45",
+  "llama_cpp_version": "0eadefe",
+  "params": {
+    "warmup": 1,
+    "repetitions": 3,
+    "n_prompt": 512,
+    "n_gen": 128,
+    "temperature": 0.0,
+    "seed": 42,
+    "n_ctx": 4096,
+    "n_threads": 0,
+    "n_gpu_layers": 0
+  },
+  "runs": [
+    {
+      "run_idx": 0,
+      "ttft_us": 337248,
+      "media_us": 0,
+      "prompt_time_us": 336797,
+      "decode_time_us": 1343167,
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "prefill_tps": 1520.203565,
+      "decode_tps": 95.29716,
+      "stop_reason": "length"
+    },
+    {
+      "run_idx": 1,
+      "ttft_us": 324606,
+      "media_us": 0,
+      "prompt_time_us": 324399,
+      "decode_time_us": 1334027,
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "prefill_tps": 1578.303262,
+      "decode_tps": 95.950082,
+      "stop_reason": "length"
+    },
+    {
+      "run_idx": 2,
+      "ttft_us": 318307,
+      "media_us": 0,
+      "prompt_time_us": 317860,
+      "decode_time_us": 1319810,
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "prefill_tps": 1610.772038,
+      "decode_tps": 96.983657,
+      "stop_reason": "length"
+    }
+  ],
+  "agg": {
+    "ttft_ms": {
+      "median": 324.606,
+      "min": 318.307,
+      "max": 337.248,
+      "mean": 326.720333,
+      "stdev": 9.645889
+    },
+    "prefill_tps": {
+      "median": 1578.303262,
+      "min": 1520.203565,
+      "max": 1610.772038,
+      "mean": 1569.759622,
+      "stdev": 45.884719
+    },
+    "decode_tps": {
+      "median": 95.950082,
+      "min": 95.29716,
+      "max": 96.983657,
+      "mean": 96.076966,
+      "stdev": 0.850378
+    },
+    "gen_tokens": {
+      "median": 128.0
+    },
+    "prompt_tokens": {
+      "median": 512.0
+    },
+    "media_ms": {
+      "median": 0.0
+    }
+  },
+  "telemetry": {
+    "peak_working_set_mb": 1524.10546875,
+    "working_set_mb": 1524.10546875,
+    "private_mb": 2697.4765625,
+    "energy_j": 429.0452043732,
+    "average_power_w": 53.73763344304333,
+    "tokens_per_joule": null,
+    "energy": {
+      "duration_s": 7.9840732999145985,
+      "channels": {
+        "SYS": {
+          "energy_j": 429.0452043732,
+          "average_power_w": 53.73763344304333,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_0": {
+          "energy_j": 74.3963054256,
+          "average_power_w": 9.318088979267737,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_1": {
+          "energy_j": 79.1148112056,
+          "average_power_w": 9.909078766404393,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_2": {
+          "energy_j": 84.8885843376,
+          "average_power_w": 10.632240104622788,
+          "tokens_per_joule": null
+        }
+      },
+      "unit": "picowatt-hours",
+      "scope": "full process trial including model initialization and any warmup",
+      "error": null
+    },
+    "energy_before": {
+      "monotonic_s": 2413326.3637038,
+      "channels_pwh": {
+        "SYS": 45766689866609,
+        "GPU": 115767929849,
+        "CPU_CLUSTER_0": 11454341646797,
+        "CPU_CLUSTER_1": 2142859882627,
+        "CPU_CLUSTER_2": 1409601404193
+      },
+      "error": null
+    },
+    "energy_after": {
+      "monotonic_s": 2413334.3477771,
+      "channels_pwh": {
+        "SYS": 45885869090046,
+        "GPU": 115767929849,
+        "CPU_CLUSTER_0": 11475007287193,
+        "CPU_CLUSTER_1": 2164836219073,
+        "CPU_CLUSTER_2": 1433181566509
+      },
+      "error": null
+    },
+    "energy_channel": "SYS",
+    "memory_scope": "benchmark process peak working set",
+    "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+  }
+}

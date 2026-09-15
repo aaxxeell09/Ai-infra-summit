@@ -1,0 +1,158 @@
+{
+  "schema_version": "4",
+  "cell_id": "cpu-t8",
+  "plugin": "llama_cpp",
+  "device": "cpu",
+  "device_id": null,
+  "model_path": "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+  "model_size_bytes": 382156480,
+  "qairt_version": "2.45",
+  "llama_cpp_version": "0eadefe",
+  "params": {
+    "warmup": 1,
+    "repetitions": 3,
+    "n_prompt": 512,
+    "n_gen": 128,
+    "temperature": 0.0,
+    "seed": 42,
+    "n_ctx": 4096,
+    "n_threads": 8,
+    "n_gpu_layers": 0
+  },
+  "runs": [
+    {
+      "run_idx": 0,
+      "ttft_us": 322689,
+      "media_us": 0,
+      "prompt_time_us": 322491,
+      "decode_time_us": 1359674,
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "prefill_tps": 1587.641205,
+      "decode_tps": 94.140213,
+      "stop_reason": "length"
+    },
+    {
+      "run_idx": 1,
+      "ttft_us": 335943,
+      "media_us": 0,
+      "prompt_time_us": 335717,
+      "decode_time_us": 1364426,
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "prefill_tps": 1525.094052,
+      "decode_tps": 93.812343,
+      "stop_reason": "length"
+    },
+    {
+      "run_idx": 2,
+      "ttft_us": 323055,
+      "media_us": 0,
+      "prompt_time_us": 322663,
+      "decode_time_us": 1356577,
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "prefill_tps": 1586.794891,
+      "decode_tps": 94.355131,
+      "stop_reason": "length"
+    }
+  ],
+  "agg": {
+    "ttft_ms": {
+      "median": 323.055,
+      "min": 322.689,
+      "max": 335.943,
+      "mean": 327.229,
+      "stdev": 7.548764
+    },
+    "prefill_tps": {
+      "median": 1586.794891,
+      "min": 1525.094052,
+      "max": 1587.641205,
+      "mean": 1566.51005,
+      "stdev": 35.869802
+    },
+    "decode_tps": {
+      "median": 94.140213,
+      "min": 93.812343,
+      "max": 94.355131,
+      "mean": 94.102562,
+      "stdev": 0.273346
+    },
+    "gen_tokens": {
+      "median": 128.0
+    },
+    "prompt_tokens": {
+      "median": 512.0
+    },
+    "media_ms": {
+      "median": 0.0
+    }
+  },
+  "telemetry": {
+    "peak_working_set_mb": 1527.05078125,
+    "working_set_mb": 1527.05078125,
+    "private_mb": 2698.203125,
+    "energy_j": 345.7471553856,
+    "average_power_w": 43.056540045303784,
+    "tokens_per_joule": null,
+    "energy": {
+      "duration_s": 8.03007290000096,
+      "channels": {
+        "SYS": {
+          "energy_j": 345.7471553856,
+          "average_power_w": 43.056540045303784,
+          "tokens_per_joule": null
+        },
+        "GPU": {
+          "energy_j": 0.7957805076,
+          "average_power_w": 0.09910003526865925,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_0": {
+          "energy_j": 41.9865783804,
+          "average_power_w": 5.228667149509312,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_1": {
+          "energy_j": 70.5173214996,
+          "average_power_w": 8.781653962268708,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_2": {
+          "energy_j": 76.4081271612,
+          "average_power_w": 9.515247011168587,
+          "tokens_per_joule": null
+        }
+      },
+      "unit": "picowatt-hours",
+      "scope": "full process trial including model initialization and any warmup",
+      "error": null
+    },
+    "energy_before": {
+      "monotonic_s": 2413318.3313318,
+      "channels_pwh": {
+        "SYS": 45670648990113,
+        "GPU": 115546879708,
+        "CPU_CLUSTER_0": 11442678708358,
+        "CPU_CLUSTER_1": 2123271737766,
+        "CPU_CLUSTER_2": 1388376924426
+      },
+      "error": null
+    },
+    "energy_after": {
+      "monotonic_s": 2413326.3614047,
+      "channels_pwh": {
+        "SYS": 45766689866609,
+        "GPU": 115767929849,
+        "CPU_CLUSTER_0": 11454341646797,
+        "CPU_CLUSTER_1": 2142859882627,
+        "CPU_CLUSTER_2": 1409601404193
+      },
+      "error": null
+    },
+    "energy_channel": "SYS",
+    "memory_scope": "benchmark process peak working set",
+    "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+  }
+}

@@ -1,0 +1,1346 @@
+{
+  "schema_version": "turbo.sweep.v1",
+  "started_at": "2026-09-15T21:19:08.437322+00:00",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "machine": "ARM64",
+  "python": "3.14.6",
+  "model_name": "Qwen3-0.6B-Q4_0.gguf",
+  "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+  "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+  "phase": "screen",
+  "cold_kv_each_repetition": true,
+  "timing_source": "GenieX native backend profile",
+  "cells": [
+    {
+      "id": "npu",
+      "command": [
+        "<TOOLS>\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "npu",
+        "-m",
+        "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-c",
+        "4096",
+        "-t",
+        "0",
+        "-r",
+        "3",
+        "--warmup",
+        "1",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--cell-id",
+        "npu",
+        "--output-json",
+        "<TOOLS>\\turbo-bench\\results\\screen-01\\npu.json"
+      ],
+      "started_at": "2026-09-15T21:19:10.563632+00:00",
+      "exit_code": 0,
+      "status": "completed",
+      "wall_s": 19.12192660011351,
+      "agg": {
+        "ttft_ms": {
+          "median": 414.717,
+          "min": 309.741,
+          "max": 416.111,
+          "mean": 380.189667,
+          "stdev": 61.014316
+        },
+        "prefill_tps": {
+          "median": 1235.157603,
+          "min": 1232.535074,
+          "max": 1654.024578,
+          "mean": 1373.905752,
+          "stdev": 242.593563
+        },
+        "decode_tps": {
+          "median": 36.458948,
+          "min": 33.644934,
+          "max": 36.920219,
+          "mean": 35.6747,
+          "stdev": 1.772895
+        },
+        "gen_tokens": {
+          "median": 128.0
+        },
+        "prompt_tokens": {
+          "median": 512.0
+        },
+        "media_ms": {
+          "median": 0.0
+        }
+      },
+      "device_id": "HTP0",
+      "complete_length_runs": 3,
+      "telemetry": {
+        "peak_working_set_mb": 1186.28125,
+        "working_set_mb": 1186.28125,
+        "private_mb": 1001.74609375,
+        "energy_j": 316.5185470788,
+        "average_power_w": 16.65720964896896,
+        "tokens_per_joule": null,
+        "energy": {
+          "duration_s": 19.00189490010962,
+          "channels": {
+            "SYS": {
+              "energy_j": 316.5185470788,
+              "average_power_w": 16.65720964896896,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_0": {
+              "energy_j": 38.7596079072,
+              "average_power_w": 2.039775933450532,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_1": {
+              "energy_j": 36.8760336228,
+              "average_power_w": 1.9406503307513436,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_2": {
+              "energy_j": 21.008309256,
+              "average_power_w": 1.1055902248927187,
+              "tokens_per_joule": null
+            }
+          },
+          "unit": "picowatt-hours",
+          "scope": "full process trial including model initialization and any warmup",
+          "error": null
+        },
+        "energy_before": {
+          "monotonic_s": 2413203.0049231,
+          "channels_pwh": {
+            "SYS": 44948856015243,
+            "GPU": 96096311906,
+            "CPU_CLUSTER_0": 11346456206452,
+            "CPU_CLUSTER_1": 2002009943311,
+            "CPU_CLUSTER_2": 1285395970741
+          },
+          "error": null
+        },
+        "energy_after": {
+          "monotonic_s": 2413222.006818,
+          "channels_pwh": {
+            "SYS": 45036777833876,
+            "GPU": 96096311906,
+            "CPU_CLUSTER_0": 11357222764204,
+            "CPU_CLUSTER_1": 2012253285984,
+            "CPU_CLUSTER_2": 1291231612201
+          },
+          "error": null
+        },
+        "energy_channel": "SYS",
+        "memory_scope": "benchmark process peak working set",
+        "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+      }
+    },
+    {
+      "id": "cpu-t6",
+      "command": [
+        "<TOOLS>\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-c",
+        "4096",
+        "-t",
+        "6",
+        "-r",
+        "3",
+        "--warmup",
+        "1",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--cell-id",
+        "cpu-t6",
+        "--output-json",
+        "<TOOLS>\\turbo-bench\\results\\screen-01\\cpu-t6.json"
+      ],
+      "started_at": "2026-09-15T21:19:29.705807+00:00",
+      "exit_code": 0,
+      "status": "completed",
+      "wall_s": 8.636412099935114,
+      "agg": {
+        "ttft_ms": {
+          "median": 329.295,
+          "min": 321.583,
+          "max": 331.583,
+          "mean": 327.487,
+          "stdev": 5.239432
+        },
+        "prefill_tps": {
+          "median": 1555.85268,
+          "min": 1546.122464,
+          "max": 1593.154415,
+          "mean": 1565.043186,
+          "stdev": 24.8264
+        },
+        "decode_tps": {
+          "median": 85.014924,
+          "min": 84.996238,
+          "max": 85.685788,
+          "mean": 85.232317,
+          "stdev": 0.392828
+        },
+        "gen_tokens": {
+          "median": 128.0
+        },
+        "prompt_tokens": {
+          "median": 512.0
+        },
+        "media_ms": {
+          "median": 0.0
+        }
+      },
+      "device_id": null,
+      "complete_length_runs": 3,
+      "telemetry": {
+        "peak_working_set_mb": 1526.80859375,
+        "working_set_mb": 1526.80859375,
+        "private_mb": 2697.9453125,
+        "energy_j": 307.6461419292,
+        "average_power_w": 35.62535427493025,
+        "tokens_per_joule": null,
+        "energy": {
+          "duration_s": 8.635595299769193,
+          "channels": {
+            "SYS": {
+              "energy_j": 307.6461419292,
+              "average_power_w": 35.62535427493025,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_0": {
+              "energy_j": 28.194833159999998,
+              "average_power_w": 3.264955359910575,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_1": {
+              "energy_j": 64.1868782472,
+              "average_power_w": 7.4328261132056,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_2": {
+              "energy_j": 67.4865064944,
+              "average_power_w": 7.8149223246026525,
+              "tokens_per_joule": null
+            }
+          },
+          "unit": "picowatt-hours",
+          "scope": "full process trial including model initialization and any warmup",
+          "error": null
+        },
+        "energy_before": {
+          "monotonic_s": 2413222.027604,
+          "channels_pwh": {
+            "SYS": 45036777833876,
+            "GPU": 96096311906,
+            "CPU_CLUSTER_0": 11357222764204,
+            "CPU_CLUSTER_1": 2012253285984,
+            "CPU_CLUSTER_2": 1291231612201
+          },
+          "error": null
+        },
+        "energy_after": {
+          "monotonic_s": 2413230.6631993,
+          "channels_pwh": {
+            "SYS": 45122235095523,
+            "GPU": 96096311906,
+            "CPU_CLUSTER_0": 11365054662304,
+            "CPU_CLUSTER_1": 2030082974386,
+            "CPU_CLUSTER_2": 1309977864005
+          },
+          "error": null
+        },
+        "energy_channel": "SYS",
+        "memory_scope": "benchmark process peak working set",
+        "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+      }
+    },
+    {
+      "id": "cpu-t4",
+      "command": [
+        "<TOOLS>\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-c",
+        "4096",
+        "-t",
+        "4",
+        "-r",
+        "3",
+        "--warmup",
+        "1",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--cell-id",
+        "cpu-t4",
+        "--output-json",
+        "<TOOLS>\\turbo-bench\\results\\screen-01\\cpu-t4.json"
+      ],
+      "started_at": "2026-09-15T21:19:38.344280+00:00",
+      "exit_code": 0,
+      "status": "completed",
+      "wall_s": 9.196107399649918,
+      "agg": {
+        "ttft_ms": {
+          "median": 331.961,
+          "min": 325.905,
+          "max": 337.141,
+          "mean": 331.669,
+          "stdev": 5.623688
+        },
+        "prefill_tps": {
+          "median": 1543.307561,
+          "min": 1520.153916,
+          "max": 1572.259447,
+          "mean": 1545.240308,
+          "stdev": 26.106479
+        },
+        "decode_tps": {
+          "median": 76.894565,
+          "min": 76.365025,
+          "max": 77.644885,
+          "mean": 76.968158,
+          "stdev": 0.643096
+        },
+        "gen_tokens": {
+          "median": 128.0
+        },
+        "prompt_tokens": {
+          "median": 512.0
+        },
+        "media_ms": {
+          "median": 0.0
+        }
+      },
+      "device_id": null,
+      "complete_length_runs": 3,
+      "telemetry": {
+        "peak_working_set_mb": 1526.85546875,
+        "working_set_mb": 1526.85546875,
+        "private_mb": 2697.95703125,
+        "energy_j": 369.4453007184,
+        "average_power_w": 40.17750502027143,
+        "tokens_per_joule": null,
+        "energy": {
+          "duration_s": 9.195327099878341,
+          "channels": {
+            "SYS": {
+              "energy_j": 369.4453007184,
+              "average_power_w": 40.17750502027143,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_0": {
+              "energy_j": 26.9730857304,
+              "average_power_w": 2.9333470617654123,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_1": {
+              "energy_j": 82.4410328832,
+              "average_power_w": 8.965535645196432,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_2": {
+              "energy_j": 87.67102344839999,
+              "average_power_w": 9.534301770467733,
+              "tokens_per_joule": null
+            }
+          },
+          "unit": "picowatt-hours",
+          "scope": "full process trial including model initialization and any warmup",
+          "error": null
+        },
+        "energy_before": {
+          "monotonic_s": 2413230.666248,
+          "channels_pwh": {
+            "SYS": 45122235095523,
+            "GPU": 96096311906,
+            "CPU_CLUSTER_0": 11365054662304,
+            "CPU_CLUSTER_1": 2030082974386,
+            "CPU_CLUSTER_2": 1309977864005
+          },
+          "error": null
+        },
+        "energy_after": {
+          "monotonic_s": 2413239.8615751,
+          "channels_pwh": {
+            "SYS": 45224858790167,
+            "GPU": 96096311906,
+            "CPU_CLUSTER_0": 11372547186118,
+            "CPU_CLUSTER_1": 2052983261298,
+            "CPU_CLUSTER_2": 1334330926074
+          },
+          "error": null
+        },
+        "energy_channel": "SYS",
+        "memory_scope": "benchmark process peak working set",
+        "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+      }
+    },
+    {
+      "id": "gpu",
+      "command": [
+        "<TOOLS>\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "gpu",
+        "-m",
+        "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-c",
+        "4096",
+        "-t",
+        "0",
+        "-r",
+        "3",
+        "--warmup",
+        "1",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--cell-id",
+        "gpu",
+        "--output-json",
+        "<TOOLS>\\turbo-bench\\results\\screen-01\\gpu.json"
+      ],
+      "started_at": "2026-09-15T21:19:47.541958+00:00",
+      "exit_code": 0,
+      "status": "completed",
+      "wall_s": 44.3088319003582,
+      "agg": {
+        "ttft_ms": {
+          "median": 497.954,
+          "min": 492.285,
+          "max": 501.458,
+          "mean": 497.232333,
+          "stdev": 4.628886
+        },
+        "prefill_tps": {
+          "median": 1030.091964,
+          "min": 1024.383119,
+          "max": 1043.715791,
+          "mean": 1032.730291,
+          "stdev": 9.932705
+        },
+        "decode_tps": {
+          "median": 66.37603,
+          "min": 64.012578,
+          "max": 66.568928,
+          "mean": 65.652512,
+          "stdev": 1.423495
+        },
+        "gen_tokens": {
+          "median": 128.0
+        },
+        "prompt_tokens": {
+          "median": 512.0
+        },
+        "media_ms": {
+          "median": 0.0
+        }
+      },
+      "device_id": "GPUOpenCL",
+      "complete_length_runs": 3,
+      "telemetry": {
+        "peak_working_set_mb": 1963.83984375,
+        "working_set_mb": 1963.83984375,
+        "private_mb": 1925.52734375,
+        "energy_j": 480.291741036,
+        "average_power_w": 10.83976855779229,
+        "tokens_per_joule": null,
+        "energy": {
+          "duration_s": 44.30830219993368,
+          "channels": {
+            "SYS": {
+              "energy_j": 480.291741036,
+              "average_power_w": 10.83976855779229,
+              "tokens_per_joule": null
+            },
+            "GPU": {
+              "energy_j": 45.127889676,
+              "average_power_w": 1.0184973793933263,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_0": {
+              "energy_j": 74.0562261696,
+              "average_power_w": 1.6713848758057546,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_1": {
+              "energy_j": 54.319895441999996,
+              "average_power_w": 1.2259529872503512,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_2": {
+              "energy_j": 26.9853135372,
+              "average_power_w": 0.6090351513680972,
+              "tokens_per_joule": null
+            }
+          },
+          "unit": "picowatt-hours",
+          "scope": "full process trial including model initialization and any warmup",
+          "error": null
+        },
+        "energy_before": {
+          "monotonic_s": 2413239.8637277,
+          "channels_pwh": {
+            "SYS": 45224858790167,
+            "GPU": 96096311906,
+            "CPU_CLUSTER_0": 11372547186118,
+            "CPU_CLUSTER_1": 2052983261298,
+            "CPU_CLUSTER_2": 1334330926074
+          },
+          "error": null
+        },
+        "energy_after": {
+          "monotonic_s": 2413284.1720299,
+          "channels_pwh": {
+            "SYS": 45358273162677,
+            "GPU": 108631836816,
+            "CPU_CLUSTER_0": 11393118360054,
+            "CPU_CLUSTER_1": 2068072121143,
+            "CPU_CLUSTER_2": 1341826846501
+          },
+          "error": null
+        },
+        "energy_channel": "SYS",
+        "memory_scope": "benchmark process peak working set",
+        "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+      }
+    },
+    {
+      "id": "cpu-t10",
+      "command": [
+        "<TOOLS>\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-c",
+        "4096",
+        "-t",
+        "10",
+        "-r",
+        "3",
+        "--warmup",
+        "1",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--cell-id",
+        "cpu-t10",
+        "--output-json",
+        "<TOOLS>\\turbo-bench\\results\\screen-01\\cpu-t10.json"
+      ],
+      "started_at": "2026-09-15T21:20:31.853650+00:00",
+      "exit_code": 0,
+      "status": "completed",
+      "wall_s": 7.803145300131291,
+      "agg": {
+        "ttft_ms": {
+          "median": 323.691,
+          "min": 323.024,
+          "max": 323.962,
+          "mean": 323.559,
+          "stdev": 0.482731
+        },
+        "prefill_tps": {
+          "median": 1583.340291,
+          "min": 1581.506261,
+          "max": 1587.158893,
+          "mean": 1584.001815,
+          "stdev": 2.883794
+        },
+        "decode_tps": {
+          "median": 97.90581,
+          "min": 97.618788,
+          "max": 97.989005,
+          "mean": 97.837868,
+          "stdev": 0.194235
+        },
+        "gen_tokens": {
+          "median": 128.0
+        },
+        "prompt_tokens": {
+          "median": 512.0
+        },
+        "media_ms": {
+          "median": 0.0
+        }
+      },
+      "device_id": null,
+      "complete_length_runs": 3,
+      "telemetry": {
+        "peak_working_set_mb": 1526.9765625,
+        "working_set_mb": 1526.9765625,
+        "private_mb": 2698.15625,
+        "energy_j": 321.0678077976,
+        "average_power_w": 41.15591177801422,
+        "tokens_per_joule": null,
+        "energy": {
+          "duration_s": 7.801256099715829,
+          "channels": {
+            "SYS": {
+              "energy_j": 321.0678077976,
+              "average_power_w": 41.15591177801422,
+              "tokens_per_joule": null
+            },
+            "GPU": {
+              "energy_j": 2.0734346988,
+              "average_power_w": 0.26578216024410833,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_0": {
+              "energy_j": 56.5405516764,
+              "average_power_w": 7.247621530904436,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_1": {
+              "energy_j": 61.4409120684,
+              "average_power_w": 7.875771706897056,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_2": {
+              "energy_j": 65.1065584788,
+              "average_power_w": 8.345650706322997,
+              "tokens_per_joule": null
+            }
+          },
+          "unit": "picowatt-hours",
+          "scope": "full process trial including model initialization and any warmup",
+          "error": null
+        },
+        "energy_before": {
+          "monotonic_s": 2413284.1767366,
+          "channels_pwh": {
+            "SYS": 45358273162677,
+            "GPU": 108631836816,
+            "CPU_CLUSTER_0": 11393118360054,
+            "CPU_CLUSTER_1": 2068072121143,
+            "CPU_CLUSTER_2": 1341826846501
+          },
+          "error": null
+        },
+        "energy_after": {
+          "monotonic_s": 2413291.9779927,
+          "channels_pwh": {
+            "SYS": 45447458664843,
+            "GPU": 109207790899,
+            "CPU_CLUSTER_0": 11408824068853,
+            "CPU_CLUSTER_1": 2085139041162,
+            "CPU_CLUSTER_2": 1359912001634
+          },
+          "error": null
+        },
+        "energy_channel": "SYS",
+        "memory_scope": "benchmark process peak working set",
+        "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+      }
+    },
+    {
+      "id": "cpu-t12",
+      "command": [
+        "<TOOLS>\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-c",
+        "4096",
+        "-t",
+        "12",
+        "-r",
+        "3",
+        "--warmup",
+        "1",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--cell-id",
+        "cpu-t12",
+        "--output-json",
+        "<TOOLS>\\turbo-bench\\results\\screen-01\\cpu-t12.json"
+      ],
+      "started_at": "2026-09-15T21:20:39.659541+00:00",
+      "exit_code": 0,
+      "status": "completed",
+      "wall_s": 7.868187800049782,
+      "agg": {
+        "ttft_ms": {
+          "median": 324.513,
+          "min": 320.056,
+          "max": 328.814,
+          "mean": 324.461,
+          "stdev": 4.379232
+        },
+        "prefill_tps": {
+          "median": 1578.843497,
+          "min": 1558.941381,
+          "max": 1600.865468,
+          "mean": 1579.550115,
+          "stdev": 20.970974
+        },
+        "decode_tps": {
+          "median": 96.535434,
+          "min": 94.844181,
+          "max": 96.694484,
+          "mean": 96.0247,
+          "stdev": 1.025447
+        },
+        "gen_tokens": {
+          "median": 128.0
+        },
+        "prompt_tokens": {
+          "median": 512.0
+        },
+        "media_ms": {
+          "median": 0.0
+        }
+      },
+      "device_id": null,
+      "complete_length_runs": 3,
+      "telemetry": {
+        "peak_working_set_mb": 1526.62890625,
+        "working_set_mb": 1526.62890625,
+        "private_mb": 2697.6875,
+        "energy_j": 414.39337165439997,
+        "average_power_w": 52.67110874283104,
+        "tokens_per_joule": null,
+        "energy": {
+          "duration_s": 7.867564999964088,
+          "channels": {
+            "SYS": {
+              "energy_j": 414.39337165439997,
+              "average_power_w": 52.67110874283104,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_0": {
+              "energy_j": 73.7762375124,
+              "average_power_w": 9.377264441124638,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_1": {
+              "energy_j": 74.7638041032,
+              "average_power_w": 9.502788232895599,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_2": {
+              "energy_j": 79.03247716439999,
+              "average_power_w": 10.045354206131217,
+              "tokens_per_joule": null
+            }
+          },
+          "unit": "picowatt-hours",
+          "scope": "full process trial including model initialization and any warmup",
+          "error": null
+        },
+        "energy_before": {
+          "monotonic_s": 2413291.981401,
+          "channels_pwh": {
+            "SYS": 45447458664843,
+            "GPU": 109207790899,
+            "CPU_CLUSTER_0": 11408824068853,
+            "CPU_CLUSTER_1": 2085139041162,
+            "CPU_CLUSTER_2": 1359912001634
+          },
+          "error": null
+        },
+        "energy_after": {
+          "monotonic_s": 2413299.848966,
+          "channels_pwh": {
+            "SYS": 45562567934747,
+            "GPU": 109207790899,
+            "CPU_CLUSTER_0": 11429317468162,
+            "CPU_CLUSTER_1": 2105906764524,
+            "CPU_CLUSTER_2": 1381865467513
+          },
+          "error": null
+        },
+        "energy_channel": "SYS",
+        "memory_scope": "benchmark process peak working set",
+        "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+      }
+    },
+    {
+      "id": "hybrid",
+      "command": [
+        "<TOOLS>\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "hybrid",
+        "-m",
+        "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-c",
+        "4096",
+        "-t",
+        "0",
+        "-r",
+        "3",
+        "--warmup",
+        "1",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--cell-id",
+        "hybrid",
+        "--output-json",
+        "<TOOLS>\\turbo-bench\\results\\screen-01\\hybrid.json"
+      ],
+      "started_at": "2026-09-15T21:20:47.529657+00:00",
+      "exit_code": 0,
+      "status": "completed",
+      "wall_s": 18.477302599698305,
+      "agg": {
+        "ttft_ms": {
+          "median": 455.019,
+          "min": 451.189,
+          "max": 481.099,
+          "mean": 462.435667,
+          "stdev": 16.275971
+        },
+        "prefill_tps": {
+          "median": 1127.467712,
+          "min": 1066.051466,
+          "max": 1136.850613,
+          "mean": 1110.123264,
+          "stdev": 38.454547
+        },
+        "decode_tps": {
+          "median": 38.425145,
+          "min": 36.719977,
+          "max": 38.536504,
+          "mean": 37.893875,
+          "stdev": 1.01815
+        },
+        "gen_tokens": {
+          "median": 128.0
+        },
+        "prompt_tokens": {
+          "median": 512.0
+        },
+        "media_ms": {
+          "median": 0.0
+        }
+      },
+      "device_id": null,
+      "complete_length_runs": 3,
+      "telemetry": {
+        "peak_working_set_mb": 1733.16015625,
+        "working_set_mb": 1733.16015625,
+        "private_mb": 1879.5625,
+        "energy_j": 389.0917993176,
+        "average_power_w": 21.059313441009905,
+        "tokens_per_joule": null,
+        "energy": {
+          "duration_s": 18.47599639976397,
+          "channels": {
+            "SYS": {
+              "energy_j": 389.0917993176,
+              "average_power_w": 21.059313441009905,
+              "tokens_per_joule": null
+            },
+            "GPU": {
+              "energy_j": 22.8207197124,
+              "average_power_w": 1.2351550205266077,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_0": {
+              "energy_j": 48.1004647056,
+              "average_power_w": 2.6034030135562527,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_1": {
+              "energy_j": 62.5139036712,
+              "average_power_w": 3.383520018005557,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_2": {
+              "energy_j": 23.4412448868,
+              "average_power_w": 1.2687404987316115,
+              "tokens_per_joule": null
+            }
+          },
+          "unit": "picowatt-hours",
+          "scope": "full process trial including model initialization and any warmup",
+          "error": null
+        },
+        "energy_before": {
+          "monotonic_s": 2413299.8522183,
+          "channels_pwh": {
+            "SYS": 45562567934747,
+            "GPU": 109207790899,
+            "CPU_CLUSTER_0": 11429317468162,
+            "CPU_CLUSTER_1": 2105906764524,
+            "CPU_CLUSTER_2": 1381865467513
+          },
+          "error": null
+        },
+        "energy_after": {
+          "monotonic_s": 2413318.3282147,
+          "channels_pwh": {
+            "SYS": 45670648990113,
+            "GPU": 115546879708,
+            "CPU_CLUSTER_0": 11442678708358,
+            "CPU_CLUSTER_1": 2123271737766,
+            "CPU_CLUSTER_2": 1388376924426
+          },
+          "error": null
+        },
+        "energy_channel": "SYS",
+        "memory_scope": "benchmark process peak working set",
+        "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+      }
+    },
+    {
+      "id": "cpu-t8",
+      "command": [
+        "<TOOLS>\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-c",
+        "4096",
+        "-t",
+        "8",
+        "-r",
+        "3",
+        "--warmup",
+        "1",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--cell-id",
+        "cpu-t8",
+        "--output-json",
+        "<TOOLS>\\turbo-bench\\results\\screen-01\\cpu-t8.json"
+      ],
+      "started_at": "2026-09-15T21:21:06.009051+00:00",
+      "exit_code": 0,
+      "status": "completed",
+      "wall_s": 8.031063799746335,
+      "agg": {
+        "ttft_ms": {
+          "median": 323.055,
+          "min": 322.689,
+          "max": 335.943,
+          "mean": 327.229,
+          "stdev": 7.548764
+        },
+        "prefill_tps": {
+          "median": 1586.794891,
+          "min": 1525.094052,
+          "max": 1587.641205,
+          "mean": 1566.51005,
+          "stdev": 35.869802
+        },
+        "decode_tps": {
+          "median": 94.140213,
+          "min": 93.812343,
+          "max": 94.355131,
+          "mean": 94.102562,
+          "stdev": 0.273346
+        },
+        "gen_tokens": {
+          "median": 128.0
+        },
+        "prompt_tokens": {
+          "median": 512.0
+        },
+        "media_ms": {
+          "median": 0.0
+        }
+      },
+      "device_id": null,
+      "complete_length_runs": 3,
+      "telemetry": {
+        "peak_working_set_mb": 1527.05078125,
+        "working_set_mb": 1527.05078125,
+        "private_mb": 2698.203125,
+        "energy_j": 345.7471553856,
+        "average_power_w": 43.056540045303784,
+        "tokens_per_joule": null,
+        "energy": {
+          "duration_s": 8.03007290000096,
+          "channels": {
+            "SYS": {
+              "energy_j": 345.7471553856,
+              "average_power_w": 43.056540045303784,
+              "tokens_per_joule": null
+            },
+            "GPU": {
+              "energy_j": 0.7957805076,
+              "average_power_w": 0.09910003526865925,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_0": {
+              "energy_j": 41.9865783804,
+              "average_power_w": 5.228667149509312,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_1": {
+              "energy_j": 70.5173214996,
+              "average_power_w": 8.781653962268708,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_2": {
+              "energy_j": 76.4081271612,
+              "average_power_w": 9.515247011168587,
+              "tokens_per_joule": null
+            }
+          },
+          "unit": "picowatt-hours",
+          "scope": "full process trial including model initialization and any warmup",
+          "error": null
+        },
+        "energy_before": {
+          "monotonic_s": 2413318.3313318,
+          "channels_pwh": {
+            "SYS": 45670648990113,
+            "GPU": 115546879708,
+            "CPU_CLUSTER_0": 11442678708358,
+            "CPU_CLUSTER_1": 2123271737766,
+            "CPU_CLUSTER_2": 1388376924426
+          },
+          "error": null
+        },
+        "energy_after": {
+          "monotonic_s": 2413326.3614047,
+          "channels_pwh": {
+            "SYS": 45766689866609,
+            "GPU": 115767929849,
+            "CPU_CLUSTER_0": 11454341646797,
+            "CPU_CLUSTER_1": 2142859882627,
+            "CPU_CLUSTER_2": 1409601404193
+          },
+          "error": null
+        },
+        "energy_channel": "SYS",
+        "memory_scope": "benchmark process peak working set",
+        "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+      }
+    },
+    {
+      "id": "cpu-t0",
+      "command": [
+        "<TOOLS>\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-c",
+        "4096",
+        "-t",
+        "0",
+        "-r",
+        "3",
+        "--warmup",
+        "1",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--cell-id",
+        "cpu-t0",
+        "--output-json",
+        "<TOOLS>\\turbo-bench\\results\\screen-01\\cpu-t0.json"
+      ],
+      "started_at": "2026-09-15T21:21:14.041877+00:00",
+      "exit_code": 0,
+      "status": "completed",
+      "wall_s": 7.984696700237691,
+      "agg": {
+        "ttft_ms": {
+          "median": 324.606,
+          "min": 318.307,
+          "max": 337.248,
+          "mean": 326.720333,
+          "stdev": 9.645889
+        },
+        "prefill_tps": {
+          "median": 1578.303262,
+          "min": 1520.203565,
+          "max": 1610.772038,
+          "mean": 1569.759622,
+          "stdev": 45.884719
+        },
+        "decode_tps": {
+          "median": 95.950082,
+          "min": 95.29716,
+          "max": 96.983657,
+          "mean": 96.076966,
+          "stdev": 0.850378
+        },
+        "gen_tokens": {
+          "median": 128.0
+        },
+        "prompt_tokens": {
+          "median": 512.0
+        },
+        "media_ms": {
+          "median": 0.0
+        }
+      },
+      "device_id": null,
+      "complete_length_runs": 3,
+      "telemetry": {
+        "peak_working_set_mb": 1524.10546875,
+        "working_set_mb": 1524.10546875,
+        "private_mb": 2697.4765625,
+        "energy_j": 429.0452043732,
+        "average_power_w": 53.73763344304333,
+        "tokens_per_joule": null,
+        "energy": {
+          "duration_s": 7.9840732999145985,
+          "channels": {
+            "SYS": {
+              "energy_j": 429.0452043732,
+              "average_power_w": 53.73763344304333,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_0": {
+              "energy_j": 74.3963054256,
+              "average_power_w": 9.318088979267737,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_1": {
+              "energy_j": 79.1148112056,
+              "average_power_w": 9.909078766404393,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_2": {
+              "energy_j": 84.8885843376,
+              "average_power_w": 10.632240104622788,
+              "tokens_per_joule": null
+            }
+          },
+          "unit": "picowatt-hours",
+          "scope": "full process trial including model initialization and any warmup",
+          "error": null
+        },
+        "energy_before": {
+          "monotonic_s": 2413326.3637038,
+          "channels_pwh": {
+            "SYS": 45766689866609,
+            "GPU": 115767929849,
+            "CPU_CLUSTER_0": 11454341646797,
+            "CPU_CLUSTER_1": 2142859882627,
+            "CPU_CLUSTER_2": 1409601404193
+          },
+          "error": null
+        },
+        "energy_after": {
+          "monotonic_s": 2413334.3477771,
+          "channels_pwh": {
+            "SYS": 45885869090046,
+            "GPU": 115767929849,
+            "CPU_CLUSTER_0": 11475007287193,
+            "CPU_CLUSTER_1": 2164836219073,
+            "CPU_CLUSTER_2": 1433181566509
+          },
+          "error": null
+        },
+        "energy_channel": "SYS",
+        "memory_scope": "benchmark process peak working set",
+        "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+      }
+    },
+    {
+      "id": "cpu-t2",
+      "command": [
+        "<TOOLS>\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-c",
+        "4096",
+        "-t",
+        "2",
+        "-r",
+        "3",
+        "--warmup",
+        "1",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--cell-id",
+        "cpu-t2",
+        "--output-json",
+        "<TOOLS>\\turbo-bench\\results\\screen-01\\cpu-t2.json"
+      ],
+      "started_at": "2026-09-15T21:21:22.029831+00:00",
+      "exit_code": 0,
+      "status": "completed",
+      "wall_s": 12.290815600194037,
+      "agg": {
+        "ttft_ms": {
+          "median": 322.179,
+          "min": 321.891,
+          "max": 329.063,
+          "mean": 324.377667,
+          "stdev": 4.060172
+        },
+        "prefill_tps": {
+          "median": 1590.284357,
+          "min": 1557.02608,
+          "max": 1592.64893,
+          "mean": 1579.986455,
+          "stdev": 19.919386
+        },
+        "decode_tps": {
+          "median": 53.41537,
+          "min": 52.470543,
+          "max": 53.692469,
+          "mean": 53.192794,
+          "stdev": 0.640649
+        },
+        "gen_tokens": {
+          "median": 128.0
+        },
+        "prompt_tokens": {
+          "median": 512.0
+        },
+        "media_ms": {
+          "median": 0.0
+        }
+      },
+      "device_id": null,
+      "complete_length_runs": 3,
+      "telemetry": {
+        "peak_working_set_mb": 1526.8515625,
+        "working_set_mb": 1526.8515625,
+        "private_mb": 2697.91796875,
+        "energy_j": 376.7727178188,
+        "average_power_w": 30.65637885869643,
+        "tokens_per_joule": null,
+        "energy": {
+          "duration_s": 12.290189899969846,
+          "channels": {
+            "SYS": {
+              "energy_j": 376.7727178188,
+              "average_power_w": 30.65637885869643,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_0": {
+              "energy_j": 27.467758422,
+              "average_power_w": 2.2349336052217867,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_1": {
+              "energy_j": 105.35221670039999,
+              "average_power_w": 8.572057678348687,
+              "tokens_per_joule": null
+            },
+            "CPU_CLUSTER_2": {
+              "energy_j": 50.6317952844,
+              "average_power_w": 4.119691859645246,
+              "tokens_per_joule": null
+            }
+          },
+          "unit": "picowatt-hours",
+          "scope": "full process trial including model initialization and any warmup",
+          "error": null
+        },
+        "energy_before": {
+          "monotonic_s": 2413334.3516741,
+          "channels_pwh": {
+            "SYS": 45885869090046,
+            "GPU": 115767929849,
+            "CPU_CLUSTER_0": 11475007287193,
+            "CPU_CLUSTER_1": 2164836219073,
+            "CPU_CLUSTER_2": 1433181566509
+          },
+          "error": null
+        },
+        "energy_after": {
+          "monotonic_s": 2413346.641864,
+          "channels_pwh": {
+            "SYS": 45990528178329,
+            "GPU": 115767929849,
+            "CPU_CLUSTER_0": 11482637220088,
+            "CPU_CLUSTER_1": 2194100723712,
+            "CPU_CLUSTER_2": 1447245954088
+          },
+          "error": null
+        },
+        "energy_channel": "SYS",
+        "memory_scope": "benchmark process peak working set",
+        "tokens_per_joule_reason": "unavailable: warmup tokens absent from report"
+      }
+    }
+  ],
+  "finished_at": "2026-09-15T21:21:34.324007+00:00"
+}
