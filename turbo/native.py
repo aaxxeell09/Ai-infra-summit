@@ -533,6 +533,7 @@ class NativeModel:
         draft_tokens: int = 8,
         threads_batch: int = 0,
         ubatch: int = 0,
+        n_batch: int = 0,
         plugin: str | None = None,
     ):
         self.runtime = runtime
@@ -546,6 +547,7 @@ class NativeModel:
             'draft_tokens': draft_tokens,
             'threads_batch': threads_batch,
             'ubatch': ubatch,
+            'n_batch': n_batch,
             'plugin': self.plugin_id,
         }
         self._lock = threading.Lock()
@@ -566,7 +568,7 @@ class NativeModel:
             n_ctx=int(context),
             n_threads=int(threads),
             n_threads_batch=int(threads_batch),
-            n_batch=0,
+            n_batch=int(n_batch),
             n_ubatch=int(ubatch),
             n_seq_max=0,
             n_gpu_layers=ngl,
