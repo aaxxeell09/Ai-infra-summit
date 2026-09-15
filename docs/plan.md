@@ -1,6 +1,6 @@
 # Execution plan and acceptance checks
 
-Status: September 15, 2026. No implementation milestones have passed. Work starts from an empty application repository and the hardware listed in [hardware.md](hardware.md).
+Status: September 15, 2026. The hub/API is implemented and unit tested, and USB transport to the board is verified. End-to-end model and physical milestones remain open. See the executed checks in [hardware.md](hardware.md).
 
 ## Current setup
 
@@ -9,7 +9,12 @@ Status: September 15, 2026. No implementation milestones have passed. Work start
 - [x] Confirm that Codex is installed on the Latitude, as reported by the team.
 - [x] Prepare a dedicated SSH client key on the development Mac, kept outside this repository.
 - [x] Confirm Windows OpenSSH Server setup, verify the host fingerprint and establish a connection.
-- [ ] Confirm camera input, board connectivity and installed model/runtime versions.
+- [x] Confirm Windows ARM64 tools, GenieX 0.6.1 and board USB connectivity.
+- [x] Run the hub on the Latitude and reach its API from UNO Q over USB.
+- [x] Implement the browser console, image upload, camera capture code and fail-closed hub state.
+- [ ] Finish the model download, confirm real image inference and inspect active backend evidence.
+- [x] Verify the real Latitude camera in Edge at 1280×720.
+- [ ] Verify physical controls and feedback.
 
 SSH connection and remote checks succeeded on September 15; see [the verified status](ssh.md). Keep private keys, credentials and connection addresses in local setup notes. Follow [Microsoft's Windows OpenSSH instructions](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse) for remote access.
 

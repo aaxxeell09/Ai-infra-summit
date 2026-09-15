@@ -1,11 +1,11 @@
 # Hackathon hardware
 
-Recorded September 15, 2026. Hardware identifiers and laptop RAM below were supplied by the team. Vendor specifications are linked separately; no device execution has been tested yet.
+Recorded September 15, 2026. Hardware identifiers and laptop RAM below were supplied by the team. Vendor specifications are linked separately; executed setup checks are recorded below.
 
 | Component | Team hardware | Intended role |
 |---|---|---|
 | AI PC | Dell Latitude 7455; Snapdragon X Elite X1E-80-100; 32 GB RAM; Qualcomm Adreno X1-85 GPU as reported | Run one vision-language model through GenieX on the Hexagon NPU |
-| Edge board | Arduino UNO Q, SKU ABX00162 | Camera capture, lightweight filtering, communication and MCU-driven LED feedback |
+| Edge board | Arduino UNO Q, SKU ABX00162 | Physical controls, USB communication and MCU-driven feedback; later capture/filtering |
 
 The [Arduino datasheet](https://docs.arduino.cc/resources/datasheets/ABX00162-datasheet.pdf) maps ABX00162 to **2 GB RAM and 16 GB eMMC**. The board combines the Dragonwing QRB2210 Linux processor, Adreno 702 GPU and STM32U585 microcontroller. Keep this board's software and model footprint small.
 
@@ -27,20 +27,28 @@ Vibro produces vibration; it does not measure vibration. No distance, temperatur
 
 Codex is installed on the Latitude, as reported by the team. SSH from the development Mac is now verified with a pinned host key and a dedicated client key. The Windows service is running and the inspected SSH firewall rules are restricted to the development Mac. See [SSH verification](ssh.md); keep connection details outside this public repository.
 
-## Initial device checks
+## Executed setup checks — September 15
 
-1. Confirm the Latitude's Windows ARM64 version, driver versions, free storage and whether GenieX is already installed. [Official Windows CLI setup](https://geniex.aihub.qualcomm.com/en/run/cli/install).
-2. Run `geniex --help` and `geniex model list` in a terminal on the Latitude. The latter lists compatible QAIRT models for the detected chipset. [CLI reference](https://geniex.aihub.qualcomm.com/en/run/cli/reference).
-3. Test one actual image with a compatible VLM. `ai-hub-models/Qwen3-VL-4B-Instruct` is a documented candidate with X Elite support; availability and speed on this unit remain unverified. [Model page](https://aihub.qualcomm.com/models/qwen3_vl_4b_instruct).
-4. Confirm a USB webcam and a suitable powered USB-C hub are available, then test camera capture and LED-matrix control on UNO Q. [Arduino user manual](https://docs.arduino.cc/tutorials/uno-q/user-manual/).
-5. Establish device-to-device connectivity and complete one image-to-result-to-LED round trip before adding routing policies or voice.
+| Device | Observed |
+|---|---|
+| Latitude | Windows 11 Pro 10.0.26200, ARM64; NPU and integrated camera enumerate without device errors |
+| Storage | Approximately 398 GB free before tool and model downloads |
+| Python | Native Windows ARM64 Python 3.14.6 installed and version checked |
+| GenieX | 0.6.1, QAIRT 2.45; `geniex model list` includes `qualcomm/Qwen3-VL-4B-Instruct` for this device |
+| Git | Native ARM64 Git 2.55.0.windows.5; repository cloned |
+| UNO Q | Linux aarch64; Arduino App CLI and daemon 0.12.1; Arduino CLI 1.5.1; zephyr platform 0.56.0 |
+| Connection | Authenticated USB ADB; board HTTP request through `adb reverse tcp:8080 tcp:8080` reaches the real Latitude hub |
+| Hub | Python service running on Latitude loopback port 8080; status API responds |
 
-## Still unknown
+The real Latitude camera was subsequently verified in Edge at 1280×720, delivering fresh frames to the hub with no JavaScript errors. The model bundle is still downloading; there is no verified model inference, NPU utilization or model-quality result yet.
 
-- Windows OS build, installed software and drivers; SSH access verification.
-- Laptop storage capacity and free space.
-- Webcam and powered-hub availability.
-- Board software version and reachable device addresses.
-- Actual model quality, memory use and inference latency.
+The current development processes run as user-level Windows Scheduled Tasks: `Qualcomm-Hub`, `Qualcomm-ADB` and a temporary model-download task. They have no recurring trigger. Logging out of Codex does not stop SSH; signing out of Windows can stop these interactive tasks. Startup wrappers and download logs live under `%LOCALAPPDATA%\QualcommTools`, outside Git.
 
-Passwords and other credentials are not stored in this repository.
+## Still to verify
+
+- Actual captured images reaching the model and producing useful answers.
+- Model quality, memory use, inference latency and active NPU backend.
+- Physical Modulino wiring, controls and feedback.
+- Full inspection loop with internet disconnected after setup.
+
+Passwords, private keys, local addresses and raw captures are not stored in this repository.

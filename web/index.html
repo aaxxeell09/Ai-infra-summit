@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local Inspection</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <h1>Local Inspection</h1>
+    <p class="tagline">Instruction-checked visual inspection console</p>
+  </div>
+  <div id="conn-pill" class="pill pill-muted">Connecting&hellip;</div>
+</header>
+
+<main class="layout">
+  <section class="card card-capture" aria-labelledby="capture-heading">
+    <h2 id="capture-heading">Capture</h2>
+    <div class="video-wrap">
+      <video id="video" playsinline muted></video>
+      <div id="video-placeholder" class="video-placeholder">Camera off</div>
+    </div>
+    <div class="btn-row">
+      <button id="btn-camera" class="btn" type="button">Start camera</button>
+      <button id="btn-snapshot" class="btn" type="button" disabled>Snapshot</button>
+    </div>
+    <div class="upload-row">
+      <label class="btn btn-secondary" for="file-input">Upload image</label>
+      <input id="file-input" type="file" accept="image/*">
+      <span id="frame-meta" class="meta"></span>
+    </div>
+    <div class="preview-wrap" id="preview-wrap">
+      <img id="preview" alt="Latest captured frame" hidden>
+      <div id="preview-empty" class="preview-empty">No frame captured yet</div>
+    </div>
+  </section>
+
+  <section class="card card-status" aria-labelledby="status-heading">
+    <h2 id="status-heading">Result</h2>
+    <div class="status-block">
+      <div id="status-badge" class="badge badge-idle">IDLE</div>
+      <p id="explanation" class="explanation">Waiting for the first inspection.</p>
+    </div>
+    <dl class="kv">
+      <dt>Request latency</dt><dd id="latency">&mdash;</dd>
+      <dt>Board</dt><dd id="board-state">&mdash;</dd>
+      <dt>Runtime</dt><dd id="runtime-state">&mdash;</dd>
+    </dl>
+    <details class="diagnostics">
+    <summary>Runtime details</summary>
+    <dl class="kv">
+      <dt>Request ID</dt><dd id="request-id">&mdash;</dd>
+      <dt>Instruction version</dt><dd id="instruction-version">&mdash;</dd>
+      <dt>Backend evidence</dt><dd id="backend-evidence">&mdash;</dd>
+      <dt>Counters</dt><dd id="counters">&mdash;</dd>
+    </dl>
+    </details>
+    <div class="btn-row">
+      <button id="btn-inspect" class="btn btn-primary" type="button" disabled>Inspect</button>
+      <button id="btn-clear" class="btn" type="button" disabled>Clear</button>
+    </div>
+  </section>
+
+  <section class="card card-instruction" aria-labelledby="instruction-heading">
+    <h2 id="instruction-heading">Instruction</h2>
+    <textarea id="instruction" rows="3" maxlength="1200" aria-label="Inspection instruction" placeholder="e.g. the bottle must be capped and upright"></textarea>
+    <div class="btn-row">
+      <button id="btn-apply" class="btn" type="button">Apply instruction</button>
+      <span id="instruction-pending" class="pending-note" hidden></span>
+    </div>
+    <h3>Saved presets</h3>
+    <p id="preset-note" class="meta"></p>
+    <ul id="preset-list" class="preset-list"></ul>
+  </section>
+
+  <section class="card card-events" aria-labelledby="events-heading">
+    <h2 id="events-heading">Recent events</h2>
+    <ul id="events" class="event-list"><li class="event-empty">No events reported yet.</li></ul>
+  </section>
+</main>
+
+<div id="error-banner" class="error-banner" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

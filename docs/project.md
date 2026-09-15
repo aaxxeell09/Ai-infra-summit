@@ -1,6 +1,6 @@
 # Project brief
 
-Status: proposed design, September 15, 2026. This document records the team's discussion and current recommendation; it does not describe a completed product. A final project name and exact demo scenario have not been selected.
+Status: prototype development, September 15, 2026. This document records the team's design and broader direction; it does not describe a completed product. A final project name and exact demo scenario have not been selected.
 
 ## Problem and intended users
 
@@ -14,7 +14,7 @@ Potential value includes keeping images on the local network, continuing the cor
 
 The original proposal was an edge inference router for workshop safety or quality checks. An always-on detector on UNO Q would escalate interesting frames to a Snapdragon X Elite laptop, where GenieX would run visual reasoning. The laptop would send an action back to the board. A dashboard would explain placement decisions and show measured execution data.
 
-That is the broader research direction. Because we are starting with no code and a 2 GB UNO Q, the recommended first milestone is one image-to-answer-to-physical-result loop. The available modules support manual controls and feedback; no distance, temperature or motion sensor has been confirmed.
+That is the broader research direction. Because the project started without code and uses a 2 GB UNO Q, the recommended first milestone is one image-to-answer-to-physical-result loop. The available modules support manual controls and feedback; no distance, temperature or motion sensor has been confirmed.
 
 The earlier idea review, including independent agent feedback and Fable 5.1 through Claude Code, supported keeping one VLM and proving this loop before adding routing. The resulting design decisions are captured here; runtime feasibility still requires tests on our devices.
 

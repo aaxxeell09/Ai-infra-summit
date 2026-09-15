@@ -1,32 +1,35 @@
-# Proposed architecture
+# Architecture and routing extensions
 
-Nothing in this document is implemented yet. It describes the first prototype and the boundary between that prototype and later routing work.
+The hub and browser console are implemented; the Latitude-to-UNO-Q USB transport is verified. Firmware integration and real model inference are in progress. This document separates that first prototype from later routing work.
 
 ## First prototype
 
 ```mermaid
 flowchart LR
-    Operator[Operator instruction and button press] --> Board[UNO Q Linux app]
-    Camera[Camera source] --> Board
-    Board -->|Image and instruction over local network| PC[Latitude request service]
-    PC --> GenieX[GenieX and one compatible VLM]
-    GenieX --> Validate[Deterministic response validation]
-    Validate -->|Result and request identity| Board
-    Board --> Bridge[Arduino Bridge]
-    Bridge --> MCU[UNO Q microcontroller]
-    MCU --> Output[LED matrix or Modulino feedback]
-    Validate --> View[Local laptop result view]
+    Camera[Latitude camera or image upload] --> PC[Python hub on Latitude]
+    Buttons[Modulino controls] --> MCU[UNO Q microcontroller]
+    MCU --> Bridge[Arduino Bridge]
+    Bridge --> Board[UNO Q Linux client]
+    Board -->|Inspect and preset requests over USB| PC
+    PC --> GenieX[GenieX and Qwen3-VL]
+    GenieX --> Validate[Response validation and freshness]
+    Validate -->|Result state over USB| Board
+    Board --> Bridge
+    MCU --> Output[Physical feedback]
+    Validate --> View[Local browser console]
 ```
 
-The preferred capture path is a USB webcam connected to UNO Q through a suitable powered hub. Arduino also documents [phone-to-UNO-Q camera streaming over local Wi-Fi](https://blog.arduino.cc/2026/03/06/turn-your-smartphone-into-a-real-time-vision-input-for-arduino-uno-q/). Neither path has been tested by this team. If capture has to run on the laptop initially, the board can still handle operator controls and results, but that version does not demonstrate independent edge camera capture.
+There is no USB webcam in the kit. The first capture path runs in the Latitude browser, with image upload as a fallback. The board requests an inspection of the latest fresh frame and handles controls and results. This does not yet demonstrate independent edge camera capture or an edge vision model.
+
+The verified transport is USB ADB reverse forwarding: board port 8080 reaches the Latitude's loopback hub port 8080. There is no need to open the hub to the venue network. An independent board camera or [phone-to-UNO-Q camera stream](https://blog.arduino.cc/2026/03/06/turn-your-smartphone-into-a-real-time-vision-input-for-arduino-uno-q/) remains an extension.
 
 ## Device responsibilities
 
 | Component | First milestone | Possible extension |
 |---|---|---|
-| UNO Q Linux processor | Capture an image, attach request metadata, send it to the laptop and receive the result | Change/stability filtering or a small validated detector |
+| UNO Q Linux processor | Send operator requests to the laptop and relay results over Bridge | Independent capture, change/stability filtering or a small validated detector |
 | UNO Q microcontroller | Read controls and drive feedback through Bridge | More deterministic peripheral behavior |
-| Latitude | Host a request service, run one VLM through GenieX, validate its answer and display the result | Policy evaluation and event history |
+| Latitude | Host a request service, run one VLM through GenieX, validate its answer and display the result | Policy evaluation and measured comparisons |
 | Knob / Buttons | Choose a saved instruction and request or retry an inspection | Operator acknowledgement or labelled evaluation input |
 | LED matrix / Pixels / Vibro / Buzzer | Indicate progress and result | Distinct tactile and audible patterns |
 
@@ -34,11 +37,11 @@ The preferred capture path is a USB webcam connected to UNO Q through a suitable
 
 ## Model and runtime
 
-[Qwen3-VL-4B-Instruct](https://aihub.qualcomm.com/models/qwen3_vl_4b_instruct) is a candidate: Qualcomm documents a GenieX deployment and X Elite support. Its presence on our Latitude has not been checked, and the team has not tested it. Select from models compatible with the actual device and runtime, then test a real image before committing to it.
+[Qwen3-VL-4B-Instruct](https://aihub.qualcomm.com/models/qwen3_vl_4b_instruct) is a candidate: Qualcomm documents a GenieX deployment and X Elite support. GenieX 0.6.1 lists `qualcomm/Qwen3-VL-4B-Instruct` as compatible on our Latitude. The X Elite QAIRT bundle is downloading. Real image inference and its quality have not yet been tested.
 
 The intended target is the Latitude's Hexagon NPU. A model name, `--compute npu` request or vendor TOPS figure is not proof of active NPU execution. Record runtime/backend logs and corroborating device evidence. A fallback backend must be labelled accurately. Do not assume UNO Q has the same NPU or model support as X Elite.
 
-GenieX offers an [OpenAI-compatible local serving interface](https://geniex.aihub.qualcomm.com/en/run/cli/reference), which we plan to put behind a small application service. Endpoint details, model response support and image input behavior must be confirmed with the installed version. No application server port or API contract is finalized.
+GenieX offers an [OpenAI-compatible local serving interface](https://geniex.aihub.qualcomm.com/en/run/cli/reference), used by our Python service through loopback port 18181. The browser and board use hub port 8080; see the [implemented API](api.md). Compatibility of the selected model's actual image answers remains a runtime acceptance check.
 
 For QAIRT bundles, the context limit is fixed when the bundle is compiled; increasing `--nctx` does not enlarge it. Keep inspection requests short and independent, and check the selected bundle's limit before adding conversational history. See the [runtime constraints in the CLI reference](https://geniex.aihub.qualcomm.com/en/run/cli/reference#increasing-the-context-length).
 
@@ -54,7 +57,7 @@ The application owns the result state. The model proposes a constrained answer; 
 | CHECK | The current image visibly violates the instruction | Red Pixels or a CHECK pattern |
 | UNKNOWN | The result cannot be established or the request failed | Amber Pixels or a distinct UNKNOWN pattern |
 
-Each request should carry a unique ID, a frame timestamp, an instruction version and a deadline. Responses should identify their request and contain a bounded status and short explanation. These are proposed fields, not an existing API.
+The hub binds each request to a unique ID, captured image, instruction version and deadline. Responses contain a bounded status and short explanation. Current limits are a 15-second cached-frame age, 90-second inference timeout and 20-second result lifetime. A result applies to the captured image; it does not certify subsequent live video frames.
 
 Reject malformed answers and mismatched or expired responses. Clear the previous OK when a new inspection starts, the instruction changes, the camera disconnects or the result expires. Use a local timer on the board so a broken laptop connection cannot leave an OK displayed indefinitely. Expiry values must be selected during testing.
 
@@ -70,6 +73,6 @@ A cheap detector must not declare a scene OK for a language instruction it canno
 
 ## Data and measurements
 
-The intended visual core sends images only between the board and laptop. Model downloads and development tools can require internet access during setup. Optional hosted voice would send audio to its provider; it is a separate mode.
+The current visual core keeps images on the Latitude and sends only control/result metadata over USB. An independent board-camera extension would send selected images between the two devices. Model downloads and development tools can require internet access during setup. Optional hosted voice would send audio to its provider; it is a separate mode.
 
 Initially keep only the metadata needed to debug requests and measure results. Raw image retention should be explicit. Record end-to-end elapsed time, VLM calls, transferred bytes, backend evidence, correctness and missed events. Tokens per second and call counts are not NPU utilization or energy measurements. No savings or performance numbers have been measured yet.
