@@ -412,7 +412,9 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
     recommendations = {r["group_id"]: r for r in ranked if r["rank"] == 1}
     record.update(ranking=ranked, pareto_frontier=pareto_frontier(record["results"]),
         recommendations=recommendations, recommended=next(iter(recommendations.values()))
-        if len(recommendations) == 1 and len({_group(r) for r in record["results"]}) == 1 else None,
+        if len(recommendations) == 1
+        and len({r.get('variant_id') for r in record["results"]}) == 1
+        and len({_group(r) for r in record["results"] if _eligible(r)}) == 1 else None,
         cells_run=sum("exit_code" in r for r in record["results"]), output_dir=str(out))
     try:
         record["recommendation"] = recommendation_record(record)
@@ -427,9 +429,11 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
 
 def recommendation_record(record, group_id=None):
     """Parent Engine.modes/apply contract; explicit group selection, no static profiles."""
-    groups = {_group(r) for r in record["results"]}
+    # Unsupported/failed trials remain in the audit but must not erase
+    # usable recommendations from the successful, comparable trials.
+    groups = {_group(r) for r in record["results"] if _eligible(r)}
     if group_id is None:
-        if len(groups) != 1 or None in groups:
+        if len({r.get('variant_id') for r in record["results"]}) != 1 or len(groups) != 1 or None in groups:
             raise TuningError("select one model/workload/power group for service modes")
         group_id = next(iter(groups))
     rows = [r for r in record["results"] if _group(r) == group_id and _eligible(r)]

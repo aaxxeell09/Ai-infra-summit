@@ -192,6 +192,17 @@ def test_fake_external_command_full_pipeline_incremental_record_and_export(setup
         t.run_tuning(exe, [v], t.SearchSpace(), out)
 
 
+def test_unsupported_cell_does_not_hide_successful_recommendation(setup):
+    exe, v, root = setup
+    record = t.run_tuning(exe, [v], t.SearchSpace(contexts=(64, 4096), repeats=3),
+                          root / 'mixed-outcomes', power_state='ac')
+    assert {r['status'] for r in record['results']} == {'unsupported', 'completed'}
+    assert record['recommended']['context'] == 4096
+    exported = json.loads(Path(record['recommendation_path']).read_text())
+    assert exported['modes']['fast']['context'] == 4096
+    assert len(record['results']) == 2  # The failed plan remains visible.
+
+
 @pytest.mark.parametrize("name,status", [
     ("partial.gguf", "partial"), ("broken.gguf", "failed"), ("nan.gguf", "failed"),
     ("absent.gguf", "failed"), ("wrong.gguf", "failed"), ("nonzero.gguf", "failed"),
