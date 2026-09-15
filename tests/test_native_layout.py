@@ -213,6 +213,26 @@ class RuntimeTests(unittest.TestCase):
         rt.close()
         self.assertIn(('deinit',), lib.calls)
 
+    def test_tune_cycle_reopens_sdk_instead_of_reusing_closed_runtime(self):
+        lib = _FakeLib()
+        with mock.patch.object(native.Path, 'is_file', return_value=True), \
+                mock.patch.object(native.ctypes, 'CDLL', return_value=lib), \
+                mock.patch.object(native, '_preload_siblings'):
+            first = NativeRuntime('/fake/reopen-sdk')
+            self.assertIs(first, NativeRuntime('/fake/reopen-sdk'))
+            first.close()
+            first.close()  # No duplicate deinit.
+            with self.assertRaisesRegex(RuntimeError, 'runtime is closed'):
+                NativeModel(first, '/fake/model.gguf')
+            second = NativeRuntime('/fake/reopen-sdk')
+            self.assertIsNot(first, second)
+            model = NativeModel(second, '/fake/model.gguf')
+            self.assertEqual(model.chat([{'role': 'user', 'content': 'Hello'}])['text'], 'Hello world')
+            model.close()
+            second.close()
+        self.assertEqual(sum(c[0] == 'init' for c in lib.calls), 2)
+        self.assertEqual(sum(c[0] == 'deinit' for c in lib.calls), 2)
+
     def test_close_rejects_open_models(self):
         rt, lib = _make_runtime()
         m = NativeModel(rt, '/fake/model.gguf', device='npu')

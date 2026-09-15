@@ -353,23 +353,25 @@ class NativeRuntime:
         key = os.path.realpath(os.fspath(sdk_dir))
         with cls._shared_lock:
             existing = cls._shared.get(key)
-            if existing is not None:
+            if existing is not None and not getattr(existing, '_deinited', False):
                 return existing
             inst = super().__new__(cls)
+            inst._init_lock = threading.Lock()
             cls._shared[key] = inst
             return inst
 
     def __init__(self, sdk_dir: str | os.PathLike[str]):
-        if getattr(self, '_ready', False):
-            return
-        self.sdk_dir = Path(os.path.realpath(os.fspath(sdk_dir)))
-        self._dll_dir_tokens: list[Any] = []
-        self._lib: ctypes.CDLL | None = None
-        self._models: list['NativeModel'] = []
-        self._lifecycle_lock = threading.Lock()
-        self._deinited = False
-        self._load_and_init()
-        self._ready = True
+        with self._init_lock:
+            if getattr(self, '_ready', False):
+                return
+            self.sdk_dir = Path(os.path.realpath(os.fspath(sdk_dir)))
+            self._dll_dir_tokens: list[Any] = []
+            self._lib: ctypes.CDLL | None = None
+            self._models: list['NativeModel'] = []
+            self._lifecycle_lock = threading.Lock()
+            self._deinited = False
+            self._load_and_init()
+            self._ready = True
 
     # -- loading ------------------------------------------------------------
 
@@ -481,6 +483,16 @@ class NativeRuntime:
             self._deinited = True
             if self._lib is not None:
                 self._lib.geniex_deinit()
+            # A tune cycle closes the SDK before running its child processes.
+            # The subsequent apply must initialize a fresh runtime, never
+            # retrieve this deinitialized instance from the singleton cache.
+            key = os.path.realpath(os.fspath(self.sdk_dir))
+            with self._shared_lock:
+                if self._shared.get(key) is self:
+                    del self._shared[key]
+            for token in self._dll_dir_tokens:
+                token.close()
+            self._dll_dir_tokens.clear()
 
     # -- helpers ------------------------------------------------------------
 
@@ -488,6 +500,8 @@ class NativeRuntime:
         self, plugin_id: str, mode: str, ngl_default: int = -1
     ) -> tuple[str | None, int, str | None]:
         '''Return (device_id, ngl, warning); device_id None means default.'''
+        if self._deinited:
+            raise RuntimeError('native runtime is closed; create a new NativeRuntime')
         assert self._lib is not None
         inp = geniex_ResolveDeviceInput(
             plugin_id=plugin_id.encode(),
