@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "candidate_name": "greedy-topk1-cpu-v2",
+  "application_commit": null,
+  "benchmark_version": "secretary-eval-v2",
+  "baseline": "eval/results/baseline.json",
+  "change": "Original temperature-zero request now sends top_k=1 for llama_cpp, preventing GenieX0.6.1 zero-as-default sampling; CPU/10 retained.",
+  "expected_improvement": "Reliable greedy output may reduce malformed responses and variance; no performance/correctness gain assumed.",
+  "model": "Qwen3-0.6B-Q4_0.gguf",
+  "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+  "runtime": "GenieX 0.6.1 / llama_cpp",
+  "config": {
+    "device": "cpu",
+    "threads": 10,
+    "threads_batch": 0,
+    "ubatch": 0,
+    "n_batch": 0,
+    "context": 4096,
+    "max_tokens": 128,
+    "grammar": false,
+    "plugin": "llama_cpp",
+    "spec_type": "none",
+    "draft_tokens": 8,
+    "hardware_note": "Dell Latitude 7455; Snapdragon X Elite X1E80100; 32 GB RAM; Windows ARM64; ac; Balanced power plan verified before launch; exclusive inference workload. User-designated untuned reference, not a recovered historical pre-optimization deployment."
+  },
+  "private_required_config": [
+    "sdk_dir",
+    "model_path"
+  ],
+  "environment": {
+    "PYTHONUTF8": "1"
+  },
+  "run_command": "python -X utf8 eval/run_secretary_eval.py --dataset all --candidate-name greedy-topk1-cpu-v2 --config local/greedy-topk1-cpu-v2-config.json --baseline local/official-reference-v2/baseline.json --output-dir local/greedy-topk1-cpu-v2",
+  "status": "ready_for_evaluation",
+  "candidate_definition_commit": null,
+  "result": "eval/results/candidate_greedy-topk1-cpu-v2.json",
+  "quality_gate": null,
+  "application_ref": "Exact commit recorded by the runner for the commit containing the greedy top-k adapter change; never run from an uncommitted checkout."
+}

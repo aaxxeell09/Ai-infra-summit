@@ -654,11 +654,15 @@ class NativeModel:
         if grammar_b is not None:
             keepalive.append(grammar_b)
 
-        # Greedy-leaning sampler defaults matching run.c fill_sampler.
+        # GenieX 0.6.1 llama_cpp treats temperature=0 and top_k=0 as
+        # unset (0.8 and 40 respectively). Force one candidate for a
+        # caller's greedy request; this does not require a patched DLL.
+        # Positive-temperature requests retain the existing SDK defaults.
+        greedy_top_k = self.plugin_id == 'llama_cpp' and float(temperature) == 0.0
         sampler = geniex_SamplerConfig(
             temperature=float(temperature),
             top_p=1.0,
-            top_k=0,
+            top_k=1 if greedy_top_k else 0,
             min_p=0.0,
             repetition_penalty=1.0,
             presence_penalty=0.0,
@@ -728,6 +732,10 @@ class NativeModel:
         ttft_s = profile['ttft'] / 1e6
         return {
             'text': text,
+            'sampling': {'requested_temperature': float(temperature),
+                         'sdk_top_k': sampler.top_k,
+                         'greedy_via_top_k': greedy_top_k,
+                         'sdk_zero_temperature_uses_default': self.plugin_id == 'llama_cpp'},
             'profile': profile,
             'timings': {'ttft': ttft_s, 'total': total_s},
             'backend': 'geniex',

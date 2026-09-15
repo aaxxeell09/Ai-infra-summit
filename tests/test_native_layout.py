@@ -317,6 +317,21 @@ class ModelFlowTests(unittest.TestCase):
         finally:
             m.close()
 
+    def test_greedy_request_cannot_activate_geniex_default_temperature_sampling(self):
+        m, lib = self._model()
+        try:
+            greedy = m.chat([{'role': 'user', 'content': 'Hello'}], temperature=0)
+            sampler = lib.captured_generate_input.config.contents.sampler_config.contents
+            self.assertEqual(sampler.top_k, 1)
+            self.assertTrue(greedy['sampling']['greedy_via_top_k'])
+            sampled = m.chat([{'role': 'user', 'content': 'Hello'}], temperature=0.5)
+            sampler = lib.captured_generate_input.config.contents.sampler_config.contents
+            self.assertEqual(sampler.top_k, 0)
+            self.assertAlmostEqual(sampler.temperature, 0.5)
+            self.assertFalse(sampled['sampling']['greedy_via_top_k'])
+        finally:
+            m.close()
+
     def test_tool_calls_structural(self):
         m, lib = self._model()
         try:

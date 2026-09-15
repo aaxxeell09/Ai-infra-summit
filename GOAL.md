@@ -34,7 +34,7 @@ Demo: **Tune → choose speed or efficiency → run the same task → show the m
 Support an extensible model registry, not one hardcoded model or family. “Any model” means register, inspect and route through a compatible runtime or return a precise unsupported/conversion/compilation reason. Never claim every architecture executes on every backend.
 
 - Tiny models for inexpensive narrow work; multiple families, including SmolLM and compatible Granite/Mamba-family candidates.
-- Qwen3 0.6B and 1.7B, then 4B, 8B and a larger approximately 14B-class model where verified runtime support, RAM and download/storage budget permit. Larger experiments are wanted; parameter count alone does not establish quality.
+- Qwen3 0.6B and 1.7B, then 4B, 8B, approximately 14B and **20–25B-class quantized models** where verified runtime support, RAM and download/storage budget permit. Include an appropriate MoE candidate and record total versus active parameters separately. Account for weights, KV cache, runtime buffers and resident helper models in the 32 GB memory budget; measure serial loading/offload before keeping large and small models resident together. Larger experiments are wanted; parameter count alone does not establish quality.
 - Multimodal models need matching projectors or compiled bundles and actual modality-specific tests.
 - Compare GGUF/llama.cpp with compatible QAIRT compiled NPU models. Clearly disclose weight, quantization, architecture and runtime differences.
 - A larger local model or external parent agent can plan/decompose work and delegate bounded tasks to smaller local workers through the router/MCP. The local implementation stays usable offline with a local parent model.
@@ -65,7 +65,7 @@ Preserve system instructions, tool schemas, code, exact filenames/paths, numbers
 
 Axel/Codex owns the golden benchmark, expectations, scoring and methodology. **`secretary-eval-v2` is frozen at `ccd1e00327fe5cabe875acec166e7d9831c1cfe0`: 35 development + 15 held-out cases, actual single-action fixture execution and final-state checks.** Do not modify it or tune on held-out answers without coordination.
 
-Henry explicitly designated the untuned reference after a separate historical pre-optimization Secretary deployment could not be established. It uses Qwen3-0.6B Q4_0, GenieX 0.6.1 `llama_cpp`, auto placement, default threads/batching, context 4096, temperature 0, max 128 generated tokens, fresh KV per case, no grammar/speculation/routing. Full model/runtime hashes, clean application commit and exact execution instructions are under `eval/results/`.
+Henry explicitly designated the untuned reference after a separate historical pre-optimization Secretary deployment could not be established. It uses Qwen3-0.6B Q4_0, GenieX 0.6.1 `llama_cpp`, auto placement, default threads/batching, context 4096, temperature 0, max 128 generated tokens, fresh KV per case, no grammar/speculation/routing. Full model/runtime hashes, clean application commit and exact execution instructions are under `eval/results/`. **Temperature zero was requested, but the tagged GenieX implementation substitutes sampling defaults for zeros; see `eval/results/baseline_sampling_note.md`.** Preserve this original behavior in the reference and test the greedy workaround as a separate candidate.
 
 Verified reference: **30/50 tasks correct (60%)**, tool/action 70%, all-case arguments 82%, clarification **0/13**, mean inference 1209.531 ms, median 1147.561 ms, p95 1500.174 ms. It resolved to HTP0 and ran on AC power. Results committed in `6ac2aef`.
 
@@ -97,6 +97,6 @@ Completion means the entire tuner → recommendation → applied runtime → cor
 
 1. Preserve/publish the official reference and candidate failures. The 1.7B CPU/10 model substitution now measured 34/50 (68%), 2839.033 ms mean and 1530.137 ms median inference, with a failed gate (8% invalid output and one critical move regression). More parameters alone did not solve correctness or latency; test larger/instruction-specialized candidates without weakening the gate.
 2. Make recommendation application robust, finish live MCP integration and test the real end-to-end task path.
-3. Finish the 4B download; add verified 8B/larger candidates and measured large-to-small routing.
+3. Finish the 4B download; add verified 8B/14B/20–25B candidates and measured large-to-small routing.
 4. Integrate teammate frontend and the functional UNO Q controller without obscuring correctness failures.
 5. Pursue GenieX/prefix/batch/speculation/context improvements through isolated ablations and candidate gates, with a truthful reproducible demo.
