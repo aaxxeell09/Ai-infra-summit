@@ -85,6 +85,8 @@ Use actual Windows Energy Meter units and matched intervals. SYS energy is a nam
 
 Completion means the entire tuner → recommendation → applied runtime → correct secretary action → MCP flow works on the Latitude, with a reproducible measured improvement that passes the quality gate. The current 0.6B clarification failure prevents claiming a dependable secretary or completed product.
 
+Greedy top-k workaround candidate (`41260c4`): **29/50 (58%)**, mean inference **823.220 ms**, median **845.590 ms**, p95 **933.759 ms**; gate **FAIL** for invalid output rate and a read-category regression. Correcting requested sampler semantics did not make the small model a reliable secretary. Keep it as an explicit experiment rather than silently promoting it.
+
 ## Working rules and delegation
 
 - Work autonomously within the authorized scope. Keep the Latitude busy with useful queued measurements and downloads, but isolate official performance trials. A memory-bound workload need not show 100% CPU; do not add busywork that contaminates evidence.

@@ -618,6 +618,7 @@ class NativeModel:
         reset: bool = True,
         on_token: Callable[[str], bool | None] | None = None,
         grammar: str | None = None,
+        greedy_zero: bool = False,
     ) -> dict[str, Any]:
         '''One assistant turn: template, generate, JSON-ready dict.
 
@@ -629,7 +630,7 @@ class NativeModel:
         if self._closed:
             raise NativeError(_MODEL_CLOSED_CODE, 'model is closed')
         with self._lock:
-            return self._chat_locked(messages, tools, max_tokens, temperature, reset, on_token, grammar)
+            return self._chat_locked(messages, tools, max_tokens, temperature, reset, on_token, grammar, greedy_zero)
 
     def _chat_locked(
         self,
@@ -640,6 +641,7 @@ class NativeModel:
         reset: bool,
         on_token: Callable[[str], bool | None] | None,
         grammar: str | None,
+        greedy_zero: bool,
     ) -> dict[str, Any]:
         lib = self.runtime._lib
         assert lib is not None and self._handle is not None
@@ -658,7 +660,9 @@ class NativeModel:
         # unset (0.8 and 40 respectively). Force one candidate for a
         # caller's greedy request; this does not require a patched DLL.
         # Positive-temperature requests retain the existing SDK defaults.
-        greedy_top_k = self.plugin_id == 'llama_cpp' and float(temperature) == 0.0
+        # Opt in only: the frozen 50-case trial of this workaround failed
+        # the quality gate. Preserve the measured original default behavior.
+        greedy_top_k = greedy_zero and self.plugin_id == 'llama_cpp' and float(temperature) == 0.0
         sampler = geniex_SamplerConfig(
             temperature=float(temperature),
             top_p=1.0,
