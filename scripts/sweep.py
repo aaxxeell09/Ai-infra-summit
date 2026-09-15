@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from turbo.telemetry import EnergyMeter, ProcessMemory, energy_delta
+from turbo.telemetry import power_state
 
 
 def sha256(path):
@@ -52,6 +53,7 @@ def main():
         "phase": a.phase, "cold_kv_each_repetition": True,
         "timing_source": "GenieX native backend profile", "cells": [],
     }
+    record["power_state_start"] = power_state()
     if a.phase == "screen":
         cells = [(f"cpu-t{t}", "cpu", t, None) for t in (0, 2, 4, 6, 8, 10, 12)]
         cells += [(d, d, 0, None) for d in ("npu", "gpu", "hybrid")]
@@ -83,6 +85,7 @@ def main():
         if spec:
             cmd += ["--spec-type", spec, "--draft-tokens", "8"]
         row = {"id": name, "command": cmd, "started_at": datetime.now(timezone.utc).isoformat()}
+        row["power_state_start"] = power_state()
         start = time.perf_counter()
         meter = EnergyMeter()
         energy_before = meter.sample()
@@ -109,7 +112,11 @@ def main():
                 row.update(status="failed", error=str(exc), exit_code=None)
         energy_after = meter.sample()
         meter.close()
+        row["power_state_end"] = power_state()
         row["wall_s"] = time.perf_counter() - start
+        # Paired energy reads are evidence even when the trial fails; keep them.
+        row["energy_before"] = energy_before
+        row["energy_after"] = energy_after
         if target.exists():
             result = json.loads(target.read_text(encoding="utf-8-sig"))
             row["agg"] = result.get("agg")
@@ -118,10 +125,14 @@ def main():
             total_tokens = sum(r.get('gen_tokens', 0) for r in result.get('runs', []))
             energy = energy_delta(energy_before, energy_after, total_tokens if a.warmup == 0 else None)
             sys_energy = energy['channels'].get('SYS', {})
+            sys_valid = 'SYS' in energy['channels']
             result['telemetry'] = {**(memory_peak or {}), **sys_energy,
                 'energy': energy, 'energy_before': energy_before, 'energy_after': energy_after,
-                'energy_channel': 'SYS', 'memory_scope': 'benchmark process peak working set',
-                'tokens_per_joule_reason': 'full-trial energy including load; all generated tokens' if a.warmup == 0 else 'unavailable: warmup tokens absent from report'}
+                'energy_channel': 'SYS', 'sys_delta_valid': sys_valid,
+                'memory_scope': 'benchmark process peak working set',
+                'tokens_per_joule_reason': ('unavailable: SYS counter delta missing or reset' if not sys_valid else
+                    'full-trial energy including load; all generated tokens' if a.warmup == 0 else
+                    'unavailable: warmup tokens absent from report')}
             target.write_text(json.dumps(result, indent=2), encoding='utf-8')
             row['telemetry'] = result['telemetry']
         record["cells"].append(row)
