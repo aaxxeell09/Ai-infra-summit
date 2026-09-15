@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "product": "Local Turbo",
   "purpose": "Compare recorded local inference configurations, then demonstrate one prompt answered by a default setup and Local Turbo. Speed tuning and model routing are separate experiments.",
   "visual_system": {
@@ -21,16 +21,16 @@
       "content": [
         "target device identity",
         "model",
-        "runtime",
-        "recorded date",
-        "configuration count"
+        "runtime"
       ],
       "primary_action": {
         "label": "Compare configurations",
         "next": "calibration",
         "starts_benchmark": false
       },
-      "data_mode": "recorded"
+      "data_mode": "recorded",
+      "lead": "Compare the measurements. Choose how it runs.",
+      "provenance": "Machine and recorded date are available in Benchmark evidence."
     },
     {
       "id": "calibration",
@@ -66,7 +66,7 @@
         "ttft": "Start responding",
         "decode": "Write the answer"
       },
-      "metric_help": "Show one explanation for the active measure above the chart, define its unit, and state that rankings are per measure rather than an overall winner."
+      "metric_help": "Show one short explanation of the active measure; unit definitions appear through a labelled info button. Keep the Default badge and No overall winner yet."
     },
     {
       "id": "demo",
@@ -122,7 +122,9 @@
         "preview": "Independent browser animation clock per answer; excludes queue time, freezes on completion, resets on stop/replay. Never an inference measurement or speedup.",
         "live": "Use backend total_time_s with explicit source and scope; never substitute browser animation time."
       },
-      "example_picker": "Styled disclosure with selected-state buttons, outside-click dismissal, Escape, and keyboard focus restoration."
+      "example_picker": "Styled disclosure with selected-state buttons, outside-click dismissal, Escape, and keyboard focus restoration.",
+      "empty_state": "Empty answer areas retain their model headers and animation clocks; no placeholder prose.",
+      "preview_explanation": "Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential."
     }
   ],
   "rules": [
