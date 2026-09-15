@@ -71,6 +71,31 @@ def register_device(registry, entry):
     return registry
 
 
+def is_eligible(device, prompt_tokens=0, output_tokens=0):
+    """Fail-closed serving rule shared by route() and fallback escalation.
+
+    A device is eligible only when its status is verified, its capabilities
+    cover llm, and its recorded context_tokens is a positive finite integer
+    that fits the explicit prompt plus output budget. A missing, zero or
+    non-integer context is never treated as unlimited.
+    """
+    if device.get("status") != "verified":
+        return False
+    if "llm" not in device.get("capabilities", []):
+        return False
+    context = device.get("context_tokens")
+    if isinstance(context, bool) or not isinstance(context, int) \
+            or context <= 0 or not math.isfinite(context):
+        return False
+    return prompt_tokens + output_tokens <= context
+
+
+def _checked_tokens(prompt_tokens, output_tokens):
+    for value, name in ((prompt_tokens, "prompt_tokens"), (output_tokens, "output_tokens")):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            raise ValueError("%s must be a non-negative int" % name)
+
+
 def route(prompt_tokens, devices, prefer="board", output_tokens=0):
     """Pick a verified device id for a task, or raise when none fits.
 
@@ -84,24 +109,11 @@ def route(prompt_tokens, devices, prefer="board", output_tokens=0):
     """
     if not devices:
         raise EdgeDeviceError("device registry is empty")
-    for value, name in ((prompt_tokens, "prompt_tokens"), (output_tokens, "output_tokens")):
-        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-            raise ValueError("%s must be a non-negative int" % name)
-
-    def eligible(device):
-        if device.get("status") != "verified":
-            return False
-        if "llm" not in device.get("capabilities", []):
-            return False
-        context = device.get("context_tokens")
-        if isinstance(context, bool) or not isinstance(context, int) \
-                or context <= 0 or not math.isfinite(context):
-            return False
-        return prompt_tokens + output_tokens <= context
+    _checked_tokens(prompt_tokens, output_tokens)
 
     ordered = sorted(devices, key=lambda d: (d.get("kind") != prefer, d.get("device_id", "")))
     for device in ordered:
-        if eligible(device):
+        if is_eligible(device, prompt_tokens, output_tokens):
             return device["device_id"]
     raise EdgeDeviceError("no verified device with a fitting recorded context")
 
@@ -176,24 +188,33 @@ class BoardInferenceClient:
         return {"text": text, "latency_ms": latency_ms, "device": "board", "endpoint": self.endpoint}
 
 
-def escalate_to_laptop(client_call, registry, route_result, **call_kwargs):
+def escalate_to_laptop(client_call, registry, route_result,
+                       prompt_tokens=0, output_tokens=0, **call_kwargs):
     """Run client_call on the routed device; on EdgeDeviceError try the laptop.
 
     route_result is the device id returned by route(). The laptop is the first
-    registry entry whose kind is laptop; failure of both raises the board
-    error so the caller sees a real outage instead of silent degradation.
+    registry entry whose kind is laptop and that passes the same eligibility
+    rule as route() for the explicit prompt_tokens plus output_tokens budget
+    (defaults 0): verified status, llm capability and a recorded positive
+    integer context that fits the budget. An unverified or unbounded laptop
+    is never called, and failure of all paths re-raises the board error so
+    the caller sees a real outage instead of silent degradation.
     The returned latency includes the failed board attempt when the error
     carries its latency_ms (BoardInferenceClient errors do), so end-to-end
     timing never hides the cost of the failed try.
     """
     devices = {d["device_id"]: d for d in registry}
     failed_latency_ms = 0.0
+    _checked_tokens(prompt_tokens, output_tokens)
     try:
         return client_call(route_result, **call_kwargs)
     except EdgeDeviceError as exc:
         failed_latency_ms += getattr(exc, "latency_ms", 0.0) or 0.0
-        laptop = next((d for d in registry if d.get("kind") == "laptop"), None)
-        if laptop is None or laptop["device_id"] == route_result:
+        laptop = next((d for d in registry
+                       if d.get("kind") == "laptop"
+                       and d.get("device_id") != route_result
+                       and is_eligible(d, prompt_tokens, output_tokens)), None)
+        if laptop is None:
             raise
         result = client_call(laptop["device_id"], **call_kwargs)
         if isinstance(result, dict):

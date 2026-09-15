@@ -125,6 +125,37 @@ class OutputTests(unittest.TestCase):
         out = json.loads(handle_output(status))
         self.assertEqual(out["pixels"], {"tiny-gguf": "cpu"})
 
+    def test_unverifiable_applied_device_cannot_override_configured_pixel(self):
+        # An applied block with a bogus device value does not describe an
+        # actually applied placement, so the pixel stays at the configured
+        # default instead of echoing an unverifiable ack.
+        for bad_device in ("quantum", None, 3, ""):
+            status = {
+                "models": [{"id": "tiny-gguf", "device": "cpu"}],
+                "applied": {"model": "tiny-gguf", "mode": "balanced",
+                            "config": {"device": bad_device, "threads": 2,
+                                       "context": 2048}},
+            }
+            out = json.loads(handle_output(status))
+            self.assertEqual(out["pixels"], {"tiny-gguf": "cpu"},
+                             msg=repr(bad_device))
+
+    def test_ack_config_echoes_only_actually_applied_values(self):
+        status = {
+            "models": [{"id": "tiny-gguf", "device": "cpu"}],
+            "applied": {"model": "tiny-gguf", "mode": "fast",
+                        "config": {"device": "gpu", "threads": 6, "context": 8192,
+                                   "speculative": True}},
+        }
+        out = json.loads(handle_output(status))
+        # Pixel and config both come from the applied block, and only the
+        # three applied config fields cross to the board; the unapplied
+        # default (cpu) is not presented as state.
+        self.assertEqual(out["pixels"], {"tiny-gguf": "gpu"})
+        self.assertEqual(out["config"],
+                         {"device": "gpu", "threads": 6, "context": 8192})
+        self.assertEqual(out["active_mode"], "fast")
+
     def test_run_finished_is_caller_derived_not_service_state(self):
         out = json.loads(handle_output({"models": [], "tuning": {"running": False}}))
         self.assertFalse(out["vibrate"])

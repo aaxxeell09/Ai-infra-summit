@@ -101,8 +101,14 @@ configures an endpoint and a measured run verifies it, the board serves
 prompts directly. Its latency_ms covers the whole round trip: transfer plus
 remote inference. Any transport or body failure surfaces as
 EdgeDeviceError; escalate_to_laptop() retries once on the first registry
-entry with kind laptop and re-raises if both paths fail, so callers see real
-outages instead of silent degradation.
+entry with kind laptop that passes the same eligibility rule as route()
+(is_eligible(): verified status, llm capability, and a recorded positive
+integer context_tokens fitting the explicit prompt_tokens plus
+output_tokens budget, which default to 0 when the caller has no token
+counts) and re-raises if no eligible path remains, so callers see real
+outages instead of silent degradation. An unverified, non-llm or unbounded
+laptop entry is never selected as a fallback, and the failed board attempt's
+latency stays in the reported total even when no fallback runs.
 
 ## Tiny GGUF on the board (research, unverified)
 
@@ -171,10 +177,14 @@ vibration consume the handle_output line in the reverse direction.
 
     python3 -m unittest tests.test_arduino_adapter tests.test_edge_device
 
-26 tests pass offline: malformed and non-JSON event lines, duplicate presses
+50 tests pass offline: malformed and non-JSON event lines, duplicate presses
 inside and outside the debounce window, knob cycling and spin coalescing,
 Bridge packed-code mapping including invalid codes, the apply evidence
 contract (request shape; acks without config or evidence rejected), active
 config echo in board output, registry validation (including the NPU evidence
 rule and connectivity-vs-capability separation), board-to-laptop escalation,
+fallback eligibility bounds (unverified, non-llm and context-less or
+context-overflowing laptops are never called; prompt plus output counts
+against the fallback context; board-error latency survives a failed
+escalation), pixel acks that reflect the actually applied placement only,
 and board client transport/body failures.

@@ -349,6 +349,84 @@ class EscalationTests(unittest.TestCase):
 
         self.assertEqual(escalate_to_laptop(call, registry, "uno-q")["latency_ms"], 7.5)
 
+    def test_fallback_laptop_meets_same_eligibility_rule_as_route(self):
+        oversized = board()
+        oversized["context_tokens"] = 128
+        for tweak in ({"status": "unverified"}, {"capabilities": ["vision"]},
+                      {"context_tokens": None}, {"context_tokens": 0},
+                      {"context_tokens": -1}, {"context_tokens": "8192"},
+                      {"context_tokens": True}, {"context_tokens": 8192.0}):
+            registry = [oversized, dict(laptop(), **tweak)]
+            calls = []
+
+            def call(device_id, registry=registry, calls=calls):
+                calls.append(device_id)
+                if device_id == "uno-q":
+                    raise EdgeDeviceError("down")
+                return {"device": device_id}
+
+            with self.assertRaises(EdgeDeviceError, msg=repr(tweak)):
+                escalate_to_laptop(call, registry, "uno-q")
+            # The unfit laptop is never called: the board error is re-raised.
+            self.assertEqual(calls, ["uno-q"], msg=repr(tweak))
+
+    def test_fallback_bounds_count_prompt_plus_output_against_context(self):
+        oversized = board()
+        oversized["context_tokens"] = 128
+        small_laptop = dict(laptop(), context_tokens=4096)
+        registry = [oversized, small_laptop]
+
+        def call(device_id):
+            if device_id == "uno-q":
+                raise EdgeDeviceError("down")
+            return {"device": device_id}
+
+        # 4095 prompt + 1 output exactly fits; one more token of budget does not.
+        self.assertEqual(
+            escalate_to_laptop(call, registry, "uno-q",
+                               prompt_tokens=4095, output_tokens=1)["device"],
+            "latitude")
+        with self.assertRaises(EdgeDeviceError):
+            escalate_to_laptop(call, registry, "uno-q",
+                               prompt_tokens=4095, output_tokens=2)
+
+    def test_fallback_skips_ineligible_laptops_for_first_eligible(self):
+        oversized = board()
+        oversized["context_tokens"] = 128
+        unverified = dict(laptop(device_id="laptop-a"), status="unverified")
+        no_llm = dict(laptop(device_id="laptop-b"), capabilities=["vision"])
+        fit = dict(laptop(device_id="laptop-c"), context_tokens=8192)
+
+        def call(device_id):
+            if device_id == "uno-q":
+                raise EdgeDeviceError("down")
+            return {"device": device_id}
+
+        registry = [oversized, unverified, no_llm, fit]
+        result = escalate_to_laptop(call, registry, "uno-q")
+        self.assertEqual(result["device"], "laptop-c")
+
+    def test_fallback_rejects_invalid_token_bounds(self):
+        registry = [board(), laptop()]
+        for kwargs in ({"prompt_tokens": -1}, {"prompt_tokens": 1.5},
+                       {"prompt_tokens": "10"}, {"output_tokens": -1},
+                       {"output_tokens": True}):
+            with self.assertRaises(ValueError, msg=repr(kwargs)):
+                escalate_to_laptop(lambda d: {}, registry, "uno-q", **kwargs)
+
+    def test_board_error_latency_survives_when_no_eligible_fallback(self):
+        unverified_laptop = dict(laptop(), status="unverified")
+        registry = [board(), unverified_laptop]
+
+        def call(device_id):
+            error = EdgeDeviceError("board down")
+            error.latency_ms = 321.0
+            raise error
+
+        with self.assertRaises(EdgeDeviceError) as caught:
+            escalate_to_laptop(call, registry, "uno-q")
+        self.assertEqual(caught.exception.latency_ms, 321.0)
+
 
 if __name__ == "__main__":
     unittest.main()
