@@ -14,7 +14,7 @@ Fast, private tool-using AI on a Snapdragon X Elite laptop. We are rebuilding ar
 
 ## Current status
 
-Active development. Benchmark orchestration, routing and context primitives are implemented; native integration and the demo are in progress. **No measured speedup is claimed yet.** The runtime is installed on the Latitude; downloads and device benchmarking are underway. Results will include model hashes, configurations, failures and timing definitions.
+Active development with real Latitude results. A same-model CPU confirmation measured 88.65 versus 75.86 aggregate decode tok/s across 9,600 generated tokens per configuration (+16.9% in this run), with intermittent slowdowns in both legs and essentially unchanged pooled energy efficiency. Full distributions and limitations are in [the results report](benchmarks/results/README.md). Native SDK inference and actual Hexagon operation dispatch have also been verified. Broader model coverage, context optimizations and the integrated tuner are in progress.
 
 ## Run tests
 

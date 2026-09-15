@@ -5,10 +5,10 @@ Scope: committed scripts/sweep.py, turbo/telemetry.py, docs/benchmark-protocol.m
 ## Verified correct
 
 - Units: Energy Meter Energy is picowatt-hours. Delta 1.541409184e9 pWh x 3.6e-9 = 5.5490730624 J; / 1.0019639 s = 5.538 W. All screen/confirm energy_j and average_power_w values reproduce from the stored raw counter reads with this factor. The 44-trillion raw SYS increment is a cumulative lifetime counter, consistent with a continuous meter, not a per-call figure.
-- Counter chain: each cell's energy_before equals the previous cell's energy_after across both screen-01 and confirm-01; no gap or overlap between trials. Deltas are positive and sane; no reset or stale read observed in either run.
+- Counter chain: sampled energy counter values match between adjacent cell endpoints. This does not establish zero sampling gaps: the hardware counter has finite update cadence. Deltas are positive and sane; no reset or stale read observed in either run.
 - Headers/ctypes: PdhOpenQueryW, PdhAddEnglishCounterW, PdhCollectQueryData, PdhGetRawCounterValue are correct signatures for 64-bit Windows and were validated on the actual Latitude machine. RawCounter layout (status, FILETIME, FirstValue, SecondValue, dwCount) is correct for PDH_RAW_COUNTER; only FirstValue is used, which is valid for these cumulative counters. GetProcessMemoryInfo/PROCESS_MEMORY_COUNTERS_EX usage is correct.
 - Baseline label: cpu-t0 log resolves n_threads=12 (default) and tuned leg n_threads=10. Honest pairing as designed.
-- t/J definition in code: full-trial SYS energy (load + prefill + decode) over all generated tokens, warmup excluded from numerator only when --warmup 0. Label matches implementation.
+- t/J definition in code: all reported generated tokens divided by full-trial SYS energy (load + prefill + decode), available only with --warmup 0 so unreported warmup tokens cannot distort the numerator. Label matches implementation.
 
 ## Bugs found and fixed (minimal patch, this worktree)
 

@@ -40,6 +40,8 @@ def main():
     p.add_argument("--phase", choices=["screen", "confirm", "spec"], default="screen")
     p.add_argument("--winner-device", default="cpu")
     p.add_argument("--winner-threads", type=int, default=6)
+    p.add_argument("--baseline-device", default="cpu")
+    p.add_argument("--baseline-threads", type=int, default=0)
     p.add_argument("--prompt-file")
     a = p.parse_args()
     out = Path(a.output).resolve()
@@ -61,7 +63,7 @@ def main():
         # Alternating baseline / tuned pairs, separate process and warmup each.
         cells = []
         for i in range(5):
-            pair = [(f"baseline-{i}", "cpu", 0, None),
+            pair = [(f"baseline-{i}", a.baseline_device, a.baseline_threads, None),
                     (f"tuned-{i}", a.winner_device, a.winner_threads, None)]
             if i % 2:
                 pair.reverse()

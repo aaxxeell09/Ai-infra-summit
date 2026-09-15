@@ -11,9 +11,9 @@ Owner: main integration agent. Independent review: `review/benchmark-energy` wor
 - [x] Screen CPU thread counts, GPU, NPU and hybrid on identical weights.
 - [x] Publish raw screening results, exact commands, model/runtime hashes, memory and energy-counter evidence.
 - [x] Run five alternating default-CPU versus selected-CPU pairs with 15 repetitions per trial.
-- [ ] Audit and publish confirmation results; disclose substantial run-to-run variation and unresolved power/thermal effects.
+- [x] Audit and publish confirmation results; disclose substantial run-to-run variation and unresolved power/thermal effects.
 - [ ] Run a separate default automatic-dispatch versus tuned comparison. Source inspection says GenieX v0.6.1 defaults to NPU; verify it on-device. Keep the stronger default-CPU baseline visible.
-- [ ] Capture operation-level Hexagon dispatch evidence in a diagnostic run separated from clean timing.
+- [x] Capture operation-level Hexagon dispatch evidence in a diagnostic run separated from clean timing.
 - [ ] Record power state around every trial; identify reset/stale/missing telemetry and preserve failures.
 - [ ] Export a recommended configuration with evidence and scope, not an unsupported universal speedup claim.
 
@@ -53,7 +53,7 @@ Acceptance: catalog contains verified provenance and compatibility status; each 
 Owner: main agent. Initial worker implementation available for integration.
 
 - [x] Streaming benchmark client with correct partial-line SSE handling and provider token counts.
-- [x] Native SDK adapter and ABI/layout tests implemented; hardware smoke test pending.
+- [x] Native SDK adapter and ABI/layout tests implemented; hardware smoke test passed on the Latitude.
 - [x] Disposable secretary fixture and bounded file tools implemented.
 - [ ] Review tool validation, symlink handling and task gold labels; fix inconsistent/missing fixture references.
 - [ ] Run held-out structured-tool requests on actual local models; score names, arguments and final state.
@@ -120,3 +120,16 @@ These are retained requirements; a new tuner direction does not silently remove 
 | Frequent GitHub commits and PR awareness | Inspect open PRs/remotes before pushes, small working commits, isolated worker branches | Everyone |
 
 Superseded by explicit user pivot: workshop safety camera, Arduino sensor/actuator orchestration and inspection-station UI. Preserve their archive without spending the current inference-tuner critical path on them.
+
+## High-value additions under consideration
+
+These extend the requested tuner; they do not precede the P0 evidence milestone.
+
+- [ ] **Fast / efficient / balanced objectives:** compute a speed–energy Pareto frontier from comparable measured trials, then recommend within explicit latency, memory and quality constraints.
+- [ ] **Sustained-performance mode:** report early versus late throughput, variability and slow-tail behavior; avoid choosing a configuration solely from a short burst. Investigate observed baseline dips without inventing a thermal cause.
+- [ ] **Dispatch/fallback detective:** retain runtime coercion warnings and operation-level device evidence; distinguish requested placement, resolved device and observed execution.
+- [ ] **Workload replay:** replay local secretary/coding traces with fixed fixtures, controlled cache state and exact output checks.
+- [ ] **Attribution dashboard:** ablate runtime tuning, model routing, prefix cache, context reduction, concise output and compact actions independently.
+- [ ] **Portable evidence bundle:** export model/runtime hashes, device/power state, complete config, raw measurements, failures, quality scores and reproduction commands.
+- [ ] **Profile invalidation:** rerun calibration when the model, quantization, runtime, driver or relevant device configuration changes.
+- [ ] **Search-budget control:** quick screening versus longer confirmation, with elapsed-time budget and explicit incomplete/unsupported trials.
