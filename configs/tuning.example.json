@@ -1,0 +1,47 @@
+{
+  "schema_version": "turbo.tuning.v1",
+  "variants": [
+    {
+      "id": "llama-1b-q4",
+      "path": "models/llama-1b-q4_k_m.gguf",
+      "architecture": "x1e-80-100",
+      "quantization": "q4_k_m",
+      "plugin": "llama_cpp",
+      "kind": "llm",
+      "tokenizer_path": null,
+      "mmproj_path": null
+    },
+    {
+      "id": "qwen-vl-q4",
+      "path": "models/qwen-vl-q4.gguf",
+      "architecture": "x1e-80-100",
+      "quantization": "q4_k_m",
+      "plugin": "llama_cpp",
+      "kind": "vlm",
+      "tokenizer_path": "models/qwen-vl-tokenizer",
+      "mmproj_path": "models/qwen-vl-mmproj.gguf",
+      "requiredimage": true
+    },
+    {
+      "id": "npu-qwen-4k",
+      "path": "models/qwen-serialized",
+      "architecture": "x1e-80-100",
+      "quantization": "w8a16",
+      "plugin": "qairt",
+      "kind": "llm",
+      "compiled_contexts": ["4096"]
+    }
+  ],
+  "search_space": {
+    "devices": ["cpu", "gpu", "npu"],
+    "threads": [2, 4, 6, 8],
+    "contexts": [2048, 4096],
+    "prompt_tokens": 512,
+    "gen_tokens": 128,
+    "warmup": 0,
+    "repeats": 1
+  },
+  "objective": "decode",
+  "constraints": { "rules": [] },
+  "notes": "batch/ubatch omitted: planned capability, current official bench binary has no such flags"
+}
