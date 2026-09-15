@@ -38,7 +38,7 @@ Acceptance: select a registered model, run a valid device sweep, inspect charts 
 Owner: worker in `feat/model-catalog`; hardware execution: main agent.
 
 - [x] Qwen3-0.6B dense text model: actual CPU/GPU/NPU/hybrid inference verified.
-- [ ] Finish Qwen3-1.7B Q4_0 download, verify checksum and benchmark.
+- [x] Finish Qwen3-1.7B Q4_0 download, verify checksum and benchmark (10 real backend/thread cells; publication review pending).
 - [ ] Finish Qwen3-4B-Instruct-2507 Q4_0 download, verify checksum and benchmark.
 - [ ] Add a very small instruction model from another family; identify exact model/quantization and license.
 - [ ] Add an IBM Granite or Mamba-family candidate; verify actual architecture and installed-runtime support rather than assuming support from its name.
@@ -56,7 +56,7 @@ Owner: main agent. Initial worker implementation available for integration.
 - [x] Native SDK adapter and ABI/layout tests implemented; hardware smoke test passed on the Latitude.
 - [x] Disposable secretary fixture and bounded file tools implemented.
 - [ ] Review tool validation, symlink handling and task gold labels; fix inconsistent/missing fixture references.
-- [ ] Run held-out structured-tool requests on actual local models; score names, arguments and final state.
+- [x] Freeze user-confirmed untuned reference on all 50 v2 cases: 60% task success, 0/13 clarification, 1209.531 ms mean inference; exact intent/action/final-state scoring. Candidate comparisons next.
 - [ ] Compare verbose tool calls with snapshot-bound compact ToolWire actions and optional constrained grammar.
 - [ ] Calibrate model routing with measured quality tiers and account for retry/fallback/loading time.
 - [ ] Test prefix reuse, deterministic context reduction, Caveman-style prose brevity and RTK-style tool-output reduction separately.
@@ -119,7 +119,7 @@ These are retained requirements; a new tuner direction does not silently remove 
 | Demo deck and actual E2E demonstration | Teammate frontend/design; agent data/API/deck support; actual laptop execution and reproducible charts | Humans + integrator |
 | Frequent GitHub commits and PR awareness | Inspect open PRs/remotes before pushes, small working commits, isolated worker branches | Everyone |
 
-Superseded by explicit user pivot: workshop safety camera, Arduino sensor/actuator orchestration and inspection-station UI. Preserve their archive without spending the current inference-tuner critical path on them.
+Superseded: workshop safety camera and inspection-station UI. The user subsequently reintroduced UNO Q as a functional physical mode controller and a separate optional local inference device. Its adapters are under review; board inference is not yet verified.
 
 ## High-value additions under consideration
 
@@ -145,10 +145,14 @@ These extend the requested tuner; they do not precede the P0 evidence milestone.
 
 Tune → export measured mode → apply native runtime settings → run a secretary fixture → verify calls and final state → repeat via MCP. The 0.6B model currently fails the invoice semantic task; do not call the full flow successful until repaired or a better model passes.
 
-Axel's authoritative 35-development / 15-held-out first-action evaluation arrived in commit `0470a28`. Preserve its prompts, expected outputs, codec protocol and scoring. It does not execute file actions. An isolated checkout of original primitives plus this evaluator is being measured as an untuned first-action reference, not a verified historical Secretary baseline.
+Axel's authoritative **secretary-eval-v2** arrived in `ccd1e00` and is frozen. It executes the actual production tool in an isolated fixture and checks final state, with 35 development and 15 held-out cases. Henry confirmed an explicitly untuned reference after historical-original provenance could not be established. The official 50-case baseline is committed under `eval/results/`; prior v1 diagnostics remain quarantined.
 
 - [ ] Inference router: measured small/large profiles, quality eligibility and explicit escalation on invalid actions, with retries and model-load cost included.
 - [ ] Extensible model registration across supported runtime architectures; unsupported models receive a precise conversion/compilation/kernel requirement.
 - [ ] Optional lightweight Pi client integration after the local service + MCP demo passes; no extra harness dependencies on the critical path.
 
-Latest correctness coordination: wait for Axel/Codex to freeze **secretary-eval-v2**. Establish the official baseline together after that confirmation. Do not modify golden data. Gate: ≤3 percentage-point accuracy drop and no critical move/clarify regression. Serious candidate and evaluation handoffs belong under `eval/results/` with commit/config/command.
+Latest correctness coordination: **v2 frozen; confirmed baseline measured** at `ccd1e00`, results commit `6ac2aef`. Preserve this reference; evaluate CPU/10 as the first serious candidate. Do not modify golden data. Gate: ≤3 percentage-point accuracy drop and no critical move/clarify regression. Serious candidate and evaluation handoffs belong under `eval/results/` with commit/config/command.
+
+## Active isolated Codex work
+
+Separate CLI Codex processes using GLM-5.3-Flash successfully run in isolated worktrees. The native session cap and provider request-rate limits still apply to their respective routes; no unlimited-capacity claim. Current scopes: integration correctness review, saved performance-evidence audit, constrained-tool grammar experiment, and UNO Q adapter hardening. Only the parent owns hardware inference during official evaluations.

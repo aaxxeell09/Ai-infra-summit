@@ -85,6 +85,6 @@ Use the presentation skill for the requested demo deck, and visually verify ever
 
 ## Frozen correctness benchmark ownership
 
-Axel/Codex owns the golden dataset, expected outputs, runner and evaluation methodology. Wait for explicit confirmation that **secretary-eval-v2** is frozen, then establish the original/pre-optimization baseline together. Do not modify benchmark data without coordination. Earlier v1 references are superseded.
+Axel/Codex owns the golden dataset, expected outputs, runner and evaluation methodology. **secretary-eval-v2 was frozen at `ccd1e00` and explicitly confirmed by Axel. Henry subsequently designated the Qwen3-0.6B Q4_0 / GenieX 0.6.1 auto untuned reference, which is now measured and committed in `eval/results/baseline.json`. Do not re-freeze or overwrite it. A separate historical pre-optimization Secretary deployment was not established; preserve that provenance distinction.** Do not modify benchmark data without coordination. Earlier v1 references are superseded.
 
 The candidate gate allows at most a 3 percentage-point overall accuracy drop versus the agreed baseline, with no regression on critical move/clarify cases. Preserve category-level regressions. Commit every serious candidate and its evaluation results under `eval/results/`, including candidate name, actual commit/config and exact command. Small internal performance experiments do not each need the complete correctness suite. Pre-freeze diagnostic outputs remain quarantined and are not official baselines.

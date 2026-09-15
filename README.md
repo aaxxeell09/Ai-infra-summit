@@ -21,7 +21,7 @@ Active development with real Latitude results. A same-model CPU confirmation mea
 Python 3.11+; the core project uses the standard library.
 
 ```sh
-python -m unittest discover -s tests -v
+python -m pytest tests -q
 ```
 
 ## Benchmark on the Latitude
@@ -42,7 +42,7 @@ Tokens per second, fewer generated tokens and faster completed tasks are separat
 
 ## Correctness benchmark
 
-The [Secretary evaluation protocol](docs/secretary-evaluation.md) provides a versioned golden dataset (secretary-eval-v2), 35 development and 15 held-out single-action cases, 30 synthetic fixture files, deterministic scoring, difficulty/category audits and configurable quality gates. Official baseline freezing requires Henry-confirmed configuration and a clean commit. The evaluator uses the actual Secretary tools and executor on isolated synthetic workspaces; it checks intent, execution and final state for one action, not the full routed multi-step workflow. The historical reference is explicitly **not measured** until the real Latitude run is completed.
+The [Secretary evaluation protocol](docs/secretary-evaluation.md) provides a versioned golden dataset (secretary-eval-v2), 35 development and 15 held-out single-action cases, 30 synthetic fixture files, deterministic scoring, difficulty/category audits and configurable quality gates. Official baseline freezing requires Henry-confirmed configuration and a clean commit. The evaluator uses the actual Secretary tools and executor on isolated synthetic workspaces; it checks intent, execution and final state for one action, not the full routed multi-step workflow. The confirmed untuned reference is now [measured on the Latitude](eval/results/baseline.md): **30/50 tasks correct (60%)**, mean inference latency **1209.531 ms**, median **1147.561 ms**, p95 **1500.174 ms**, and **0/13 clarification cases correct**. It uses Qwen3-0.6B Q4_0, GenieX 0.6.1 auto placement resolved to HTP0, at application/evaluator commit `ccd1e00`. Henry designated this reference after historical pre-optimization provenance could not be established. Preserve the frozen benchmark and reference; candidates must pass the documented quality gate.
 
 ```sh
 python eval/validate_dataset.py --check-leakage

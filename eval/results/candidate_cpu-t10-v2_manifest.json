@@ -31,5 +31,8 @@
     "PYTHONUTF8": "1"
   },
   "run_command": "python -X utf8 eval/run_secretary_eval.py --dataset all --candidate-name cpu-t10-v2 --config local/cpu-t10-v2-config.json --baseline local/official-reference-v2/baseline.json --output-dir local/cpu-t10-v2",
-  "status": "ready_for_evaluation"
+  "status": "measured_gate_failed",
+  "candidate_definition_commit": "6ac2aef",
+  "result": "eval/results/candidate_cpu-t10-v2.json",
+  "quality_gate": "FAIL"
 }
