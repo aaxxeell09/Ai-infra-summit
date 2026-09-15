@@ -1,0 +1,60 @@
+{
+  "schema_version": "turbo.tuning.v2",
+  "variants": [
+    {
+      "id": "qwen3-06b-q4",
+      "path": "models/qwen3-06b-q4_0.gguf",
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "plugin": "llama_cpp",
+      "kind": "llm"
+    }
+  ],
+  "search_space": {
+    "devices": [
+      "cpu",
+      "gpu",
+      "npu"
+    ],
+    "threads": [
+      0,
+      4,
+      6,
+      8
+    ],
+    "contexts": [
+      2048,
+      4096
+    ],
+    "prompt_tokens": 512,
+    "gen_tokens": 128,
+    "warmup": 0,
+    "repeats": 3,
+    "temperature": 0,
+    "seed": 42
+  },
+  "objective": "fast",
+  "constraints": {
+    "rules": [
+      [
+        "decode_tps",
+        "min",
+        1
+      ]
+    ]
+  },
+  "budget_s": 600,
+  "timeout_s": 240,
+  "power_state": "unavailable",
+  "prompt_file": null,
+  "image_path": null,
+  "notes": [
+    "Replace paths with existing local artifacts; output_dir must be new.",
+    "batch/ubatch unsupported until an SDK runner supports them.",
+    "For QAIRT use one bundle variant per compiled context, devices=[npu], compiled_contexts=[4096], and a prompt_file.",
+    "VLM needs image_path and prompt_file; llama_cpp also needs mmproj_path.",
+    "Energy/memory capture is unavailable in this runner. Efficient has no decode fallback.",
+    "Recommendations are provisional within each model/workload/power group and require paired confirmation.",
+    "After run_tuning, parent recommendation_file may point to record.recommendation_path; registry id must match the parent's model id."
+  ]
+}

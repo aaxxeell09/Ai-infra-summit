@@ -80,6 +80,34 @@ class EnergyMeter:
             self.query = C.c_void_p()
 
 
+class SystemPowerStatus(C.Structure):
+    _fields_ = [('ac_line_status', C.c_uint8), ('battery_flag', C.c_uint8),
+                ('battery_life_percent', C.c_uint8), ('reserved', C.c_uint8),
+                ('battery_lifetime', C.c_uint32), ('battery_full_lifetime', C.c_uint32)]
+
+
+def power_state():
+    """AC/battery state via GetSystemPowerStatus; cheap, no driver work."""
+    if sys.platform != 'win32':
+        return {'ac_line_status': 'unavailable'}
+    try:
+        kernel = C.WinDLL('kernel32', use_last_error=True)
+        kernel.GetSystemPowerStatus.argtypes = [C.POINTER(SystemPowerStatus)]
+        kernel.GetSystemPowerStatus.restype = C.c_bool
+        status = SystemPowerStatus()
+        if not kernel.GetSystemPowerStatus(C.byref(status)):
+            return {'ac_line_status': f'error {C.get_last_error()}',
+                    'battery_percent': None, 'battery_flag': None}
+        names = {0: 'battery', 1: 'ac', 255: 'unknown'}
+        return {'ac_line_status': names.get(status.ac_line_status, status.ac_line_status),
+                'battery_percent': None if status.battery_life_percent == 255
+                                   else status.battery_life_percent,
+                'battery_flag': status.battery_flag}
+    except OSError as exc:
+        return {'ac_line_status': f'error: {exc}', 'battery_percent': None,
+                'battery_flag': None}
+
+
 def energy_delta(before, after, generated_tokens=None):
     duration = after['monotonic_s'] - before['monotonic_s']
     result = {'duration_s': duration, 'channels': {}, 'unit': 'picowatt-hours',

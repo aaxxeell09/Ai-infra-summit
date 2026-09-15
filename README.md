@@ -14,7 +14,9 @@ Fast, private tool-using AI on a Snapdragon X Elite laptop. We are rebuilding ar
 
 ## Current status
 
-Active development. Benchmark orchestration, routing and context primitives are implemented. The first native Latitude screening records are available in `benchmarks/results/screen-01`, and the local interface compares those measurements. **No confirmed tuning speedup is claimed yet.** The final demo screen currently previews side-by-side prompt answers; device configuration application, live answer comparison and model-routing calibration remain to be connected through the frontend comparison contract.
+Actual Latitude measurements show **2.67× aggregate decode throughput** for CPU/10 versus default auto/NPU on the same 0.6B weights. The stronger CPU-default comparison measured +16.9% aggregate but only +3.2% median individual-run throughput, with substantial variability. See [results and limits](benchmarks/results/README.md).
+
+The live HTTP tuner now exports CPU/NPU configurations that are applied through actual MCP and native inference. A simple file task passed; the invoice task failed in both modes. [Integration evidence](benchmarks/results/integration-01/README.md) retains those failures. All serious correctness candidates still fail the frozen quality gate. The teammate frontend below remains a recorded-results and scripted-answer preview; its live bridge and quality-aware model routing are not connected yet. [GOAL.md](GOAL.md) records the full acceptance criteria.
 
 ## Local demo interface
 
@@ -32,7 +34,7 @@ Open `http://127.0.0.1:4173`. Node.js 20+ is required; no package installation i
 Python 3.11+; the core project uses the standard library.
 
 ```sh
-python -m unittest discover -s tests -v
+python -m pytest tests -q
 ```
 
 ## Benchmark on the Latitude
@@ -50,3 +52,13 @@ Each cell preserves native timings, arguments, exit status and logs. See [benchm
 Tokens per second, fewer generated tokens and faster completed tasks are separate metrics. Existing prefix caching and speculative decoding belong to their upstream implementations. Our experimental contribution is a portable measured policy combining model, device and context choices; novelty and speedup remain hypotheses until tested.
 
 [SSH setup](docs/ssh.md) uses placeholders. Credentials, device addresses, models and private logs stay out of Git.
+
+## Correctness benchmark
+
+The [Secretary evaluation protocol](docs/secretary-evaluation.md) provides a versioned golden dataset (secretary-eval-v2), 35 development and 15 held-out single-action cases, 30 synthetic fixture files, deterministic scoring, difficulty/category audits and configurable quality gates. Official baseline freezing requires Henry-confirmed configuration and a clean commit. The evaluator uses the actual Secretary tools and executor on isolated synthetic workspaces; it checks intent, execution and final state for one action, not the full routed multi-step workflow. The confirmed untuned reference is now [measured on the Latitude](eval/results/baseline.md): **30/50 tasks correct (60%)**, mean inference latency **1209.531 ms**, median **1147.561 ms**, p95 **1500.174 ms**, and **0/13 clarification cases correct**. It uses Qwen3-0.6B Q4_0, GenieX 0.6.1 auto placement resolved to HTP0, at application/evaluator commit `ccd1e00`. Henry designated this reference after historical pre-optimization provenance could not be established. Preserve the frozen benchmark and reference; candidates must pass the documented quality gate.
+
+```sh
+python eval/validate_dataset.py --check-leakage
+```
+
+See the protocol for the real SDK/model configuration, baseline freeze and one-command candidate evaluation. No runtime tuning or product UI is changed by this evaluation work.

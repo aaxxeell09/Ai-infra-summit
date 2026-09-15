@@ -1,0 +1,19 @@
+{
+  "benchmark_version": "secretary-eval-v2",
+  "total": 50,
+  "splits": {
+    "development": 35,
+    "heldout": 15
+  },
+  "difficulties": {
+    "easy": 15,
+    "medium": 20,
+    "hard": 15
+  },
+  "dataset_sha256": "643c036ec9084339875ca3fd26c402562a432fa9bfdc211ece8aa4975f508d32",
+  "fixture_sha256": "69ec2946e157195b6aedecec6129b26897a06865c7dc20d8c99a6f7f1dc0e7df",
+  "inventory_sha256": "423d6cc7f3b12498e83293bcb7245b5e9a0aa088de72dc024bfba1605bbdf986",
+  "action_schema_sha256": "3a1c425ebed06cef92eafda44142bf5eae65d3c47fd82b8730ca3683eb248a22",
+  "system_prompt_sha256": "e977a9fe92d57c6b8a2af61f3cd6e3621f3fc2caf8300145abf7896f57c45eaf",
+  "change_note": "secretary-eval-v2 supersedes ToolWire v1 after real Secretary landed in 06aeed3. Production list_files has no args; move_file uses path/destination. Golden labels adapted before any model results."
+}

@@ -1,0 +1,11 @@
+{
+  "application_commit": "8ec23e2",
+  "application_tree_clean": true,
+  "evaluation_kind": "integration smoke, not official 50-case correctness evaluation",
+  "hardware": "Dell Latitude 7455, X1E80100, 32 GB, Windows ARM64",
+  "runtime": "GenieX 0.6.1 llama_cpp",
+  "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+  "source": "HTTP tuner then actual stdio MCP to loopback service via SSH forwarding",
+  "privacy_transform": "Absolute installation prefix replaced with ${QUALCOMM_TOOLS}; MCP text result JSON decoded into an object for inspection; numbers and model outputs preserved. Native logs and raw transport retained privately.",
+  "scope": "Tuner configuration changes and actual inference verified. Both invoice-mode attempts failed semantic/action checks. Existing quality gate failures remain unchanged. Runtime DLL binding strengthening pending."
+}

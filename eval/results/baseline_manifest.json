@@ -1,0 +1,87 @@
+{
+  "schema_version": 2,
+  "benchmark_version": "secretary-eval-v2",
+  "protocol_version": "secretary-single-action-v2",
+  "scope": "single_action_with_fixture_execution",
+  "type": "baseline",
+  "status": "measured",
+  "candidate_name": "secretary-untuned-auto-v2",
+  "git_commit": "ccd1e00327fe5cabe875acec166e7d9831c1cfe0",
+  "branch": "evidence/official-reference-v2",
+  "dirty": false,
+  "application_sources_sha256": {
+    "turbo/secretary.py": "b8d60b9646a607cf7c2a46390e83bddd55c73db46a619a88379aa10d24567d87",
+    "turbo/service.py": "618435f7f57bc314fc5c68d7000174713da9fd120b791346b3b2c9324fb300d0",
+    "turbo/native.py": "19db1c29ef1695a47100e3c1a42bf8de43f5207fa1badefcc362df09ddd7ffa0",
+    "turbo/policy.py": "3b103d7321b06f1a0ad64653025d0d5beb80746819c103039084ea6c583c71c3"
+  },
+  "timestamp": "2026-09-15T22:32:35.869690+00:00",
+  "dataset_sha256": "643c036ec9084339875ca3fd26c402562a432fa9bfdc211ece8aa4975f508d32",
+  "fixture_sha256": "69ec2946e157195b6aedecec6129b26897a06865c7dc20d8c99a6f7f1dc0e7df",
+  "inventory_sha256": "423d6cc7f3b12498e83293bcb7245b5e9a0aa088de72dc024bfba1605bbdf986",
+  "action_schema_sha256": "3a1c425ebed06cef92eafda44142bf5eae65d3c47fd82b8730ca3683eb248a22",
+  "system_prompt_sha256": "e977a9fe92d57c6b8a2af61f3cd6e3621f3fc2caf8300145abf7896f57c45eaf",
+  "baseline_approval": {
+    "status": "confirmed",
+    "confirmed_by": "Henry",
+    "application_commit": "ccd1e00327fe5cabe875acec166e7d9831c1cfe0",
+    "config_sha256": "de3ff756177ee08f47e6ad84d472840e49a837aff401d4612c6912a11bd55813",
+    "basis": "User explicitly confirmed the proposed untuned reference in this session on 2026-09-15. No separate historical pre-optimization Secretary deployment was established."
+  },
+  "config_sha256": "de3ff756177ee08f47e6ad84d472840e49a837aff401d4612c6912a11bd55813",
+  "environment": {
+    "system": "Windows",
+    "machine": "ARM64",
+    "python": "3.14.6",
+    "hardware_note": "Dell Latitude 7455; Snapdragon X Elite X1E80100; 32 GB RAM; Windows ARM64; ac; Balanced power plan verified before launch; exclusive inference workload. User-designated untuned reference, not a recovered historical pre-optimization deployment."
+  },
+  "config": {
+    "device": "auto",
+    "threads": 0,
+    "threads_batch": 0,
+    "ubatch": 0,
+    "n_batch": 0,
+    "context": 4096,
+    "max_tokens": 128,
+    "grammar": false,
+    "plugin": "llama_cpp",
+    "spec_type": "none",
+    "draft_tokens": 8,
+    "hardware_note": "Dell Latitude 7455; Snapdragon X Elite X1E80100; 32 GB RAM; Windows ARM64; ac; Balanced power plan verified before launch; exclusive inference workload. User-designated untuned reference, not a recovered historical pre-optimization deployment."
+  },
+  "evaluator_sha256": {
+    "eval/scoring.py": "961e76c3dfeca12f642ad63431b60c8fba0d89581a0c6554189b5e3e65d7578b",
+    "eval/run_secretary_eval.py": "e9d5d75aafc70a50ddf15fc633682fe15be5409d8fa0dabcfd741270959e1316",
+    "eval/validate_dataset.py": "f68a622095c5b86ec218f90597e00c9d5814b7a54d5a637c83c21b035a53e1ef",
+    "eval/secretary_adapter.py": "51bd454b3ab16813e847ab9584aaf40ff2fa8dc5f6db6bd5f6e09969d58bd8f7"
+  },
+  "generation_protocol": {
+    "max_tokens": 128,
+    "temperature": 0,
+    "reset": true
+  },
+  "model_label": "Qwen3-0.6B-Q4_0.gguf",
+  "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+  "run_command": "python eval/run_secretary_eval.py --dataset all --candidate-name secretary-untuned-auto-v2 --config PRIVATE_CONFIG.json --freeze-baseline --baseline-approval PRIVATE_APPROVAL.json --output-dir OUTPUT_DIRECTORY",
+  "warmup": "one untimed first-development prompt; reset context each case; temperature 0",
+  "secretary_module_present": true,
+  "runtime_version": "0.6.1",
+  "source_hashes": {
+    "turbo/secretary.py": "b8d60b9646a607cf7c2a46390e83bddd55c73db46a619a88379aa10d24567d87",
+    "turbo/service.py": "618435f7f57bc314fc5c68d7000174713da9fd120b791346b3b2c9324fb300d0",
+    "turbo/native.py": "19db1c29ef1695a47100e3c1a42bf8de43f5207fa1badefcc362df09ddd7ffa0",
+    "turbo/policy.py": "3b103d7321b06f1a0ad64653025d0d5beb80746819c103039084ea6c583c71c3",
+    "eval/scoring.py": "961e76c3dfeca12f642ad63431b60c8fba0d89581a0c6554189b5e3e65d7578b",
+    "eval/run_secretary_eval.py": "e9d5d75aafc70a50ddf15fc633682fe15be5409d8fa0dabcfd741270959e1316",
+    "eval/validate_dataset.py": "f68a622095c5b86ec218f90597e00c9d5814b7a54d5a637c83c21b035a53e1ef",
+    "eval/secretary_adapter.py": "51bd454b3ab16813e847ab9584aaf40ff2fa8dc5f6db6bd5f6e09969d58bd8f7",
+    "eval/benchmark_manifest.json": "677f7b0f43928dc9a986e1838dd5e7bcd5d038795dc0a10b818bbdee96bea441",
+    "eval/fixtures/files.json": "0e144438a32cd7baf5953c149c62273b42716947beb4d4c52d0e0f19696a88c1",
+    "eval/datasets/secretary_dev.json": "5f50aac84b55c53e7a8603531d96ea7512b8b5df9d868c73019f344112807162",
+    "eval/datasets/secretary_heldout.json": "10b3d612eb0fe9bf6eed7af82b902a541c4e7a986c411344221a6d7f798e0416"
+  },
+  "comparison": {
+    "status": "REFERENCE",
+    "reasons": []
+  }
+}

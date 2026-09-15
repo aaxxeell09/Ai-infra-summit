@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "notes": "Static coverage catalog. Offline planning only; never an inference call or a hardware claim. Backend entries are unverified unless a named official source for the pinned file supports that runtime version; NPU entries additionally require on-device dispatch diagnostics.",
+  "device": {
+    "host": "Dell Latitude 7455",
+    "soc": "Snapdragon X Elite X1E-80-100",
+    "os": "Windows ARM64",
+    "ram_gb": 32
+  },
+  "runtimes": [
+    {
+      "name": "geniex-llama_cpp",
+      "version": "0.6.1",
+      "gguf": true,
+      "requires_projector": false
+    },
+    {
+      "name": "geniex-qairt",
+      "version": "0.6.1",
+      "gguf": false,
+      "requires_projector": false
+    }
+  ],
+  "models": [
+    {
+      "id": "qwen3-0.6b-q4_0",
+      "name": "Qwen3-0.6B (Q4_0)",
+      "family": "qwen3",
+      "kind": "instruction",
+      "architecture": "qwen3",
+      "license": "apache-2.0",
+      "parameters": "0.6B",
+      "context_length": 40960,
+      "total_bytes": 382156480,
+      "requires_projector": false,
+      "state": "downloaded",
+      "source": {
+        "model_card": "https://huggingface.co/Qwen/Qwen3-0.6B",
+        "quant_repo": "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF",
+        "revision": "50968a4468ef4233ed78cd7c3de230dd1d61a56b",
+        "files": [
+          {
+            "path": "Qwen3-0.6B-Q4_0.gguf",
+            "sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+            "bytes": 382156480
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      },
+      "notes": "Exact weights measured in benchmarks/results/screen-01, confirm-01 and confirm-auto-01; CPU/GPU/NPU/hybrid completed. Per-backend status details are in those manifests."
+    },
+    {
+      "id": "qwen3-1.7b-q4_0",
+      "name": "Qwen3-1.7B (Q4_0)",
+      "family": "qwen3",
+      "kind": "instruction",
+      "architecture": "qwen3",
+      "license": "apache-2.0",
+      "parameters": "1.7B",
+      "context_length": 40960,
+      "total_bytes": 1056782912,
+      "requires_projector": false,
+      "state": "downloaded",
+      "source": {
+        "model_card": "https://huggingface.co/Qwen/Qwen3-1.7B",
+        "quant_repo": "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF",
+        "revision": "d7f544eead698dbd1f15126ef60b45a1e1933222",
+        "files": [
+          {
+            "path": "Qwen3-1.7B-Q4_0.gguf",
+            "sha256": "c876f159707a4e4f70e045106c69db15bfc935a4981706fd4f65c6e7ea1e81c5",
+            "bytes": 1056782912
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      },
+      "notes": "Weights checksum-verified on the Latitude. CPU/GPU/NPU/hybrid screening completed; official CPU/10 task evaluation is eval/results/candidate_qwen17-cpu-t10-v2.json and failed the quality gate."
+    },
+    {
+      "id": "qwen3-4b-instruct-2507-q4_0",
+      "name": "Qwen3-4B-Instruct-2507 (Q4_0)",
+      "family": "qwen3",
+      "kind": "instruction",
+      "architecture": "qwen3",
+      "license": "apache-2.0",
+      "parameters": "4B",
+      "context_length": 262144,
+      "total_bytes": 2375773280,
+      "requires_projector": false,
+      "state": "downloading",
+      "source": {
+        "model_card": "https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507",
+        "quant_repo": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF",
+        "revision": "a06e946bb6b655725eafa393f4a9745d460374c9",
+        "files": [
+          {
+            "path": "Qwen3-4B-Instruct-2507-Q4_0.gguf",
+            "sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+            "bytes": 2375773280
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      }
+    },
+    {
+      "id": "smollm2-360m-instruct-q8_0",
+      "name": "SmolLM2-360M-Instruct (Q8_0)",
+      "family": "smollm2",
+      "kind": "instruction",
+      "architecture": "llama",
+      "license": "apache-2.0",
+      "parameters": "360M",
+      "context_length": 8192,
+      "total_bytes": 386404992,
+      "requires_projector": false,
+      "state": "downloaded",
+      "source": {
+        "model_card": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct",
+        "quant_repo": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF",
+        "revision": "593b5a2e04c8f3e4ee880263f93e0bd2901ad47f",
+        "files": [
+          {
+            "path": "smollm2-360m-instruct-q8_0.gguf",
+            "sha256": "48ab3034d0dd401fbc721eb1df3217902fee7dab9078992d66431f09b7750201",
+            "bytes": 386404992
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      },
+      "notes": "Checksum-verified on development host; not yet transferred to or executed on the Latitude or UNO Q."
+    },
+    {
+      "id": "granite-4.0-h-tiny-q4_k_m",
+      "name": "IBM Granite 4.0 H-Tiny (Q4_K_M)",
+      "family": "granite-4.0",
+      "kind": "instruction",
+      "architecture": "granitehybrid",
+      "license": "apache-2.0",
+      "parameters": "7B (hybrid Mamba2/attention)",
+      "context_length": 1048576,
+      "total_bytes": 4230976352,
+      "requires_projector": false,
+      "state": "candidate",
+      "notes": "GGUF architecture read from the file header KV block is granitehybrid (hybrid Mamba2 + attention); not a dense granite model. Tool-calling instruct per model card.",
+      "source": {
+        "model_card": "https://huggingface.co/ibm-granite/granite-4.0-h-tiny",
+        "quant_repo": "https://huggingface.co/ibm-granite/granite-4.0-h-tiny-GGUF",
+        "revision": "08d5a8a9741dd5c1a95d2d39e25253226aa1464e",
+        "files": [
+          {
+            "path": "granite-4.0-h-tiny-Q4_K_M.gguf",
+            "sha256": "5a38b08c441ae1adbafb1d2b8a7167e0d48734d83af68b268cefea1eec553dcd",
+            "bytes": 4230976352
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      }
+    },
+    {
+      "id": "qwen3-vl-4b-instruct-q4_0",
+      "name": "Qwen3-VL-4B-Instruct (Q4_0 + mmproj F16)",
+      "family": "qwen3-vl",
+      "kind": "multimodal",
+      "architecture": "qwen3vl",
+      "license": "apache-2.0",
+      "parameters": "4B",
+      "context_length": 262144,
+      "total_bytes": 3211955136,
+      "requires_projector": true,
+      "state": "candidate",
+      "notes": "Language model and vision projector are separate files; both are required for image input. Listed in the GenieX v0.6.1 QDC bench matrix (cpu, npu) as unsloth/Qwen3-VL-4B-Instruct-GGUF:Q4_0 with the mmproj-F16 projector.",
+      "source": {
+        "model_card": "https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct",
+        "quant_repo": "https://huggingface.co/unsloth/Qwen3-VL-4B-Instruct-GGUF",
+        "revision": "00c00da0690c4b14b5539b02c4ea5d7c9102b35e",
+        "files": [
+          {
+            "path": "Qwen3-VL-4B-Instruct-Q4_0.gguf",
+            "sha256": "09965766e92778b591ab9da5209463b843d000449b38d909055b399d8dbd3d76",
+            "bytes": 2375774496
+          },
+          {
+            "path": "mmproj-F16.gguf",
+            "sha256": "1b9f4e92f0fbda14d7d7b58baed86039b8a980fe503d9d6a9393f25c0028f1fc",
+            "bytes": 836180640
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      }
+    },
+    {
+      "id": "qwen3-vl-4b-instruct-qairt",
+      "name": "Qwen3-VL-4B-Instruct (QAIRT w4a16, Snapdragon X Elite bundle)",
+      "family": "qwen3-vl",
+      "kind": "multimodal",
+      "architecture": "qwen3vl",
+      "license": "apache-2.0",
+      "parameters": "4B",
+      "context_length": null,
+      "total_bytes": 3034262089,
+      "requires_projector": false,
+      "state": "candidate",
+      "notes": "Precompiled X Elite QAIRT bundle is installed on the Latitude and was used for the archived inspection demo. New tuner benchmark and compiled-context validation remain pending.",
+      "source": {
+        "model_card": "https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct",
+        "quant_repo": "https://qaihub-public-assets.s3.us-west-2.amazonaws.com/qai-hub-models/models/qwen3_vl_4b_instruct/releases/v0.62.2/qwen3_vl_4b_instruct-geniex_qairt-w4a16-qualcomm_snapdragon_x_elite.zip",
+        "revision": "v0.62.2 (QAI Hub release tag; bundle has no git revision)",
+        "files": [
+          {
+            "path": "qwen3_vl_4b_instruct-geniex_qairt-w4a16-qualcomm_snapdragon_x_elite.zip",
+            "sha256": null,
+            "bytes": 3034262089
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unsupported",
+        "geniex-qairt@0.6.1": "unverified"
+      }
+    },
+    {
+      "id": "gemma-3-270m-it-q4_0",
+      "name": "Gemma 3 270M IT (Q4_0)",
+      "family": "gemma-3",
+      "kind": "instruction",
+      "architecture": "gemma3",
+      "license": "gemma",
+      "parameters": "270M",
+      "context_length": 32768,
+      "total_bytes": 241574944,
+      "requires_projector": false,
+      "state": "candidate",
+      "notes": "Third-party Unsloth conversion. Valid candidate with provenance; no rule requires publisher-owned quantization. License acceptance and installed-runtime support must be checked before download/use.",
+      "source": {
+        "model_card": "https://huggingface.co/google/gemma-3-270m-it",
+        "quant_repo": "https://huggingface.co/unsloth/gemma-3-270m-it-GGUF",
+        "revision": "c90975dbd40c0c7b275fefaae758c3415c906238",
+        "files": [
+          {
+            "path": "gemma-3-270m-it-Q4_0.gguf",
+            "sha256": "e479ea2962bdcdc7e6321b91148b9ac2f516f649e0921412561d4936aadef158",
+            "bytes": 241574944
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      }
+    },
+    {
+      "id": "qwen3-8b-q4_k_m",
+      "name": "Qwen3-8B (Q4_K_M)",
+      "family": "qwen3",
+      "kind": "instruction",
+      "architecture": "qwen3",
+      "license": "apache-2.0",
+      "parameters": "8.2B total",
+      "parameters_total_billion": 8.2,
+      "parameters_active_billion": null,
+      "context_length": 32768,
+      "initial_test_context": 2048,
+      "total_bytes": 5027784512,
+      "requires_projector": false,
+      "state": "candidate",
+      "source": {
+        "model_card": "https://huggingface.co/Qwen/Qwen3-8B",
+        "quant_repo": "https://huggingface.co/unsloth/Qwen3-8B-GGUF",
+        "revision": "a6adef130ffb23ddaf1a62fec9dced968c9bc482",
+        "files": [
+          {
+            "path": "Qwen3-8B-Q4_K_M.gguf",
+            "sha256": "120307ba529eb2439d6c430d94104dabd578497bc7bfe7e322b5d9933b449bd4",
+            "bytes": 5027784512
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      },
+      "notes": "Q4_0 is not present in this pinned repository. Q4_K_M support, chat formatting and dispatch must be tested on the installed runtime; do not infer NPU support from the Qwen family."
+    },
+    {
+      "id": "gpt-oss-20b-mxfp4",
+      "name": "gpt-oss-20b (MXFP4)",
+      "family": "gpt-oss",
+      "kind": "instruction",
+      "architecture": "gpt-oss",
+      "license": "apache-2.0",
+      "parameters": "21B total, 3.6B active",
+      "parameters_total_billion": 21,
+      "parameters_active_billion": 3.6,
+      "context_length": null,
+      "initial_test_context": 2048,
+      "total_bytes": 12109566624,
+      "requires_projector": false,
+      "state": "candidate",
+      "source": {
+        "model_card": "https://huggingface.co/openai/gpt-oss-20b",
+        "quant_repo": "https://huggingface.co/ggml-org/gpt-oss-20b-GGUF",
+        "revision": "ef9b12f2ff56c69cf32153a02784e7a3c88bf524",
+        "files": [
+          {
+            "path": "gpt-oss-20b-MXFP4.gguf",
+            "sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+            "bytes": 12109566624
+          }
+        ]
+      },
+      "backend_support": {
+        "geniex-llama_cpp@0.6.1": "unverified",
+        "geniex-qairt@0.6.1": "unsupported"
+      },
+      "notes": "MoE candidate: full weights must fit despite only 3.6B active parameters. Requires Harmony formatting and compatible MXFP4 kernels; context and memory are unverified on this runtime. No NPU claim."
+    }
+  ]
+}

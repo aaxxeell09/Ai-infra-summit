@@ -1,0 +1,280 @@
+{
+  "request": {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/call",
+    "params": {
+      "name": "local_secretary",
+      "arguments": {
+        "mode": "fast",
+        "task_id": "t01"
+      }
+    }
+  },
+  "response": {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "result": {
+      "available": true,
+      "mode": "fast",
+      "task_id": "t01",
+      "resolved_model": "qwen06",
+      "content": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+      "result": [
+        {
+          "ok": true,
+          "result": {
+            "files": [
+              "README.md",
+              "docs/expense-policy.md",
+              "docs/onboarding.md",
+              "docs/vendor-contacts.md",
+              "drafts/hexagon-invoice.md",
+              "drafts/q3-summary.md",
+              "invoices/2026/INV-0142.pdf",
+              "invoices/2026/INV-0157.pdf",
+              "notes/2026-09-standup.md",
+              "notes/ideas.md",
+              "notes/parking-lot.md",
+              "todo.txt"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "passed": true,
+      "errors": [],
+      "verification": {
+        "passed": true,
+        "calls_match": true,
+        "final_state_match": true,
+        "execution_ok": true,
+        "task_id": "t01"
+      },
+      "usage": {
+        "prompt_tokens": 610,
+        "completion_tokens": 15
+      },
+      "runtime_config": {
+        "model": "qwen06",
+        "mode": "fast",
+        "config": {
+          "device": "cpu",
+          "threads": 10,
+          "context": 4096
+        },
+        "evidence": {
+          "source": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\record.json",
+          "scope": {
+            "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+            "workload": {
+              "prompt_tokens": 512,
+              "gen_tokens": 128,
+              "warmup": 0,
+              "repeats": 3,
+              "temperature": 0,
+              "seed": 42,
+              "image_path": null,
+              "prompt_file": null,
+              "image_sha256": null,
+              "prompt_sha256": null
+            },
+            "power_state": "ac",
+            "power_scope": "measured",
+            "quality_calibrated": false,
+            "cold_kv": true,
+            "evidence": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\record.json",
+            "provisional": true,
+            "requires_paired_confirmation": true
+          },
+          "metrics": {
+            "decode_tps": 97.2114,
+            "prefill_tps": 1581.760326,
+            "latency_s": 1.640408,
+            "tokens_per_joule": 1.453925657721843,
+            "median_decode_tps": 97.2114,
+            "median_ttft_ms": 324.116,
+            "median_peak_mib": 1532.140625
+          }
+        }
+      },
+      "elapsed_s": 0.7068811003118753,
+      "gateway_elapsed_s": 0.7647420410066843,
+      "gateway_response": {
+        "text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+        "sampling": {
+          "requested_temperature": 0.0,
+          "sdk_top_k": 0,
+          "greedy_via_top_k": false,
+          "sdk_zero_temperature_uses_default": true
+        },
+        "profile": {
+          "ttft": 459176,
+          "media_time": 0,
+          "prompt_time": 458846,
+          "decode_time": 158405,
+          "prompt_tokens": 610,
+          "generated_tokens": 15,
+          "prefill_speed": 1329.4220718934023,
+          "decoding_speed": 94.69398061929864,
+          "draft_n_total": 0,
+          "draft_n_accepted": 0,
+          "stop_reason": "eos"
+        },
+        "timings": {
+          "ttft": 0.459176,
+          "total": 0.6193568999879062
+        },
+        "backend": "geniex",
+        "device": "cpu",
+        "version": "0.6.1",
+        "config": {
+          "threads": 10,
+          "context": 4096,
+          "spec_type": "none",
+          "draft_tokens": 8,
+          "threads_batch": 0,
+          "ubatch": 0,
+          "n_batch": 0,
+          "plugin": "llama_cpp"
+        },
+        "elapsed_s": 0.7068811003118753,
+        "model": "qwen06",
+        "route": {
+          "reason": "measured configuration applied",
+          "model": "qwen06",
+          "mode": "fast",
+          "config": {
+            "device": "cpu",
+            "threads": 10,
+            "context": 4096
+          },
+          "evidence": {
+            "source": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\record.json",
+            "scope": {
+              "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+              "workload": {
+                "prompt_tokens": 512,
+                "gen_tokens": 128,
+                "warmup": 0,
+                "repeats": 3,
+                "temperature": 0,
+                "seed": 42,
+                "image_path": null,
+                "prompt_file": null,
+                "image_sha256": null,
+                "prompt_sha256": null
+              },
+              "power_state": "ac",
+              "power_scope": "measured",
+              "quality_calibrated": false,
+              "cold_kv": true,
+              "evidence": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\record.json",
+              "provisional": true,
+              "requires_paired_confirmation": true
+            },
+            "metrics": {
+              "decode_tps": 97.2114,
+              "prefill_tps": 1581.760326,
+              "latency_s": 1.640408,
+              "tokens_per_joule": 1.453925657721843,
+              "median_decode_tps": 97.2114,
+              "median_ttft_ms": 324.116,
+              "median_peak_mib": 1532.140625
+            }
+          }
+        },
+        "mode": "fast",
+        "tool_calls": [
+          {
+            "id": "call_4efc38c38bdd",
+            "type": "function",
+            "function": {
+              "name": "list_files",
+              "arguments": "{}"
+            }
+          }
+        ],
+        "applied": {
+          "model": "qwen06",
+          "mode": "fast",
+          "config": {
+            "device": "cpu",
+            "threads": 10,
+            "context": 4096
+          },
+          "evidence": {
+            "source": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\record.json",
+            "scope": {
+              "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+              "workload": {
+                "prompt_tokens": 512,
+                "gen_tokens": 128,
+                "warmup": 0,
+                "repeats": 3,
+                "temperature": 0,
+                "seed": 42,
+                "image_path": null,
+                "prompt_file": null,
+                "image_sha256": null,
+                "prompt_sha256": null
+              },
+              "power_state": "ac",
+              "power_scope": "measured",
+              "quality_calibrated": false,
+              "cold_kv": true,
+              "evidence": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\record.json",
+              "provisional": true,
+              "requires_paired_confirmation": true
+            },
+            "metrics": {
+              "decode_tps": 97.2114,
+              "prefill_tps": 1581.760326,
+              "latency_s": 1.640408,
+              "tokens_per_joule": 1.453925657721843,
+              "median_decode_tps": 97.2114,
+              "median_ttft_ms": 324.116,
+              "median_peak_mib": 1532.140625
+            }
+          }
+        },
+        "run_id": "4aeec2e0a92e",
+        "prompt": "List every file in the workspace.",
+        "result": [
+          {
+            "ok": true,
+            "result": {
+              "files": [
+                "README.md",
+                "docs/expense-policy.md",
+                "docs/onboarding.md",
+                "docs/vendor-contacts.md",
+                "drafts/hexagon-invoice.md",
+                "drafts/q3-summary.md",
+                "invoices/2026/INV-0142.pdf",
+                "invoices/2026/INV-0157.pdf",
+                "notes/2026-09-standup.md",
+                "notes/ideas.md",
+                "notes/parking-lot.md",
+                "todo.txt"
+              ]
+            },
+            "error": null
+          }
+        ],
+        "errors": [],
+        "verification": {
+          "passed": true,
+          "calls_match": true,
+          "final_state_match": true,
+          "execution_ok": true,
+          "task_id": "t01"
+        },
+        "passed": true,
+        "task_timing_scope": "fixture creation, profile validation, model load if cold, inference, tool execution and verification",
+        "workspace": "${QUALCOMM_TOOLS}\\turbo-e2e\\local\\demo\\4aeec2e0a92e"
+      }
+    }
+  },
+  "roundtrip_s": 0.8361279999371618
+}

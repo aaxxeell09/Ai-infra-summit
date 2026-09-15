@@ -1,0 +1,174 @@
+{
+  "text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+  "sampling": {
+    "requested_temperature": 0.0,
+    "sdk_top_k": 0,
+    "greedy_via_top_k": false,
+    "sdk_zero_temperature_uses_default": true
+  },
+  "profile": {
+    "ttft": 442235,
+    "media_time": 0,
+    "prompt_time": 442008,
+    "decode_time": 214760,
+    "prompt_tokens": 610,
+    "generated_tokens": 20,
+    "prefill_speed": 1380.0655191761234,
+    "decoding_speed": 93.12721177127956,
+    "draft_n_total": 0,
+    "draft_n_accepted": 0,
+    "stop_reason": "eos"
+  },
+  "timings": {
+    "ttft": 0.442235,
+    "total": 0.6583763998933136
+  },
+  "backend": "geniex",
+  "device": "cpu",
+  "version": "0.6.1",
+  "config": {
+    "threads": 10,
+    "context": 4096,
+    "spec_type": "none",
+    "draft_tokens": 8,
+    "threads_batch": 0,
+    "ubatch": 0,
+    "n_batch": 0,
+    "plugin": "llama_cpp"
+  },
+  "elapsed_s": 1.809419899713248,
+  "model": "qwen06",
+  "route": {
+    "reason": "measured configuration applied",
+    "model": "qwen06",
+    "mode": "fast",
+    "config": {
+      "device": "cpu",
+      "threads": 10,
+      "context": 4096
+    },
+    "evidence": {
+      "source": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\record.json",
+      "scope": {
+        "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+        "workload": {
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "warmup": 0,
+          "repeats": 3,
+          "temperature": 0,
+          "seed": 42,
+          "image_path": null,
+          "prompt_file": null,
+          "image_sha256": null,
+          "prompt_sha256": null
+        },
+        "power_state": "ac",
+        "power_scope": "measured",
+        "quality_calibrated": false,
+        "cold_kv": true,
+        "evidence": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\record.json",
+        "provisional": true,
+        "requires_paired_confirmation": true
+      },
+      "metrics": {
+        "decode_tps": 97.2114,
+        "prefill_tps": 1581.760326,
+        "latency_s": 1.640408,
+        "tokens_per_joule": 1.453925657721843,
+        "median_decode_tps": 97.2114,
+        "median_ttft_ms": 324.116,
+        "median_peak_mib": 1532.140625
+      }
+    }
+  },
+  "mode": "fast",
+  "tool_calls": [
+    {
+      "id": "call_960e6bafcc6b",
+      "type": "function",
+      "function": {
+        "name": "list_files",
+        "arguments": "{}"
+      }
+    }
+  ],
+  "applied": {
+    "model": "qwen06",
+    "mode": "fast",
+    "config": {
+      "device": "cpu",
+      "threads": 10,
+      "context": 4096
+    },
+    "evidence": {
+      "source": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\record.json",
+      "scope": {
+        "group_id": "337111222a3c69738c056787960dd1c6d9e1f1a9e4183a58eb25bd10b023f09d",
+        "workload": {
+          "prompt_tokens": 512,
+          "gen_tokens": 128,
+          "warmup": 0,
+          "repeats": 3,
+          "temperature": 0,
+          "seed": 42,
+          "image_path": null,
+          "prompt_file": null,
+          "image_sha256": null,
+          "prompt_sha256": null
+        },
+        "power_state": "ac",
+        "power_scope": "measured",
+        "quality_calibrated": false,
+        "cold_kv": true,
+        "evidence": "${QUALCOMM_TOOLS}\\turbo-e2e\\benchmarks\\results\\run-6ec931e777\\record.json",
+        "provisional": true,
+        "requires_paired_confirmation": true
+      },
+      "metrics": {
+        "decode_tps": 97.2114,
+        "prefill_tps": 1581.760326,
+        "latency_s": 1.640408,
+        "tokens_per_joule": 1.453925657721843,
+        "median_decode_tps": 97.2114,
+        "median_ttft_ms": 324.116,
+        "median_peak_mib": 1532.140625
+      }
+    }
+  },
+  "run_id": "1b656cca43c9",
+  "prompt": "List every file in the workspace.",
+  "result": [
+    {
+      "ok": true,
+      "result": {
+        "files": [
+          "README.md",
+          "docs/expense-policy.md",
+          "docs/onboarding.md",
+          "docs/vendor-contacts.md",
+          "drafts/hexagon-invoice.md",
+          "drafts/q3-summary.md",
+          "invoices/2026/INV-0142.pdf",
+          "invoices/2026/INV-0157.pdf",
+          "notes/2026-09-standup.md",
+          "notes/ideas.md",
+          "notes/parking-lot.md",
+          "todo.txt"
+        ]
+      },
+      "error": null
+    }
+  ],
+  "errors": [],
+  "verification": {
+    "passed": true,
+    "calls_match": true,
+    "final_state_match": true,
+    "execution_ok": true,
+    "task_id": "t01"
+  },
+  "passed": true,
+  "task_timing_scope": "fixture creation, profile validation, model load if cold, inference, tool execution and verification",
+  "workspace": "${QUALCOMM_TOOLS}\\turbo-e2e\\local\\demo\\1b656cca43c9"
+}

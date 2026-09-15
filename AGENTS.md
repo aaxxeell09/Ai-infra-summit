@@ -14,6 +14,7 @@ A local secretary that performs structured file operations is the demonstration 
 
 - Work autonomously and carry development through implementation, tests, real-device measurements, documentation and demo artifacts. Make routine reversible decisions without repeatedly asking permission.
 - **Commit and push to GitHub frequently.** Make small coherent checkpoints after a working change or meaningful verified milestone. Do not leave hours of completed work only in the working tree. The user explicitly authorized commits and pushes to `aaxxeell09/Ai-infra-summit` using GitHub account `Qin2Qin`.
+- **Check open GitHub PRs and fetch remote changes before each push.** Teammates own the demo and frontend design; coordinate through their branches and documented API contracts, preserve their work, and avoid parallel visual redesign. Review relevant PRs for integration issues. Do not post messages or review comments to others without explicit authorization.
 - Check current work before committing; preserve other contributors' edits. Run relevant checks and inspect the staged diff. Never commit credentials, private connection details, model weights or raw private captures.
 - Refactor aggressively when evidence shows the design is wrong. Preserve useful work in Git, and explain material changes briefly.
 - Optimize for speed of execution and credible evidence. Prefer implementation and experiments over repeatedly expanding plans.
@@ -81,3 +82,9 @@ Use the presentation skill for the requested demo deck, and visually verify ever
 - Preserve the user's power settings. A process-scoped keep-awake helper is authorized during development; it must release its request on exit and have a bounded lifetime.
 - Use relevant tests and real-device smoke checks; do not substitute unit tests for hardware execution. Stop expanding tests once the current change is adequately verified.
 - Keep README status and the public recommended configuration consistent with what actually works. A successful tool invocation is not proof that inference, telemetry or a benchmark succeeded.
+
+## Frozen correctness benchmark ownership
+
+Axel/Codex owns the golden dataset, expected outputs, runner and evaluation methodology. **secretary-eval-v2 was frozen at `ccd1e00` and explicitly confirmed by Axel. Henry subsequently designated the Qwen3-0.6B Q4_0 / GenieX 0.6.1 auto untuned reference, which is now measured and committed in `eval/results/baseline.json`. Do not re-freeze or overwrite it. A separate historical pre-optimization Secretary deployment was not established; preserve that provenance distinction.** Do not modify benchmark data without coordination. Earlier v1 references are superseded.
+
+The candidate gate allows at most a 3 percentage-point overall accuracy drop versus the agreed baseline, with no regression on critical move/clarify cases. Preserve category-level regressions. Commit every serious candidate and its evaluation results under `eval/results/`, including candidate name, actual commit/config and exact command. Small internal performance experiments do not each need the complete correctness suite. Pre-freeze diagnostic outputs remain quarantined and are not official baselines.

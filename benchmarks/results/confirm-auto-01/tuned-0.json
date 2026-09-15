@@ -1,0 +1,178 @@
+{
+  "schema_version": "4",
+  "cell_id": "tuned-0",
+  "plugin": "llama_cpp",
+  "device": "cpu",
+  "device_id": null,
+  "model_path": "<TOOLS>\\Qwen3-0.6B-Q4_0.gguf",
+  "model_size_bytes": 382156480,
+  "qairt_version": "2.45",
+  "llama_cpp_version": "0eadefe",
+  "params": {
+    "warmup": 0,
+    "repetitions": 5,
+    "n_prompt": 512,
+    "n_gen": 128,
+    "temperature": 0.0,
+    "seed": 42,
+    "n_ctx": 4096,
+    "n_threads": 10,
+    "n_gpu_layers": 0
+  },
+  "runs": [
+    {
+      "run_idx": 0,
+      "ttft_us": 355952,
+      "media_us": 0,
+      "prompt_time_us": 355557,
+      "decode_time_us": 1327548,
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "prefill_tps": 1439.99415,
+      "decode_tps": 96.418359,
+      "stop_reason": "length"
+    },
+    {
+      "run_idx": 1,
+      "ttft_us": 325478,
+      "media_us": 0,
+      "prompt_time_us": 325262,
+      "decode_time_us": 1321328,
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "prefill_tps": 1574.115636,
+      "decode_tps": 96.872238,
+      "stop_reason": "length"
+    },
+    {
+      "run_idx": 2,
+      "ttft_us": 321128,
+      "media_us": 0,
+      "prompt_time_us": 320727,
+      "decode_time_us": 1322235,
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "prefill_tps": 1596.37324,
+      "decode_tps": 96.805787,
+      "stop_reason": "length"
+    },
+    {
+      "run_idx": 3,
+      "ttft_us": 319977,
+      "media_us": 0,
+      "prompt_time_us": 319784,
+      "decode_time_us": 1318382,
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "prefill_tps": 1601.080729,
+      "decode_tps": 97.088704,
+      "stop_reason": "length"
+    },
+    {
+      "run_idx": 4,
+      "ttft_us": 326638,
+      "media_us": 0,
+      "prompt_time_us": 325897,
+      "decode_time_us": 1318339,
+      "prompt_tokens": 512,
+      "gen_tokens": 128,
+      "prefill_tps": 1571.048521,
+      "decode_tps": 97.091871,
+      "stop_reason": "length"
+    }
+  ],
+  "agg": {
+    "ttft_ms": {
+      "median": 325.478,
+      "min": 319.977,
+      "max": 355.952,
+      "mean": 329.8346,
+      "stdev": 14.86854
+    },
+    "prefill_tps": {
+      "median": 1574.115636,
+      "min": 1439.99415,
+      "max": 1601.080729,
+      "mean": 1556.522455,
+      "stdev": 66.469725
+    },
+    "decode_tps": {
+      "median": 96.872238,
+      "min": 96.418359,
+      "max": 97.091871,
+      "mean": 96.855392,
+      "stdev": 0.275726
+    },
+    "gen_tokens": {
+      "median": 128.0
+    },
+    "prompt_tokens": {
+      "median": 512.0
+    },
+    "media_ms": {
+      "median": 0.0
+    }
+  },
+  "telemetry": {
+    "peak_working_set_mb": 1531.5546875,
+    "working_set_mb": 1525.13671875,
+    "private_mb": 2696.37890625,
+    "energy_j": 417.3804619776,
+    "average_power_w": 44.28529989020144,
+    "tokens_per_joule": 1.5333731650197548,
+    "energy": {
+      "duration_s": 9.424808300100267,
+      "channels": {
+        "SYS": {
+          "energy_j": 417.3804619776,
+          "average_power_w": 44.28529989020144,
+          "tokens_per_joule": 1.5333731650197548
+        },
+        "CPU_CLUSTER_0": {
+          "energy_j": 74.261600964,
+          "average_power_w": 7.879375219038668,
+          "tokens_per_joule": 8.618182098043572
+        },
+        "CPU_CLUSTER_1": {
+          "energy_j": 81.6630922908,
+          "average_power_w": 8.664695311620418,
+          "tokens_per_joule": 7.837077706058177
+        },
+        "CPU_CLUSTER_2": {
+          "energy_j": 87.030827028,
+          "average_power_w": 9.234227822657584,
+          "tokens_per_joule": 7.35371616995086
+        }
+      },
+      "unit": "picowatt-hours",
+      "scope": "full process trial including model initialization and any warmup",
+      "error": null
+    },
+    "energy_before": {
+      "monotonic_s": 2414321.2237529,
+      "channels_pwh": {
+        "SYS": 50314683608148,
+        "GPU": 115784774035,
+        "CPU_CLUSTER_0": 12082178564839,
+        "CPU_CLUSTER_1": 2800211058798,
+        "CPU_CLUSTER_2": 2107660689710
+      },
+      "error": null
+    },
+    "energy_after": {
+      "monotonic_s": 2414330.6485612,
+      "channels_pwh": {
+        "SYS": 50430622625364,
+        "GPU": 115784774035,
+        "CPU_CLUSTER_0": 12102806787329,
+        "CPU_CLUSTER_1": 2822895251101,
+        "CPU_CLUSTER_2": 2131835919440
+      },
+      "error": null
+    },
+    "energy_channel": "SYS",
+    "sys_delta_valid": true,
+    "memory_scope": "benchmark process peak working set",
+    "tokens_per_joule_reason": "full-trial energy including load; all generated tokens"
+  }
+}
