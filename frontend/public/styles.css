@@ -61,8 +61,8 @@
 .response-text{padding:24px 26px 30px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:16px;line-height:1.8;min-height:190px;flex:1}
 .answer-placeholder{display:block;color:#8490a1;font-size:14px;padding-top:4px}
 .response-text.writing:after{content:'';display:inline-block;height:16px;width:2px;background:var(--blue);margin-left:3px;vertical-align:middle;animation:cursor-pulse .7s steps(2,start) infinite}
-.routing-note{border-top:1px solid var(--line);padding:14px 26px;display:flex;gap:14px;align-items:baseline;background:#fbfcfe}
-.routing-note>span{font-size:11px;font-weight:600;color:var(--blue);white-space:nowrap}.routing-note p{font-size:12px;line-height:1.6;color:var(--muted)}
+
+
 .demo-secondary{display:flex;justify-content:flex-end;margin-top:16px}
 .comparison-info{padding:0;border:0;border-radius:0;margin:0;max-width:580px}
 .comparison-info summary{font-size:12px;color:var(--muted);padding:10px 0;min-height:40px;text-align:right}
@@ -71,7 +71,7 @@
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @keyframes cursor-pulse{to{opacity:0}}
 @media(max-width:850px){.comparison-demo{padding:28px 0}.demo-heading h1{font-size:29px}.prompt-composer{padding:20px;gap:14px 20px}.prompt-copy{font-size:17px}.response-header{padding:21px 20px 0}.response-text{padding:20px;min-height:190px;font-size:15px}.response-header>p{font-size:11px}.run-comparison{min-width:115px}}
-@media(max-width:600px){.demo-heading{align-items:flex-start;flex-direction:column;gap:16px;margin-bottom:20px}.demo-heading h1{font-size:29px}.comparison-switch{width:100%}.comparison-switch button{flex:1;min-height:44px}.prompt-composer{grid-template-columns:1fr;padding:18px;gap:16px}.prompt-controls{grid-column:auto}.prompt-controls select{min-height:44px;max-width:200px}.prompt-copy{font-size:17px}.run-comparison{justify-self:stretch;min-height:48px}.response-grid{grid-template-columns:1fr}.response-column+.response-column{border-left:0;border-top:1px solid var(--line)}.response-header{padding:20px 18px 0}.response-text{padding:20px 18px;min-height:160px;font-size:15px}.response-header>p{font-size:12px}.routing-note{padding:14px 18px;gap:8px;align-items:flex-start;flex-direction:column}.demo-secondary{justify-content:flex-start}.comparison-info summary{text-align:left}}
+@media(max-width:600px){.demo-heading{align-items:flex-start;flex-direction:column;gap:16px;margin-bottom:20px}.demo-heading h1{font-size:29px}.comparison-switch{width:100%}.comparison-switch button{flex:1;min-height:44px}.prompt-composer{grid-template-columns:1fr;padding:18px;gap:16px}.prompt-controls{grid-column:auto}.prompt-controls select{min-height:44px;max-width:200px}.prompt-copy{font-size:17px}.run-comparison{justify-self:stretch;min-height:48px}.response-grid{grid-template-columns:1fr}.response-column+.response-column{border-left:0;border-top:1px solid var(--line)}.response-header{padding:20px 18px 0}.response-text{padding:20px 18px;min-height:160px;font-size:15px}.response-header>p{font-size:12px}.demo-secondary{justify-content:flex-start}.comparison-info summary{text-align:left}}
 
 /* The example picker and per-answer clocks belong to the comparison surface. */
 .prompt-label{font-size:13px;font-weight:600}

@@ -130,7 +130,6 @@ function demoScreen() {
         <button class="button primary run-comparison" data-action="${busy ? 'reset-demo' : 'run-demo'}" ${setupError ? 'disabled' : ''}>${busy ? '<span aria-hidden="true">■</span> Stop' : state.result ? '↻ Replay' : 'Run preview <span aria-hidden="true">→</span>'}</button>
       </div>
       <div class="response-grid">${lanes}</div>
-      ${state.comparison === 'routing' ? `<div class="routing-note"><span>Example route</span><p>${esc(scenario.reason)}</p></div>` : ''}
     </div>
     ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
     <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>These are scripted answers at the same animation pace. Each clock measures only its answer animation, excluding the wait for the other answer. No inference speed or answer quality is measured. Live trials will run one at a time to avoid competing for resources.</p></div></details></div>

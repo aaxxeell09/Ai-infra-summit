@@ -17,7 +17,7 @@ These are general interaction principles adapted to this comparison tool, not a 
 1. Compact title and comparison-mode switch.
 2. Shared prompt and one primary action: Run preview → Stop while running → Replay after completion.
 3. Equal answer columns in one surface. One model/configuration line per column; transient status occupies the same aligned header position.
-4. A short illustrative route reason appears only in routing mode.
+4. Model identity stays beside its answer; the redundant route explanation is omitted.
 5. Method and preview limitations are available in a disclosure. No unavailable metric grid, duplicate back navigation, or permanent reset button.
 
 The machine screen and its graphic are outside this edit. Actual token throughput, live model choice and answer grading remain unimplemented in this preview.

@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "product": "Local Turbo",
   "purpose": "Compare recorded local inference configurations, then demonstrate one prompt answered by a default setup and Local Turbo. Speed tuning and model routing are separate experiments.",
   "visual_system": {
@@ -7,7 +7,7 @@
     "surface": "#ffffff",
     "text": "#171b25",
     "accent": "#1557ff",
-    "typography": "local system sans serif; monospace for metrics",
+    "typography": "locally bundled Manrope for the wordmark; local system sans serif for UI; monospace for metrics",
     "motion": "screen entrance, chart reveal, file arrival; respects reduced motion",
     "navigation": "one persistent three-step navigation; no secondary sidebar"
   },
@@ -111,7 +111,7 @@
         "live_connected": false,
         "contract": "comparison-contract.md"
       },
-      "layout": "Prompt spans both answer columns. Equal-width answer columns share one surface and a single divider; stack on mobile. Route rationale is a compact footer only in routing mode.",
+      "layout": "Prompt spans both answer columns. Equal-width answer columns share one surface and a single divider; stack on mobile. Model identity stays beside its answer; omit the redundant route explanation.",
       "progressive_disclosure": "Keep the preview badge visible. Hide method, simulation details and calibration caveats under How this comparison works. Do not display empty metric rows.",
       "research": [
         "https://www.nngroup.com/articles/progressive-disclosure/",
