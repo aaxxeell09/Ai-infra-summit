@@ -11,9 +11,13 @@ import json
 import platform
 import random
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from turbo.telemetry import EnergyMeter, ProcessMemory, energy_delta
 
 
 def sha256(path):
@@ -30,6 +34,7 @@ def main():
     p.add_argument("--model", required=True)
     p.add_argument("--output", required=True)
     p.add_argument("--repeats", type=int, default=3)
+    p.add_argument("--warmup", type=int, default=1)
     p.add_argument("--timeout", type=int, default=240)
     p.add_argument("--phase", choices=["screen", "confirm", "spec"], default="screen")
     p.add_argument("--winner-device", default="cpu")
@@ -70,7 +75,7 @@ def main():
         target = out / (name + ".json")
         cmd = [str(exe), "--plugin", "llama_cpp", "--device", device,
                "-m", str(model), "-p", "512", "-n", "128", "-c", "4096",
-               "-t", str(threads), "-r", str(a.repeats), "--warmup", "1",
+               "-t", str(threads), "-r", str(a.repeats), "--warmup", str(a.warmup),
                "--temperature", "0", "--seed", "42", "--cell-id", name,
                "--output-json", str(target)]
         if a.prompt_file:
@@ -79,20 +84,46 @@ def main():
             cmd += ["--spec-type", spec, "--draft-tokens", "8"]
         row = {"id": name, "command": cmd, "started_at": datetime.now(timezone.utc).isoformat()}
         start = time.perf_counter()
+        meter = EnergyMeter()
+        energy_before = meter.sample()
+        memory_peak = None
         with (out / (name + ".log")).open("w", encoding="utf-8") as log:
             try:
-                result = subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT,
-                                        cwd=exe.parent, timeout=a.timeout)
-                row["exit_code"] = result.returncode
-                row["status"] = "completed" if result.returncode == 0 and target.exists() else "failed"
-            except subprocess.TimeoutExpired:
-                row.update(status="timeout", exit_code=None)
+                process = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, cwd=exe.parent)
+                memory = ProcessMemory(process.pid)
+                while process.poll() is None:
+                    sample = memory.sample()
+                    if sample and (memory_peak is None or sample['peak_working_set_mb'] > memory_peak['peak_working_set_mb']):
+                        memory_peak = sample
+                    if time.perf_counter() - start > a.timeout:
+                        process.kill()
+                        process.wait()
+                        row.update(status="timeout", exit_code=None)
+                        break
+                    time.sleep(0.05)
+                memory.close()
+                if 'status' not in row:
+                    row["exit_code"] = process.returncode
+                    row["status"] = "completed" if process.returncode == 0 and target.exists() else "failed"
+            except OSError as exc:
+                row.update(status="failed", error=str(exc), exit_code=None)
+        energy_after = meter.sample()
+        meter.close()
         row["wall_s"] = time.perf_counter() - start
         if target.exists():
             result = json.loads(target.read_text(encoding="utf-8-sig"))
             row["agg"] = result.get("agg")
             row["device_id"] = result.get("device_id")
             row["complete_length_runs"] = sum(r.get("gen_tokens") == 128 for r in result.get("runs", []))
+            total_tokens = sum(r.get('gen_tokens', 0) for r in result.get('runs', []))
+            energy = energy_delta(energy_before, energy_after, total_tokens if a.warmup == 0 else None)
+            sys_energy = energy['channels'].get('SYS', {})
+            result['telemetry'] = {**(memory_peak or {}), **sys_energy,
+                'energy': energy, 'energy_before': energy_before, 'energy_after': energy_after,
+                'energy_channel': 'SYS', 'memory_scope': 'benchmark process peak working set',
+                'tokens_per_joule_reason': 'full-trial energy including load; all generated tokens' if a.warmup == 0 else 'unavailable: warmup tokens absent from report'}
+            target.write_text(json.dumps(result, indent=2), encoding='utf-8')
+            row['telemetry'] = result['telemetry']
         record["cells"].append(row)
         (out / "sweep.json").write_text(json.dumps(record, indent=2), encoding="utf-8")
         print(json.dumps(row), flush=True)
