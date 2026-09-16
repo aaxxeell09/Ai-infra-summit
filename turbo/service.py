@@ -382,6 +382,8 @@ class Engine:
 
 
 def handler(engine):
+    from .live_comparison import LiveComparisons
+    comparisons = LiveComparisons(engine)
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
             pass
@@ -396,6 +398,13 @@ def handler(engine):
             self.wfile.write(data)
 
         def do_GET(self):
+            if self.path == '/api/live-comparisons/capabilities':
+                return self.send_json(comparisons.capabilities())
+            if self.path.startswith('/api/live-comparisons/'):
+                try:
+                    return self.send_json(comparisons.snapshot(self.path.rsplit('/', 1)[-1]))
+                except KeyError:
+                    return self.send_json({'error': 'Unknown live comparison'}, 404)
             if self.path == '/api/modes':
                 return self.send_json(engine.modes())
             if self.path == '/api/status':
@@ -430,6 +439,10 @@ def handler(engine):
                 body = json.loads(self.rfile.read(size))
                 if not isinstance(body, dict):
                     raise ValueError('Request must be an object')
+                if self.path == '/api/live-comparisons':
+                    return self.send_json(comparisons.start(body), 202)
+                if self.path.startswith('/api/live-comparisons/') and self.path.endswith('/cancel'):
+                    return self.send_json(comparisons.cancel(self.path.split('/')[-2]))
                 if self.path == '/api/apply':
                     return self.send_json(engine.apply(body.get('mode', 'fast'), body.get('model_id')))
                 if self.path == '/api/tune':
