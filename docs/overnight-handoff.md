@@ -5,6 +5,32 @@ Save results and a morning handoff at the cutoff. Scheduled hourly continuation
 is installed in the current task, ending at the cutoff. Pause that automation
 when producing the final morning handoff.
 
+## 15:22 UTC scheduled checkpoint — timeout evidence hardened
+
+- Bounded SSH attempt at 15:22 UTC timed out; no further device probes or jobs
+  were launched this wake. Local Tailscale reports Running, self online, no
+  health errors, and the Latitude peer online/active. These status flags did
+  not establish SSH reachability. Windows App showed the saved-device list,
+  with no usable remote desktop visible; no fresh connection was attempted.
+  Private Tailscale status is retained under `local/tailscale-status-1526.json`.
+- Pushed `e901bfa`: the integration script preserves partial stdout/stderr bytes
+  on feedback-MCP timeout, preserves launch failures and malformed replies, and
+  validates JSON-RPC identities/result envelopes before accepting responses.
+  Ten new tests plus ten existing binding tests pass. Leakage audit remains
+  PASS_WITH_DISCLOSED_EXPOSURE with no new source matches/integrity errors/exposure.
+  This does not alter the already queued Latitude run or any frozen semantics;
+  it adds no new inference, quality or speed evidence.
+- PR1 remains `204a9fb`. Teammate TurboLab branch is now `e4b30e1`; not merged.
+  One fresh Flash/medium read-only reviewer is active: Mill,
+  `01a0aad0-3643-7a82-a385-65dfd59c7778`, reviewing hardware queue/budget/timeout
+  behavior in that commit. It has no hardware or write authority. Review its
+  concrete findings against source before treating them as blockers; do not
+  merge this large branch during the final checkpoint without verification.
+- At the 16:00 UTC cutoff, start no experiment. Try one bounded recovery check,
+  preserve any retrievable pending bound-MCP result and verify restoration if
+  reachable. If unreachable, report remote cleanup/result status as unknown.
+  Finish/stop only owned bounded local jobs and pause the heartbeat automation.
+
 ## 15:00 UTC checkpoint — narrow demo packaged, remote still unavailable
 
 - Latest SSH checks at 14:56 and 14:58 UTC timed out. No new hardware jobs
