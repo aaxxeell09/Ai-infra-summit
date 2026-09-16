@@ -1,0 +1,53 @@
+{
+  "scope": "Public browser rehearsal; not frozen Secretary evaluation",
+  "results": [
+    {
+      "file": "493311a7-1ec1-423c-8559-570e89740ac9.json",
+      "sha256": "b742d761cb4b424191fa9c59fe9d1077ef18620683592e5d7ddbd9057f79aae0",
+      "source_commit": "b12a36b4be844da441f63e12e8eede5c59754e43",
+      "state": "completed",
+      "route": "qwen4b-cpu",
+      "generation_policy": "original-128-token-demo"
+    },
+    {
+      "file": "da6ce7a4-f71e-45d0-b56e-ef07555c2ccc.json",
+      "sha256": "657b4a884817ef7f21e08c0dd71a8d50e139e69ee0dc0ca061cfeb8f03b5277f",
+      "source_commit": "b12a36b4be844da441f63e12e8eede5c59754e43",
+      "state": "completed",
+      "route": "qwen06-qairt",
+      "generation_policy": "original-128-token-demo"
+    },
+    {
+      "file": "535f2327-81d5-4c0e-bd61-16aba6881a78.json",
+      "sha256": "4d309c8535f309487bc404ae3e04ab2fb46ec317e53b6921fe9768d2f333eebb",
+      "source_commit": "b12a36b4be844da441f63e12e8eede5c59754e43",
+      "state": "completed",
+      "route": "qwen06-qairt",
+      "generation_policy": "original-128-token-demo"
+    },
+    {
+      "file": "525461bd-2ea4-4ca9-8b5c-c58f43759366.json",
+      "sha256": "a6f61b840917b0a34e869484d2d24a73c9dc009911bec79505d701e187f012b5",
+      "source_commit": "b12a36b4be844da441f63e12e8eede5c59754e43",
+      "state": "cancelled",
+      "route": "qwen06-qairt",
+      "generation_policy": "original-128-token-demo"
+    },
+    {
+      "file": "9f9c35d5-ab61-4ce3-8ca2-fe6a739ee984.json",
+      "sha256": "00d20a88f59c14b64b19a379f223b71b12ee14771c869d980572281eaa0fdc82",
+      "source_commit": "c0a01f1694f0864143263159b3c9e12c914a8eea",
+      "state": "completed",
+      "route": "qwen06-qairt",
+      "generation_policy": "concise-public-demo-v2"
+    },
+    {
+      "file": "cee46e9c-81ed-465c-b972-60a9e6b5d281.json",
+      "sha256": "35385663fb6f66dd023dcdc0620f4a6f7f5aa71ba524f3d92424598703b3c19b",
+      "source_commit": "c0a01f1694f0864143263159b3c9e12c914a8eea",
+      "state": "completed",
+      "route": "qwen4b-cpu",
+      "generation_policy": "concise-public-demo-v2"
+    }
+  ]
+}
