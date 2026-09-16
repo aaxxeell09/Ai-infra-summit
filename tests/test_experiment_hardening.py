@@ -219,10 +219,11 @@ def test_sampling_observations_preserved_without_guessing_effective_defaults():
     assert observed['total_rows']==2 and observed['rows_with_sampling']==1
 
 
-@pytest.mark.parametrize('forged', [None,'model_sha256','evaluator_sha256','task_latency_ms','warm_task_latency_ms'])
+@pytest.mark.parametrize('forged', [None,'model_sha256','evaluator_sha256','task_latency_ms','warm_task_latency_ms','protocol_version'])
 def test_run_qualification_checks_captured_identity(tmp_path,monkeypatch,forged):
     import eval.report_validation as validation
     from eval.scoring import load_dataset
+    from eval.run_secretary_eval import PROTOCOL
     config=setup_run(tmp_path,monkeypatch)
     model=tmp_path/'model.gguf';model.write_bytes(b'synthetic model only')
     sdk=tmp_path/'sdk';sdk.mkdir();(sdk/'geniex.dll').write_bytes(b'synthetic library only')
@@ -240,6 +241,7 @@ def test_run_qualification_checks_captured_identity(tmp_path,monkeypatch,forged)
         def wait(self,timeout):
             out=Path(self.command[self.command.index('--output-dir')+1]);out.mkdir()
             result={**identities,'schema_version':2,'status':'measured','git_commit':'abc','dirty':False,
+                    'protocol_version':PROTOCOL,
                     'config_sha256':e.digest(settings),'dataset_sha256':e.digest(cases),
                     'results':[{'id':c['id'],'case_sha256':e.digest(c),'task_success':True,
                                 'invalid_output':False,'task_latency_ms':1} for c in cases]}

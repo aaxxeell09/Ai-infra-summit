@@ -579,16 +579,28 @@ marked comparable anywhere.
 
 ## 38. Safe fixes performed
 
-See the commit log for this branch. Each fix has a regression test that fails without it.
+Six fixes, all in `turbo/experiments.py`, with `tests/test_tracking_audit_regression.py`
+(33 tests) reproducing each finding. They are delivered as one commit because they touch
+the same module and splitting them would have published intermediate states that do not
+pass their own tests; every finding ID, its fix and its test are named below.
 
-1. `test: reproduce telemetry mispairing during historical import` +
-   `fix: bind telemetry identity to its result during import` (TRK-001)
-2. `test: reproduce concurrent tracker runs on one machine` +
-   `fix: serialise supervised experiment execution` (TRK-002)
-3. `fix: compare every frozen benchmark hash and the protocol version` (TRK-004)
-4. `fix: neutralise spreadsheet formulas in the CSV ledger export` (TRK-007)
-5. `fix: fsync archive directories after atomic replace and seal` (TRK-008)
-6. `fix: report the actual reason for an invalid counter resolution` (TRK-010)
+| Finding | Change | Regression test |
+|---|---|---|
+| TRK-001 | `telemetry_identity` / `telemetry_binding`; `backfill` refuses telemetry that names a different candidate than the result, or than the source file it was offered as a companion of; the manifest records `telemetry_binding` | `test_backfill_refuses_mismatched_telemetry_identity`, `test_backfill_refuses_foreign_telemetry_when_the_result_names_nothing`, `test_backfill_accepts_and_records_matching_telemetry_identity`, `test_backfill_accepts_companion_matching_the_source_label`, `test_backfill_marks_legacy_telemetry_binding_unverified`, `test_telemetry_identity_reads_recorded_child_argv` |
+| TRK-002 | `run` holds an exclusive `hardware-execution` lock for the whole supervised execution, acquired before `reserve` so a refused run allocates no EXP ID; new `execution_lock_timeout`; the CLI reports `TimeoutError` cleanly | `test_second_concurrent_run_is_refused`, `test_run_releases_the_execution_lock` |
+| TRK-004 | `frozen_provenance_errors` compares `inventory_sha256` and the runner `PROTOCOL` in addition to the previous four keys | `test_wrong_inventory_hash_blocks_qualification`, `test_wrong_protocol_version_blocks_qualification`, plus a new `protocol_version` case in the existing `test_run_qualification_checks_captured_identity` matrix |
+| TRK-007 | `csv_safe` prefixes formula-leading cells in the CSV export only; row objects, JSON and Markdown keep the raw text | `test_csv_ledger_neutralises_formula_prefix`, `test_csv_formula_prefixes_are_neutralised`, `test_csv_safe_leaves_ordinary_values_untouched` |
+| TRK-008 | `fsync_directory` after `os.replace` in `atomic` and after writing the checksum manifest in `seal`, tolerating platforms that refuse it | `test_atomic_and_seal_fsync_parent_directory`, `test_atomic_survives_a_platform_that_refuses_directory_fsync` |
+| TRK-010 | an invalid declared counter resolution now reports `Invalid declared counter resolution` | `test_invalid_counter_resolution_reports_its_real_reason`, `test_short_block_still_reports_the_interval_reason`, `test_valid_resolution_still_accepts_a_long_block` |
+
+False-negative check: `backfill-known` over the real `eval/results/` tree imports all 20
+historical reports with zero integrity failures. Seven are classified
+`declared_identity_match`, nine `unverified_filename_only` (legacy telemetry that declares
+no identity), three `no_telemetry`, one probe. No previously importable report is refused.
+
+Suite after the fixes: 737 passed, 1 skipped, 17 subtests. Frozen dataset validation and
+the leakage audit both exit 0. Every file under `eval/` and `benchmarks/` is byte-identical
+to its Phase 0 hash.
 
 ## 39. Owner decisions required
 

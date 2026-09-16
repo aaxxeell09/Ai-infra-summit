@@ -59,6 +59,17 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
+def fsync_directory(path):
+    """Persist a directory entry after replace/create; platforms may refuse it."""
+    try:
+        handle=os.open(str(path), getattr(os,'O_DIRECTORY',0) or os.O_RDONLY)
+    except OSError:
+        return
+    try: os.fsync(handle)
+    except OSError: pass
+    finally: os.close(handle)
+
+
 def atomic(path, data):
     """Atomic replacement for an active manifest or rebuildable index only."""
     path = Path(path)
@@ -70,6 +81,7 @@ def atomic(path, data):
             f.flush()
             os.fsync(f.fileno())
         os.replace(temporary, path)
+        fsync_directory(path.parent)
     finally:
         if os.path.exists(temporary): os.unlink(temporary)
 
@@ -139,8 +151,11 @@ def block_energy(telemetry):
         if declared is not None and (not finite(declared) or not math.isclose(declared,joules,rel_tol=1e-7)):
             return None, scope, 'Counter energy mismatch'
         resolution = telemetry.get('declared_counter_resolution_s')
-        if resolution is not None and (not finite(resolution) or resolution <= 0 or dt < 10*resolution):
-            return None, scope, 'Block shorter than ten declared counter intervals'
+        if resolution is not None:
+            if not finite(resolution) or resolution <= 0:
+                return None, scope, 'Invalid declared counter resolution'
+            if dt < 10*resolution:
+                return None, scope, 'Block shorter than ten declared counter intervals'
         if not finite(joules): return None, scope, 'Nonfinite energy'
         return joules, scope, None
     except (KeyError, TypeError): return None, scope, 'Malformed raw counters'
@@ -293,6 +308,7 @@ def seal(path):
         if p.is_file(): lines.append(sha(p)+'  '+p.relative_to(path).as_posix())
     with (path/'artifact-hashes.sha256').open('x',encoding='utf-8',newline='\n') as f:
         f.write('\n'.join(lines)+'\n');f.flush();os.fsync(f.fileno())
+    fsync_directory(path)
 
 
 def verify(path):
@@ -425,6 +441,29 @@ def runner_identity_errors(report, captured):
     return errors
 
 
+FROZEN_PROVENANCE = ('benchmark_version','fixture_sha256','inventory_sha256',
+                     'action_schema_sha256','system_prompt_sha256')
+
+
+def frozen_provenance_errors(report, frozen):
+    """Compare every frozen hash the report carries, plus the runner protocol version.
+
+    dataset_sha256 is deliberately excluded: it is checked against the selected
+    split, because the frozen manifest hash covers all fifty cases.
+    """
+    errors=[]
+    for key in FROZEN_PROVENANCE:
+        if report.get(key)!=frozen.get(key): errors.append('Frozen provenance mismatch: '+key)
+    try:
+        from eval.run_secretary_eval import PROTOCOL
+    except ImportError:
+        errors.append('Runner protocol version unavailable')
+    else:
+        if report.get('protocol_version')!=PROTOCOL:
+            errors.append('Frozen provenance mismatch: protocol_version')
+    return errors
+
+
 def report_metadata(report):
     keys=('git_commit','branch','dirty','benchmark_version','protocol_version','dataset_sha256',
           'fixture_sha256','inventory_sha256','action_schema_sha256','system_prompt_sha256',
@@ -437,12 +476,53 @@ def report_metadata(report):
     return data
 
 
+def telemetry_identity(telemetry):
+    """Candidate this telemetry says it observed, or None when it declares nothing."""
+    if not isinstance(telemetry,dict): return None
+    declared=telemetry.get('candidate_name')
+    if isinstance(declared,str) and declared.strip(): return declared.strip()
+    command=telemetry.get('command')
+    if isinstance(command,list) and '--candidate-name' in command:
+        index=command.index('--candidate-name')+1
+        if index<len(command) and isinstance(command[index],str) and command[index].strip():
+            return command[index].strip()
+    return None
+
+
+def telemetry_binding(report, telemetry, source_label=None):
+    """Pair telemetry with its result by declared identity, never by filename alone.
+
+    Returns (label, errors). Telemetry that names a different candidate than the
+    result, or than the source file it was selected as a companion of, is refused.
+    Legacy telemetry declaring no identity is imported as explicitly unverified.
+    """
+    if telemetry is None: return 'no_telemetry',[]
+    observed=telemetry_identity(telemetry)
+    if observed is None: return 'unverified_filename_only',[]
+    expected=report.get('candidate_name') if isinstance(report,dict) else None
+    expected=expected.strip() if isinstance(expected,str) and expected.strip() else None
+    if expected is not None:
+        if observed!=expected:
+            return 'contradicted',['Telemetry observed candidate '+repr(observed)
+                                   +' but the result records '+repr(expected)]
+        return 'declared_identity_match',[]
+    if isinstance(source_label,str) and source_label.strip():
+        if observed!=source_label.strip():
+            return 'contradicted',['Telemetry observed candidate '+repr(observed)
+                                   +' but was offered as a companion of '+repr(source_label.strip())]
+        return 'source_label_match',[]
+    return 'unverified_result_declares_no_candidate',[]
+
+
 def backfill(source, root=DEFAULT_ARCHIVES, telemetry_path=None):
     source=Path(source).resolve();raw=source.read_bytes();report=parse_json(raw)
     probe=isinstance(report,dict) and report.get('kind')=='counter_update_probe'
     if not probe: rows_of(report)
     telemetry_raw=Path(telemetry_path).read_bytes() if telemetry_path else None
     telemetry=parse_json(telemetry_raw) if telemetry_raw is not None else None
+    if not probe:
+        errors=telemetry_binding(report,telemetry,source.stem.removeprefix('candidate_'))[1]
+        if errors: raise ValueError('; '.join(errors))
     with archive_lock(root,'backfill'):
         return _backfill(source,root,telemetry_path,raw,report,probe,telemetry_raw,telemetry)
 
@@ -459,6 +539,8 @@ def _backfill(source, root, telemetry_path, raw, report, probe, telemetry_raw, t
     slug=re.sub('[^A-Za-z0-9_-]','-',source.stem)[:85].strip('-') or 'historical'
     path=reserve(root,slug)
     meta={**report_metadata(report),'source_fingerprint':fingerprint,'source_path':str(source),
+          'telemetry_binding':('counter_probe' if probe else
+                               telemetry_binding(report,telemetry,source.stem.removeprefix('candidate_'))[0]),
           'qualification_status':'historical_diagnostic','hypothesis':'NOT_RECORDED',
           'change':'Historical copy; original artifacts unchanged','command':report.get('run_command') or report.get('command'),
           'control_experiment':None,'git_status':None,'git_diff':None}
@@ -478,6 +560,13 @@ def _backfill(source, root, telemetry_path, raw, report, probe, telemetry_raw, t
     finish(path,meta,None if probe else report,telemetry,'historical_diagnostic',
            ['Historical values were not reconstructed from current machine state.']+(['Energy counter probe, no task KPI'] if probe else []))
     return path
+
+
+def csv_safe(value):
+    """Neutralise spreadsheet formulas in the CSV export only; rows keep raw text."""
+    if isinstance(value,str) and value[:1] in ('=','+','-','@','\t','\r'):
+        return "'"+value
+    return value
 
 
 def ledger(root):
@@ -509,7 +598,8 @@ def _ledger(root):
                      'model':m.get('model'),'change':m.get('change'),'git_commit':m.get('git_commit'),'dirty':m.get('dirty'),
                      'status':'incomplete' if errors and not (path/'artifact-hashes.sha256').exists() else 'integrity_failure' if errors else m.get('status','unknown'),
                      'qualification':'unqualified_integrity_failure' if errors else m.get('qualification_status'),'notes':'; '.join(map(str,errors+notes))})
-    stream=io.StringIO(newline='');writer=csv.DictWriter(stream,fieldnames=fields);writer.writeheader();writer.writerows(rows)
+    stream=io.StringIO(newline='');writer=csv.DictWriter(stream,fieldnames=fields);writer.writeheader()
+    writer.writerows([{k:csv_safe(v) for k,v in row.items()} for row in rows])
     atomic(root/'EXPERIMENT_LEDGER.csv',stream.getvalue())
     md=['# Experiment ledger','','SUCCESS / LATENCY / ENERGY. UNKNOWN is not zero. No overall winner.',
         'Task latency uses the recorded boundary; inference-only results do not supply E2E.','',
@@ -562,8 +652,13 @@ def capture_block(meter,before,power_before,resolution):
 
 def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', change, hypothesis,
         control=None, diagnostic_dirty=False, timeout=600, command_override=None, capture_energy=False,
-        counter_resolution=None):
-    """Bounded child supervisor. Exit2 from evaluator is a recorded quality outcome."""
+        counter_resolution=None, execution_lock_timeout=30):
+    """Bounded child supervisor. Exit2 from evaluator is a recorded quality outcome.
+
+    One supervised measurement at a time per archive root: overlapping runs would
+    contend for CPU, NPU and memory bandwidth while both archives still recorded
+    clean provenance, so a second concurrent run is refused rather than measured.
+    """
     root=Path(root).resolve();repo=Path(repo).resolve()
     if dataset not in ('dev','all'):raise ValueError('Only dev or explicitly requested all milestones')
     if not change.strip() or not hypothesis.strip():raise ValueError('change and hypothesis required')
@@ -597,89 +692,92 @@ def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', c
     pre={key:artifact_identity(value) for key,value in [('model',model),('sdk',sdk)] if value}
     runner_before=captured_runner_identity(repo,model,pre)
     if command_override is None and (not model or not sdk):raise ValueError('Configured local model and SDK required')
-    path=reserve(root,name);out=path/'runner-output'
-    command=command_override or [sys.executable,'-X','utf8',str(Path(repo)/'eval/run_secretary_eval.py'),
-               '--dataset',dataset,'--candidate-name',path.name.split('_')[0],
-               '--config',str(path/'config.json'),'--output-dir',str(out)]
-    metadata=initialize(path,{**state,'timestamp':now(),'change':change,'hypothesis':hypothesis,
-                 'control_experiment':control,'dataset':dataset,'benchmark':frozen,'command':command,
-                 'execution_cwd':str(repo),'resolved_artifact_paths':{'model_path':str(model) if model else None,'sdk_dir':str(sdk) if sdk else None},
-                 'qualification_status':'diagnostic_dirty' if state['dirty'] else 'pending_validation',
-                 'environment':capture_environment(),'artifact_identity_before':pre,
-                 'runner_identity_before':runner_before,'case_set_complete':False,
-                 'config_sha256':digest(config)},config_raw)
-    meter=None;before=None;telemetry=None;status='failed';result=None;notes=[];exit_code=None;child=None;power_before=None
-    try:
-        if capture_energy:
-            from turbo.telemetry import EnergyMeter,power_snapshot
-            meter=EnergyMeter();power_before=power_snapshot();before=meter.sample()
-        with (path/'stdout.log').open('xb') as stdout,(path/'stderr.log').open('xb') as stderr:
-            child=subprocess.Popen(command,cwd=repo,stdout=stdout,stderr=stderr,
-                                   **({'creationflags':subprocess.CREATE_NEW_PROCESS_GROUP} if os.name=='nt' else {'start_new_session':True}))
-            metadata['child_pid']=child.pid;write_json(path/'manifest.json',metadata)
-            try:exit_code=child.wait(timeout=timeout)
-            except subprocess.TimeoutExpired:
-                notes.extend(stop_child(child));status='timeout';notes.append('Child deadline exceeded; retained partial evidence')
-        if meter: telemetry=capture_block(meter,before,power_before,counter_resolution)
-        candidates=list(out.glob('candidate_*.json')) if out.exists() else []
-        if len(candidates)==1:
-            (path/'result.json').write_bytes(candidates[0].read_bytes());result=read_json(path/'result.json');rows_of(result)
-        if status!='timeout':
-            status='completed_diagnostic' if result and exit_code in (0,2) else 'failed'
-        after_state=git_state(repo)
-        post={key:artifact_identity(value) for key,value in [('model',model),('sdk',sdk)] if value}
-        runner_after=captured_runner_identity(repo,model,post)
-        metadata.update(runner_identity_after=runner_after,runner_sources_changed=runner_before!=runner_after,artifact_identity_after=post,artifact_changed_during_run=pre!=post,
-                        source_changed_during_run=after_state!=state,child_exit_code=exit_code)
-        if result:
-            observed=report_metadata(result)
-            metadata.update({k:v for k,v in observed.items() if k not in ('git_commit','branch','dirty','environment','config_sha256')})
-            reasons=[]
-            if command_override is not None: reasons.append('Custom command is diagnostic only')
-            from eval.scoring import load_dataset
-            files=[Path(repo)/'eval/datasets/secretary_dev.json']
-            if dataset=='all': files.append(Path(repo)/'eval/datasets/secretary_heldout.json')
-            expected_cases=load_dataset(files)
-            expected_map={c['id']:digest(c) for c in expected_cases}
-            actual_map={r.get('id'):r.get('case_sha256') for r in result['results']}
-            metadata['case_set_complete']=actual_map==expected_map and len(actual_map)==len(result['results'])
-            if not metadata['case_set_complete']: reasons.append('Case IDs/hashes differ from selected frozen dataset')
-            if result.get('schema_version')!=2 or result.get('status')!='measured': reasons.append('Runner result is not a measured v2 report')
-            for key in ('benchmark_version','fixture_sha256','action_schema_sha256','system_prompt_sha256'):
-                if result.get(key)!=frozen.get(key): reasons.append('Frozen provenance mismatch: '+key)
-            if result.get('dataset_sha256')!=digest(expected_cases): reasons.append('Dataset hash mismatch')
-            if not all(finite(row.get('task_latency_ms')) for row in result['results']):
-                reasons.append('Incomplete/nonfinite/negative task_latency_ms; task timing cannot qualify')
-            if any('warm_task_latency_ms' in row for row in result['results']) and not all(
-                    finite(row.get('warm_task_latency_ms')) for row in result['results']):
-                reasons.append('Incomplete/nonfinite/negative warm_task_latency_ms; warm timing cannot qualify')
-            reasons+=runner_identity_errors(result,runner_before)
-            if runner_before!=runner_after: reasons.append('Runner source bytes changed during run')
-            try:
-                from eval.report_validation import backend_identity_errors
-                reasons+=backend_identity_errors(result, config.get('backend'))
-            except ImportError: reasons.append('Identity validator unavailable')
-            for k in ('git_commit','dirty','config_sha256'):
-                if result.get(k)!=metadata[k]:reasons.append('Runner/supervisor mismatch: '+k)
-            expected_count=35 if dataset=='dev' else 50
-            if len(result['results'])!=expected_count:reasons.append('Incomplete case count')
-            if pre!=post or after_state!=state:reasons.append('Source or artifact changed during run')
-            if status=='completed_diagnostic' and not state['dirty'] and not reasons:
-                metadata['qualification_status']='clean_reproducible_measurement_not_product_approval'
-                status='completed_qualified'
-            else:
-                metadata['qualification_status']='diagnostic_dirty' if state['dirty'] else 'unqualified'
-            notes+=reasons
-    except Exception as exc:
-        notes.append(type(exc).__name__+': '+str(exc));status='failed'
-    finally:
-        if child is not None and child.poll() is None:
-            notes.extend(stop_child(child))
-        if meter:
-            if telemetry is None: telemetry=capture_block(meter,before,power_before,counter_resolution)
-            try: meter.close()
-            except Exception as exc: notes.append('Energy cleanup failed: '+str(exc))
-        metadata['child_exit_code']=child.returncode if child is not None else None
-        if status in ('failed','timeout'): metadata['qualification_status']='diagnostic_dirty' if state['dirty'] else 'unqualified'
-    finish(path,metadata,result,telemetry,status,notes)
-    return path
+    def supervised():
+        path=reserve(root,name);out=path/'runner-output'
+        command=command_override or [sys.executable,'-X','utf8',str(Path(repo)/'eval/run_secretary_eval.py'),
+                   '--dataset',dataset,'--candidate-name',path.name.split('_')[0],
+                   '--config',str(path/'config.json'),'--output-dir',str(out)]
+        metadata=initialize(path,{**state,'timestamp':now(),'change':change,'hypothesis':hypothesis,
+                     'control_experiment':control,'dataset':dataset,'benchmark':frozen,'command':command,
+                     'execution_cwd':str(repo),'resolved_artifact_paths':{'model_path':str(model) if model else None,'sdk_dir':str(sdk) if sdk else None},
+                     'qualification_status':'diagnostic_dirty' if state['dirty'] else 'pending_validation',
+                     'environment':capture_environment(),'artifact_identity_before':pre,
+                     'runner_identity_before':runner_before,'case_set_complete':False,
+                     'config_sha256':digest(config)},config_raw)
+        meter=None;before=None;telemetry=None;status='failed';result=None;notes=[];exit_code=None;child=None;power_before=None
+        try:
+            if capture_energy:
+                from turbo.telemetry import EnergyMeter,power_snapshot
+                meter=EnergyMeter();power_before=power_snapshot();before=meter.sample()
+            with (path/'stdout.log').open('xb') as stdout,(path/'stderr.log').open('xb') as stderr:
+                child=subprocess.Popen(command,cwd=repo,stdout=stdout,stderr=stderr,
+                                       **({'creationflags':subprocess.CREATE_NEW_PROCESS_GROUP} if os.name=='nt' else {'start_new_session':True}))
+                metadata['child_pid']=child.pid;write_json(path/'manifest.json',metadata)
+                try:exit_code=child.wait(timeout=timeout)
+                except subprocess.TimeoutExpired:
+                    notes.extend(stop_child(child));status='timeout';notes.append('Child deadline exceeded; retained partial evidence')
+            if meter: telemetry=capture_block(meter,before,power_before,counter_resolution)
+            candidates=list(out.glob('candidate_*.json')) if out.exists() else []
+            if len(candidates)==1:
+                (path/'result.json').write_bytes(candidates[0].read_bytes());result=read_json(path/'result.json');rows_of(result)
+            if status!='timeout':
+                status='completed_diagnostic' if result and exit_code in (0,2) else 'failed'
+            after_state=git_state(repo)
+            post={key:artifact_identity(value) for key,value in [('model',model),('sdk',sdk)] if value}
+            runner_after=captured_runner_identity(repo,model,post)
+            metadata.update(runner_identity_after=runner_after,runner_sources_changed=runner_before!=runner_after,artifact_identity_after=post,artifact_changed_during_run=pre!=post,
+                            source_changed_during_run=after_state!=state,child_exit_code=exit_code)
+            if result:
+                observed=report_metadata(result)
+                metadata.update({k:v for k,v in observed.items() if k not in ('git_commit','branch','dirty','environment','config_sha256')})
+                reasons=[]
+                if command_override is not None: reasons.append('Custom command is diagnostic only')
+                from eval.scoring import load_dataset
+                files=[Path(repo)/'eval/datasets/secretary_dev.json']
+                if dataset=='all': files.append(Path(repo)/'eval/datasets/secretary_heldout.json')
+                expected_cases=load_dataset(files)
+                expected_map={c['id']:digest(c) for c in expected_cases}
+                actual_map={r.get('id'):r.get('case_sha256') for r in result['results']}
+                metadata['case_set_complete']=actual_map==expected_map and len(actual_map)==len(result['results'])
+                if not metadata['case_set_complete']: reasons.append('Case IDs/hashes differ from selected frozen dataset')
+                if result.get('schema_version')!=2 or result.get('status')!='measured': reasons.append('Runner result is not a measured v2 report')
+                reasons+=frozen_provenance_errors(result,frozen)
+                if result.get('dataset_sha256')!=digest(expected_cases): reasons.append('Dataset hash mismatch')
+                if not all(finite(row.get('task_latency_ms')) for row in result['results']):
+                    reasons.append('Incomplete/nonfinite/negative task_latency_ms; task timing cannot qualify')
+                if any('warm_task_latency_ms' in row for row in result['results']) and not all(
+                        finite(row.get('warm_task_latency_ms')) for row in result['results']):
+                    reasons.append('Incomplete/nonfinite/negative warm_task_latency_ms; warm timing cannot qualify')
+                reasons+=runner_identity_errors(result,runner_before)
+                if runner_before!=runner_after: reasons.append('Runner source bytes changed during run')
+                try:
+                    from eval.report_validation import backend_identity_errors
+                    reasons+=backend_identity_errors(result, config.get('backend'))
+                except ImportError: reasons.append('Identity validator unavailable')
+                for k in ('git_commit','dirty','config_sha256'):
+                    if result.get(k)!=metadata[k]:reasons.append('Runner/supervisor mismatch: '+k)
+                expected_count=35 if dataset=='dev' else 50
+                if len(result['results'])!=expected_count:reasons.append('Incomplete case count')
+                if pre!=post or after_state!=state:reasons.append('Source or artifact changed during run')
+                if status=='completed_diagnostic' and not state['dirty'] and not reasons:
+                    metadata['qualification_status']='clean_reproducible_measurement_not_product_approval'
+                    status='completed_qualified'
+                else:
+                    metadata['qualification_status']='diagnostic_dirty' if state['dirty'] else 'unqualified'
+                notes+=reasons
+        except Exception as exc:
+            notes.append(type(exc).__name__+': '+str(exc));status='failed'
+        finally:
+            if child is not None and child.poll() is None:
+                notes.extend(stop_child(child))
+            if meter:
+                if telemetry is None: telemetry=capture_block(meter,before,power_before,counter_resolution)
+                try: meter.close()
+                except Exception as exc: notes.append('Energy cleanup failed: '+str(exc))
+            metadata['child_exit_code']=child.returncode if child is not None else None
+            if status in ('failed','timeout'): metadata['qualification_status']='diagnostic_dirty' if state['dirty'] else 'unqualified'
+        finish(path,metadata,result,telemetry,status,notes)
+        return path
+
+    with archive_lock(root,'hardware-execution',timeout=execution_lock_timeout):
+        return supervised()

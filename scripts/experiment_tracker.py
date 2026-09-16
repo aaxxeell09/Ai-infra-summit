@@ -53,7 +53,7 @@ def main(argv=None):
             status=read_json(paths[0]/'manifest.json')['status']
             return 124 if status=='timeout' else 1 if status in ('failed','incomplete') else 0
         return 0
-    except (ValueError,OSError) as exc:p.error(str(exc))
+    except (ValueError,OSError,TimeoutError) as exc:p.error(str(exc))
 
 
 if __name__=='__main__':raise SystemExit(main())
