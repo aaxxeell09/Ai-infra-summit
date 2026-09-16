@@ -8,7 +8,7 @@ Make a Snapdragon laptop a fast, private local AI workstation. Automatically mea
 
 Pitch: **Getting a model onto a Snapdragon is easy; getting it fast is guesswork. This removes the guesswork.**
 
-Native decode tokens/s is the core runtime target. Separately measure prefill throughput, time to first token and total useful task time. A faster incorrect action is not an accepted improvement. Fewer output tokens, context reduction and routing can improve task time without improving native decode speed; report these effects separately.
+The product target is time and energy to a correct useful task, with native decode tokens/s as a component metric. Separately measure prefill throughput, time to first token and total useful task time. A faster incorrect action is not an accepted improvement. Fewer output tokens, context reduction and routing can improve task time without improving native decode speed; report these effects separately.
 
 ## Hardware and offline requirement
 
@@ -97,8 +97,11 @@ Greedy top-k workaround candidate (`41260c4`): **29/50 (58%)**, mean inference *
 
 ## Immediate priorities
 
-1. Preserve/publish the official reference and candidate failures. The 1.7B CPU/10 model substitution now measured 34/50 (68%), 2839.033 ms mean and 1530.137 ms median inference, with a failed gate (8% invalid output and one critical move regression). More parameters alone did not solve correctness or latency; test larger/instruction-specialized candidates without weakening the gate.
-2. Make recommendation application robust, finish live MCP integration and test the real end-to-end task path.
-3. Finish the 4B download; add verified 8B/14B/20–25B candidates and measured large-to-small routing.
-4. Integrate teammate frontend and the functional UNO Q controller without obscuring correctness failures.
-5. Pursue GenieX/prefix/batch/speculation/context improvements through isolated ablations and candidate gates, with a truthful reproducible demo.
+1. Secure unattended access before the Latitude is left at the venue. Tailscale SSH is verified on the current network; a different-network reconnect and desktop session still need verification. Keep the machine awake with a bounded process-scoped request.
+2. **Highest-priority engineering experiment: Qwen3-0.6B through native QAIRT.** The installed GenieX 0.6.1 catalog lists it for the detected X Elite; QAIRT 2.45 is installed. Finish the official artifact download, record its compiled context/precision/hash, and prove actual QAIRT/Hexagon execution. Keep GGUF `llama_cpp` HTP0, GGUF CPU10 and compiled `qairt` NPU distinct. No grammar, routing or context changes in this first comparison.
+3. Run the unchanged Secretary development benchmark on the stable QAIRT path, then the full 50-case serious candidate. Preserve the frozen reference and all failures. Classify QAIRT as a different model/runtime deployment artifact, not a same-weights kernel speedup. Compare useful task latency, correctness, phase timings, memory and energy with matched boundaries.
+4. Complete the hash-bound tuner → recommendation → exact apply → correct task → MCP loop. Wire teammate frontend to real sequential trials. Hardware policy changes must alter the same applied configuration and show acknowledged feedback.
+5. Make Secretary reliable. Keep the measured CPU10 path; independently test production-schema grammar and conservative preconditions without changing golden answers. Coordinate any evaluation-adapter extension with Axel. The 1.7B result (34/50, 68%, 2839.033 ms mean, failed gate) does not establish a dependable larger-model solution.
+6. After the first QAIRT comparison, select one exposed QAIRT tuning experiment from evidence. Then resume 4B/8B/20–25B quality/routing trials and isolated prefix/KV, batch, speculation and local context experiments. Register UNO Q inference only after a real bounded on-board run; controller integration comes first.
+
+The supplied Henry V2 synthesis is research evidence. Its exact-runtime checks, output-validity findings, separate prefill-thread experiment and measurement cautions guide implementation. The subsequent explicit Qualcomm feedback makes the clean QAIRT comparison the immediate priority. See `docs/qairt-roadmap.md` for the execution gates.

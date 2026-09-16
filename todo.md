@@ -2,6 +2,21 @@
 
 Last updated: September 15, 2026. Check this file, `AGENTS.md`, open PRs and remote changes before starting a workstream. Commit and push small working milestones often.
 
+## Current execution order — Qualcomm feedback
+
+The native QAIRT comparison now leads engineering work; see [the gated roadmap](docs/qairt-roadmap.md). Earlier queues below remain backlog, not simultaneous priorities.
+
+- [x] Verify Tailscale unattended connection and fresh SSH through the private overlay.
+- [ ] Verify reconnection after Mac changes networks; finish graphical desktop access.
+- [x] Confirm installed GenieX catalog lists Qwen3-0.6B QAIRT for X Elite and QAIRT 2.45 is installed.
+- [ ] Finish official QAIRT artifact download; record bundle hashes, precision and compiled context.
+- [ ] Prove prompt-dependent QAIRT inference and actual Hexagon execution.
+- [ ] Register QAIRT as a distinct runtime/device deployment; keep both GGUF paths.
+- [ ] Run development, then the unchanged full 50-case serious QAIRT candidate; no grammar/context/router changes in this first run.
+- [ ] Publish three-path correctness/latency/energy comparison and choose modes only from evidence.
+- [ ] Finish exact hash-bound tune/apply/task/MCP and real frontend/controller demonstration.
+- [ ] Pick one supported QAIRT tuning experiment after its baseline works; then return to reliability, larger models and context/prefix work.
+
 ## P0 — prove the central benefit on the Latitude
 
 Owner: main integration agent. Independent review: `review/benchmark-energy` worktree.
