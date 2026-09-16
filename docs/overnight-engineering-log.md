@@ -25,3 +25,9 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Native/context checkpoint committed as `905fc23`.
 - MCP tests use synthetic models; historical leaked archives are exact-byte pinned while novel leakage fails. Frozen validator behavior remains unchanged. Added Linux/macOS/Windows CI.
 - Focused MCP/leakage/golden: **46 passed**. Integrated suite: **514 passed, 1 skipped, 13 subtests passed**. Hosted Windows execution remains pending.
+
+## JSON and raw telemetry checkpoint — 2026-09-16 UTC
+
+- Portable validation committed as `7e899b2`.
+- Added strict BOM-tolerant private JSON reads, additive per-case sampler capture, raw PDH metadata and declared/observed power separation; reject unbound QAIRT runtime override.
+- Integrated validation: 514 passed, 1 skipped, 13 subtests passed. Runner file hash changes explicitly documented; no scoring/timing semantics changed.

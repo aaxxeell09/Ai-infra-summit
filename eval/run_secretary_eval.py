@@ -15,6 +15,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from turbo.json_io import read_json
 from eval.scoring import load_dataset, score, summarize, compare, digest
 from eval.secretary_adapter import SecretaryAdapter as ActionCodec, TOOLS, execute_in_fixture, PreparedFixture
 from eval.validate_dataset import validate, BENCHMARK_VERSION
@@ -63,7 +64,7 @@ def execute(cases, codec, complete, fixture_root=None, measurement=None):
                            selected_route=None, routing_accuracy=None,
                            backend_id=output.get('backend_id'), runtime=output.get('runtime'),
                            requested_device=output.get('requested_device'), resolved_device=output.get('resolved_device'),
-                   generation_control=output.get('generation_control'))
+                   generation_control=output.get('generation_control'), sampling=output.get('sampling'))
                 if error:
                     row['task_success'] = False
                     row['failure_reasons'] = ['TIMEOUT' if error in {'TimeoutError','TimeoutExpired'} else 'MODEL_ERROR']
@@ -179,7 +180,7 @@ def main(argv=None):
         p.error('A frozen reference requires all 50 cases')
     if not args.config:
         p.error('--config is required for measured execution; no model fallback or mock baseline')
-    config = json.loads(args.config.read_text())
+    config = read_json(args.config, require_object=True)
     allowed = {'sdk_dir', 'model_path', 'device', 'threads', 'context', 'threads_batch', 'ubatch', 'n_batch',
                'spec_type', 'draft_tokens', 'plugin', 'backend', 'stop_after_tool_call', 'max_tokens', 'grammar', 'hardware_note'}
     if set(config) - allowed:
@@ -200,7 +201,7 @@ def main(argv=None):
             p.error(str(exc))
         if args.run_order is None or args.run_order < 1:
             p.error('--run-order must be a positive integer for energy measurements')
-    policy = json.loads(args.policy.read_text())
+    policy = read_json(args.policy, require_object=True)
     for key in ['max_accuracy_drop_points', 'max_category_drop_points']:
         if not isinstance(policy[key], (int, float)) or not math.isfinite(policy[key]) or policy[key] < 0:
             p.error('Quality thresholds must be finite and nonnegative')
@@ -209,14 +210,14 @@ def main(argv=None):
             p.error('Official baseline requires a clean committed worktree')
         if not args.baseline_approval:
             p.error('--baseline-approval is required; Henry must explicitly confirm the original configuration')
-        approval = json.loads(args.baseline_approval.read_text())
+        approval = read_json(args.baseline_approval, require_object=True)
         if (approval.get('status') != 'confirmed' or approval.get('confirmed_by') != 'Henry'
                 or approval.get('config_sha256') != digest(config)
                 or approval.get('application_commit') != git('rev-parse','HEAD')):
             p.error('Baseline approval must confirm Henry, this config hash and the current application commit')
     else:
         approval = None
-    baseline = json.loads(args.baseline.read_text()) if args.baseline.exists() else None
+    baseline = read_json(args.baseline, require_object=True) if args.baseline.exists() else None
     args.output_dir.mkdir(parents=True, exist_ok=True)
     destination = args.output_dir / ('baseline.json' if args.freeze_baseline else 'candidate_'+args.candidate_name+'.json')
     if destination.exists() or destination.with_suffix('.md').exists() or (args.freeze_baseline and (args.output_dir/'baseline_manifest.json').exists()):

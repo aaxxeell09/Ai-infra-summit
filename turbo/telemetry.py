@@ -64,20 +64,38 @@ class EnergyMeter:
             raise RuntimeError(f'PDH error 0x{code:08x}')
 
     def sample(self):
-        result = {'monotonic_s': time.perf_counter(), 'channels_pwh': {}, 'error': self.error}
-        if self.error or not self.query:
+        started = time.perf_counter()
+        result = {'monotonic_s': started, 'channels_pwh': {}, 'error': self.error,
+                  'host_collection_start_s': started, 'host_collection_end_s': None,
+                  'pdh_collect_status': None, 'raw_counters': {}}
+        try:
+            if self.error or not self.query:
+                return result
+            code = self.pdh.PdhCollectQueryData(self.query)
+            result['pdh_collect_status'] = code
+            if code:
+                result['error'] = f'PDH collect error 0x{code:08x}'
+                return result
+            for name, handle in self.counters.items():
+                raw, kind = RawCounter(), C.c_uint32()
+                code = self.pdh.PdhGetRawCounterValue(handle, C.byref(kind), C.byref(raw))
+                # Preserve driver evidence without interpreting FILETIME as a
+                # refresh guarantee or changing the established energy arithmetic.
+                result['raw_counters'][name] = {
+                    'read_status': code,
+                    'counter_status': raw.status if code == 0 else None,
+                    'counter_type': kind.value if code == 0 else None,
+                    'source_timestamp_filetime_100ns': ((raw.timestamp.high << 32) | raw.timestamp.low) if code == 0 else None,
+                    'first_value': raw.first if code == 0 else None,
+                    'second_value': raw.second if code == 0 else None,
+                    'multi_count': raw.count if code == 0 else None,
+                }
+                if code == 0 and raw.status in (0, 1) and raw.first >= 0:
+                    result['channels_pwh'][name] = raw.first
+            result['monotonic_s'] = time.perf_counter()
             return result
-        code = self.pdh.PdhCollectQueryData(self.query)
-        if code:
-            result['error'] = f'PDH collect error 0x{code:08x}'
-            return result
-        for name, handle in self.counters.items():
-            raw, kind = RawCounter(), C.c_uint32()
-            code = self.pdh.PdhGetRawCounterValue(handle, C.byref(kind), C.byref(raw))
-            if code == 0 and raw.status in (0, 1) and raw.first >= 0:
-                result['channels_pwh'][name] = raw.first
-        result['monotonic_s'] = time.perf_counter()
-        return result
+        finally:
+            result['host_collection_end_s'] = time.perf_counter()
 
     def close(self):
         if self.query:
@@ -142,7 +160,9 @@ def energy_delta(before, after, generated_tokens=None):
 
 def power_snapshot():
     """Read power state; an active plan is not the Windows power-mode overlay."""
-    result = {**power_state(), 'active_scheme_guid': None, 'power_mode': None}
+    result = {**power_state(), 'active_scheme_guid': None, 'power_mode': None,
+              'observed_power_mode': None,
+              'observed_power_mode_unavailable_reason': 'Windows power-mode overlay is not queried; active scheme is not the overlay'}
     result.setdefault('battery_saver', None)
     if sys.platform == 'win32':
         try:
@@ -159,8 +179,8 @@ def power_snapshot():
 class EnergySession:
     """SYS observations only. Subtract runtime idle only from warm tasks.
 
-    Per-inference and warm-task energy requires at least two explicitly observed
-    counter intervals. Shorter observations remain unavailable, never zero.
+    Per-inference and warm-task energy requires at least two declared
+    counter intervals; host elapsed time does not prove counter update cadence. Shorter observations remain unavailable, never zero.
     Clock/meter/sleep injection exists for synthetic tests, not estimated energy.
     """
     @staticmethod

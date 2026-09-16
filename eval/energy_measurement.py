@@ -49,6 +49,8 @@ def measured_run(config, metadata, cases, codec, execute, fixture_root, protocol
     """No backend-specific timing boundaries or settings. Called only with --energy-protocol."""
     from eval.scoring import digest
     validate_protocol(protocol)
+    if 'GENIEX_QAIRT_LIB' in os.environ:
+        raise ValueError('GENIEX_QAIRT_LIB override is unsupported for measured energy runs; runtime provenance would be incomplete')
     if platform.system() != 'Windows':
         raise ValueError('Energy measurements require Windows PDH on the target; no host substitution')
     runtime_hashes = sdk_fingerprints(config['sdk_dir'])  # outside load/task energy
@@ -106,7 +108,10 @@ def measured_run(config, metadata, cases, codec, execute, fixture_root, protocol
             'runtime_files_sha256':runtime_hashes,
             'power_condition':{'ac_line_status':before.get('ac_line_status'),
                                'active_scheme_guid':before.get('active_scheme_guid'),
-                               'power_mode':protocol['power_mode'],
+                               'power_mode':protocol['power_mode'],  # legacy declared value
+                               'declared_power_mode':protocol['power_mode'],
+                               'observed_power_mode':None,
+                               'observed_power_mode_unavailable_reason':'Windows power-mode overlay is not queried; active scheme is not the overlay',
                                'battery_saver':before.get('battery_saver')},
             'machine':{'system':platform.system(),'machine':platform.machine(),
                        'hardware_note':protocol['hardware_note']},
