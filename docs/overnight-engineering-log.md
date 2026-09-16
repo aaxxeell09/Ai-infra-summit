@@ -95,3 +95,9 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Independent diagnostic checkpoint: `bcfd1c7`.
 - Linux CI exposed an untrusted uint64 string length allocation in GGUF preflight. Reader now validates remaining bytes before allocation, bounds nested array work and avoids allocating skipped strings. Windows tests use closed temporary-file writers.
 - Porting validation: **28 passed, 4 subtests passed**. Existing malformed-header regression remains enforced.
+
+## Campaign snapshot race hardening — 2026-09-16 UTC
+
+- GGUF checkpoint: `19f99ee`, pushed.
+- Campaign configuration parsing and hashes now use a single byte snapshot; malformed treatment objects fail clearly. 27 focused planner tests pass.
+- Integrated local checkpoint: **642 passed, 1 skipped, 13 subtests passed**. This precedes final CI verification. Second bounded SSH check also timed out; no hardware job launched.

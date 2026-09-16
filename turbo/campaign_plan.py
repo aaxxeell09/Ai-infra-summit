@@ -5,17 +5,20 @@ import hashlib
 import json
 from pathlib import Path
 
-from .experiments import digest, read_json
+from .experiments import digest, parse_json
 
 SCHEMA = 'local-turbo.campaign-plan.v1'
 
 
 def config_snapshot(path):
-    path = Path(path).resolve()
+    try:
+        path = Path(path).resolve()
+    except (TypeError, ValueError, OSError) as exc:
+        raise ValueError('Config path must identify a readable file') from exc
     if not path.is_file():
         raise ValueError('Config file missing: ' + str(path))
     raw = path.read_bytes()
-    value = read_json(path)
+    value = parse_json(raw)
     if not isinstance(value, dict) or not value:
         raise ValueError('Config must be a nonempty JSON object')
     return dict(path=str(path), byte_sha256=hashlib.sha256(raw).hexdigest(),
@@ -48,8 +51,10 @@ def plan(control_name, control_config, candidates, repetitions=3):
         raise ValueError('repetitions must be an integer between 3 and 1000')
     if not isinstance(control_name, str) or not control_name.strip():
         raise ValueError('Control name required')
-    if not candidates:
-        raise ValueError('At least one candidate treatment is required')
+    if not isinstance(candidates, (list, tuple)) or not candidates:
+        raise ValueError('Candidates must be a nonempty array of treatment objects')
+    if any(not isinstance(candidate, dict) for candidate in candidates):
+        raise ValueError('Each candidate must be a treatment object')
     control = config_snapshot(control_config)
     treatments = [dict(name=control_name, role='control', config=control,
                        variable=None, hypothesis='Reference condition; no optimization claim')]
@@ -64,6 +69,8 @@ def plan(control_name, control_config, candidates, repetitions=3):
             raise ValueError('Each candidate requires an explicit hypothesis')
         if not isinstance(variable, str) or not variable.strip():
             raise ValueError('Each candidate requires its single changed variable')
+        if 'config' not in candidate:
+            raise ValueError('Each candidate requires a config path')
         snapshot = config_snapshot(candidate['config'])
         changed = differences(control['value'], snapshot['value'])
         if changed != [variable]:
@@ -102,7 +109,14 @@ def verify_plan(value):
     treatments = value.get('treatments')
     if not isinstance(treatments, list) or len(treatments) < 2:
         raise ValueError('Campaign treatments missing')
-    controls = [t for t in treatments if t.get('role') == 'control']
+    for treatment in treatments:
+        if (not isinstance(treatment, dict) or treatment.get('role') not in ('control', 'candidate')
+                or not isinstance(treatment.get('name'), str) or not treatment['name'].strip()
+                or not isinstance(treatment.get('config'), dict)
+                or 'path' not in treatment['config']
+                or not {'variable', 'hypothesis'}.issubset(treatment)):
+            raise ValueError('Malformed campaign treatment object')
+    controls = [t for t in treatments if t['role'] == 'control']
     if len(controls) != 1 or controls[0]['name'] != value.get('control'):
         raise ValueError('Campaign control is inconsistent')
     for treatment in treatments:
@@ -112,7 +126,7 @@ def verify_plan(value):
             raise ValueError('Config drift detected: ' + treatment['name'])
     candidates = [dict(name=t['name'], config=t['config']['path'], variable=t['variable'], hypothesis=t['hypothesis'])
                   for t in treatments if t['role'] == 'candidate']
-    rebuilt = plan(value['control'], controls[0]['config']['path'], candidates, value['repetitions'])
+    rebuilt = plan(value['control'], controls[0]['config']['path'], candidates, value.get('repetitions'))
     if rebuilt != value:
         raise ValueError('Campaign schedule or metadata differs from deterministic plan')
     return dict(status='VERIFIED', trials=len(value['runs']), dataset='dev',

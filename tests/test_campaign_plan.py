@@ -114,3 +114,49 @@ def test_cli_creates_and_verifies_without_launching(tmp_path, capsys):
 def test_nested_variable_is_identified_without_conflating_other_fields():
     assert differences({'runtime': {'threads': 1}, 'label': 'x'},
                        {'runtime': {'threads': 2}, 'label': 'x'}) == ['runtime.threads']
+
+
+def test_config_snapshot_hash_and_semantics_use_one_captured_read(tmp_path, monkeypatch):
+    from pathlib import Path
+    from turbo.campaign_plan import config_snapshot
+    path = tmp_path / 'changing.json'
+    original = b'\xef\xbb\xbf{"threads":1}'
+    replacement = b'{"threads":99}'
+    path.write_bytes(original)
+    read_bytes = Path.read_bytes
+    reads = []
+
+    def replace_after_read(current):
+        raw = read_bytes(current)
+        if current == path:
+            reads.append(raw)
+            current.write_bytes(replacement)
+        return raw
+
+    monkeypatch.setattr(Path, 'read_bytes', replace_after_read)
+    snapshot = config_snapshot(path)
+    assert reads == [original]
+    assert snapshot['byte_sha256'] == hashlib.sha256(original).hexdigest()
+    assert snapshot['value'] == {'threads': 1}
+    assert snapshot['semantic_sha256'] == digest({'threads': 1})
+    assert read_bytes(path) == replacement
+
+
+@pytest.mark.parametrize('candidates', [None, {}, 'candidate', [None], [42], [[]],
+                                        [{'name': 'a', 'variable': 'threads', 'hypothesis': 'test'}],
+                                        [{'name': 'a', 'variable': 'threads', 'hypothesis': 'test', 'config': None}]])
+def test_malformed_candidate_input_is_a_value_error(tmp_path, candidates):
+    control, _ = configs(tmp_path)
+    with pytest.raises(ValueError):
+        plan('reference', control, candidates)
+
+
+@pytest.mark.parametrize('treatment', [None, [], {'role': 'candidate'},
+                                      {'role': 'candidate', 'name': 'a', 'config': None}])
+def test_malformed_verified_treatment_is_a_value_error(tmp_path, treatment):
+    control, candidates = configs(tmp_path)
+    value = plan('reference', control, candidates)
+    value['treatments'][1] = treatment
+    value['plan_sha256'] = digest({k: v for k, v in value.items() if k != 'plan_sha256'})
+    with pytest.raises(ValueError, match='Malformed campaign treatment'):
+        verify_plan(value)
