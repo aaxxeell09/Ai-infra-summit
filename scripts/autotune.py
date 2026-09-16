@@ -310,6 +310,7 @@ def run_session(args, *, clock, executor, session_path, console, advisor=None):
             search_space_sha256=space.declared_space(backend)['space_sha256'])
         session_budget = budget_module.Budget(args.budget_minutes, clock=clock)
     state['owner_decisions'] = list(args.owner_decision or ())
+    state['canary_sizes'] = {'S2': args.s2_cases, 'S3': args.s3_cases}
     if advisor is not None:
         # The advisor is built before the session record exists, because the
         # credential check belongs with the other startup checks. It is bound to

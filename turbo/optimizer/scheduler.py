@@ -47,7 +47,7 @@ class Scheduler:
 
     def __init__(self, session, *, backend, budget, queue, executor, console,
                  owner_decisions=(), clock=time.monotonic, dry_run=False,
-                 default_hardware_seconds=None):
+                 default_hardware_seconds=None, commissioning_path=None):
         self.state = session
         self.backend = backend
         self.budget = budget
@@ -68,6 +68,15 @@ class Scheduler:
                                          else _queue_module.DEFAULT_HARDWARE_SECONDS)
         session.setdefault('cost_model', {})['default_hardware_seconds'] = {
             'value': self.default_hardware_seconds, 'source': 'declared default, not measured'}
+        from turbo.optimizer.commissioning import DEFAULT_PATH, load_costs
+        control_config = (session.get('current_control') or {}).get('config') or {}
+        self.commissioned_costs = {} if dry_run else load_costs(control_config, commissioning_path or DEFAULT_PATH)
+        if (session.get('canary_sizes') or {}).get('S2') != 8:
+            self.commissioned_costs.pop('S2', None)
+        if self.commissioned_costs:
+            session['cost_model']['commissioned_stage_reference_seconds'] = dict(self.commissioned_costs)
+            session['cost_model']['commissioning_source'] = str(commissioning_path or DEFAULT_PATH)
+            session['cost_model']['commissioning_scope'] = 'Measured control costs; candidate cost estimates, not candidate measurements'
         self._active = None
         self._interrupted = False
         self._last_mark = _now(clock)
@@ -138,11 +147,14 @@ class Scheduler:
 
     # ------------------------------------------------------------- hardware
 
-    def estimated_cost(self, candidate):
+    def estimated_cost(self, candidate, stage=None):
         """Best available cost for this candidate, and whether it was measured."""
         declared = candidate.get('expected_hardware_seconds')
         if declared is not None:
             return declared, 'candidate estimate'
+        reference = self.commissioned_costs.get(stage or candidate.get('stage'))
+        if reference is not None:
+            return reference, 'measured commissioning control reference; candidate estimate'
         return self.default_hardware_seconds, 'declared session default, not measured'
 
     def run_candidate(self, candidate, stage, *, estimated_seconds=None):
@@ -158,7 +170,7 @@ class Scheduler:
         if self._active is not None:
             raise HardwareBusy('A hardware evaluation is already active: ' + str(self._active))
         if estimated_seconds is None:
-            estimated_seconds, _source = self.estimated_cost(candidate)
+            estimated_seconds, _source = self.estimated_cost(candidate, stage)
         if not self.budget.can_start(estimated_seconds, allow_unknown=self.dry_run):
             self.console.warn('skipping ' + candidate['candidate_id']
                               + ': estimated cost does not fit the remaining budget')
