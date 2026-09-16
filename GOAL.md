@@ -107,7 +107,8 @@ Greedy top-k workaround candidate (`41260c4`): **29/50 (58%)**, mean inference *
 The supplied Henry V2 synthesis is research evidence. Its exact-runtime checks, output-validity findings, separate prefill-thread experiment and measurement cautions guide implementation. The subsequent explicit Qualcomm feedback makes the clean QAIRT comparison the immediate priority. See `docs/qairt-roadmap.md` for the execution gates.
 
 
-Latest access state: fresh offsite Tailscale SSH was verified earlier, but the
-Latitude was last seen at 2026-09-16 02:50 UTC and subsequently went offline.
-The two-round QAIRT MCP integration launch did not execute. Resume that check
-first after access returns, then transfer the checksum-verified 4B model.
+Latest access state: offsite Tailscale SSH returned on the evening of September 15.
+A fresh checkout pinned to `16d1313` completed two real QAIRT tune/apply/MCP cycles;
+both invoice tasks failed. The verified 4B transfer is underway. Overnight work
+is authorized through September 16 at 09:00 Pacific, with bounded jobs and cost
+controls. See `docs/overnight-handoff.md` for the current checkpoint.

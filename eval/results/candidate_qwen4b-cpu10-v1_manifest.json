@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "candidate_name": "qwen4b-cpu10-v1",
+  "application_commit": "16d13138a61fd3f0e4bcbe5ae6bcb2271fb1b843",
+  "benchmark_version": "secretary-eval-v2",
+  "status": "planned_not_measured",
+  "change": "Replace Qwen3-0.6B Q4_0 with Qwen3-4B-Instruct-2507 Q4_0 on the same GenieX llama.cpp CPU10 configuration; no prompt, grammar, routing or scorer changes.",
+  "expected_improvement": "Test stronger instruction/tool correctness. Higher latency is expected; this is model admission for routing, not a claimed throughput improvement.",
+  "model": "Qwen3-4B-Instruct-2507-Q4_0.gguf",
+  "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+  "model_bytes": 2375773280,
+  "model_repository_revision": "a06e946bb6b655725eafa393f4a9745d460374c9",
+  "runtime": "GenieX 0.6.1 / llama_cpp",
+  "backend": "llama_cpp_cpu",
+  "config": {
+    "backend": "llama_cpp_cpu",
+    "plugin": "llama_cpp",
+    "device": "cpu",
+    "threads": 10,
+    "threads_batch": 0,
+    "ubatch": 0,
+    "n_batch": 0,
+    "context": 4096,
+    "max_tokens": 128,
+    "grammar": false,
+    "spec_type": "none",
+    "draft_tokens": 8
+  },
+  "private_required_config": [
+    "sdk_dir",
+    "model_path",
+    "hardware_note"
+  ],
+  "development_command": "python -X utf8 scripts/observe_secretary_eval.py qwen4b-cpu10-dev-v1 dev --config local/qwen4b-cpu10-config.json --output-dir local/qwen4b-evaluation",
+  "full_command": "python -X utf8 scripts/observe_secretary_eval.py qwen4b-cpu10-v1 all --config local/qwen4b-cpu10-config.json --output-dir local/qwen4b-evaluation",
+  "baseline": "eval/results/baseline.json",
+  "comparability_note": "Keep NOT_COMPARABLE if current evaluator provenance differs from historical reference. No benchmark edits or baseline replacement."
+}

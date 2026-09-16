@@ -14,7 +14,7 @@ Private tool-using AI on a Snapdragon X Elite laptop. Our primary objective is t
 
 ## Current status
 
-Native QAIRT now has a complete [50-case result](eval/results/candidate_qairt-native-06-v1.md): **23/50 (46%)**, 34% invalid outputs, mean inference **786 ms**. It is not qualified. The historical comparison correctly remains `NOT_COMPARABLE` after the evaluator provenance changed. A [QAIRT tuner cell](benchmarks/results/qairt-tuner-smoke-01/README.md) also ran on the Latitude. QAIRT mode application and SDK hash binding are implemented; the repeated hardware integration test is pending restored device access.
+Native QAIRT now has a complete [50-case result](eval/results/candidate_qairt-native-06-v1.md): **23/50 (46%)**, 34% invalid outputs, mean inference **786 ms**. It is not qualified. The historical comparison correctly remains `NOT_COMPARABLE` after the evaluator provenance changed. A [QAIRT tuner cell](benchmarks/results/qairt-tuner-smoke-01/README.md) also ran on the Latitude. The [repeated QAIRT MCP loop](benchmarks/results/qairt-mcp-loop-01/README.md) now works on the Latitude with SDK hash binding. Both invoice tasks still fail correctness.
 
 The [task-energy protocol](docs/energy-protocol.md) and optional per-task instrumentation are prepared for CPU, llama.cpp HTP and QAIRT. The [decision matrix](docs/decision-matrix.md) remains unmeasured: no new hardware energy run or winning backend is claimed.
 

@@ -1,6 +1,11 @@
 # QAIRT tuner command smoke on the Latitude
 
-Application: `718140c`, clean Windows checkout. Model/runtime component identities
+Source provenance correction: the original smoke did not record its application
+commit or dirty status. The later access check found that checkout still pointed
+to an older Git bundle, so the earlier `718140c` clean-checkout attribution cannot
+be established. Preserve the command/output evidence without that attribution.
+The fresh `qairt-mcp-loop-01` run explicitly verifies clean commit `16d1313`.
+Model/runtime component identities
 are recorded in `eval/results/candidate_qairt-native-06-v1_runtime.json`.
 
 The corrected tuner passed a declared QAIRT shard, native `-c 0`, NPU placement
@@ -21,9 +26,9 @@ at launch; unlike the earlier prompt-parity diagnostic, this cell was isolated.
 
 At this commit, QAIRT service mode export was still rejected, as retained in
 `recommendation_error`. Commit `efd5100` adds QAIRT export/apply and SDK binding;
-the subsequent real-device repeated tune/apply/MCP test could not start because
-the Latitude went offline. Do not infer that integrated test passed from this
-benchmark cell.
+the first integration launch was blocked by the offline Latitude. After access
+returned, a new checkout pinned to `16d1313` completed both rounds; see
+`../qairt-mcp-loop-01/`. Both invoice tasks still failed.
 
 Paths are replaced with `${TOOLS}` / `${USER_HOME}` placeholders. Numeric results
 and stored hashes are unchanged. To reproduce, register this official bundle as

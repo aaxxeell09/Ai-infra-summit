@@ -1,4 +1,4 @@
-param([int]$Hours = 12)
+param([ValidateRange(1,24)][int]$Hours = 12, [string]$UntilUtc)
 $ErrorActionPreference = 'Stop'
 # Process-scoped request; Windows releases it when this process exits.
 Add-Type @'
@@ -9,9 +9,9 @@ public static class TurboAwake {
     public static extern uint SetThreadExecutionState(uint flags);
 }
 '@
-$deadline = (Get-Date).AddHours($Hours)
+$deadline = if ($UntilUtc) { [DateTimeOffset]::Parse($UntilUtc).UtcDateTime } else { [DateTime]::UtcNow.AddHours($Hours) }
 try {
-    while ((Get-Date) -lt $deadline) {
+    while ([DateTime]::UtcNow -lt $deadline) {
         $previous = [TurboAwake]::SetThreadExecutionState([uint32]2147483651)
         if ($previous -eq 0) { throw 'SetThreadExecutionState failed' }
         Start-Sleep -Seconds 30
