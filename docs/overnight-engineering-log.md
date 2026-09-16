@@ -107,3 +107,18 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Campaign snapshot checkpoint: `ef0052c`.
 - Review found tracker JSON overflow/duplicate-key acceptance and relative-path child mismatch. Shared strict captured-byte parser now rejects these before archival; child/config/output paths and relative model/SDK binding are explicit. Qualified timing evidence must be complete/finite/nonnegative.
 - Focused integration: **97 passed**. No numeric product thresholds or frozen semantics changed. Preparing final broad tests and second hosted CI review.
+
+## Final validation / backlog review — 2026-09-16 UTC
+
+- Last tracker safety checkpoint: `0b1e2c5`.
+- Local: **674 passed, 1 skipped, 17 subtests passed**; frontend28 passed and syntax valid. 128 frozen hashes unchanged, six archives verified.
+- Hosted CI at19f99ee: Linux/Windows/macOS all successful after addressing actual failures. Checking final tracker follow-up CI before handoff.
+- Revisited all32 audit findings and searched TODO/FIXME/NOT_IMPLEMENTED. Remaining items require hardware, missing original artifacts or explicitly versioned owner decisions; no safe actionable defect from final review left unaddressed.
+- OVERNIGHT_REPORT.md, CURRENT_STATUS and local machine-readable evidence prepared. No new hardware experiments or fabricated performance improvements.
+
+## Handoff checkpoint — 2026-09-16 UTC
+
+- Final code `0b1e2c5`: hosted Linux, macOS and Windows all pass (Actions run35064799039).
+- Local674 tests+17 subtests, frontend28 tests, frozen128 hashes and all6 archives verified. `service.parse_calls` AST unchanged.
+- Fifteen implementation checkpoints plus final documentation checkpoint; main pushed without force, collaborator frontend PR preserved. Final documentation commit SHA recorded in local/overnight-report.json.
+- All currently accessible safe independent phases completed; hardware-dependent phases remain explicitly blocked, not represented as completed measurements.

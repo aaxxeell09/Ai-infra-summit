@@ -8,12 +8,12 @@ From repository root, after committing code:
 
 ```sh
 python scripts/experiment_tracker.py backfill-known
-python scripts/experiment_tracker.py run --name qairt-stop-repeat-1 --dataset dev --config local/qairt-single-action.json --change "Repeat unchanged stop candidate" --hypothesis "Check repeatability" --control EXP-005
+python scripts/experiment_tracker.py run --name qairt-stop-repeat-1 --dataset dev --config local/qairt-single-action.json --change "Repeat unchanged stop candidate" --hypothesis "Check repeatability" --control "$CONTROL_EXP_ID"
 python scripts/experiment_tracker.py ledger
 python scripts/experiment_tracker.py verify local/experiments/EXP-001_example
 ```
 
-`--root` precedes the subcommand. A missing control denotes a baseline/diagnostic, never causal attribution. `--diagnostic-dirty` explicitly permits dirty diagnostics; they cannot become clean qualified measurements. `--dataset all` is a deliberate milestone, not a search loop. Never guess an existing control ID: inspect the ledger.
+`--root` precedes the subcommand. A missing control denotes a baseline/diagnostic, never causal attribution. `--diagnostic-dirty` explicitly permits dirty diagnostics; they cannot become clean qualified measurements. `--dataset all` is a deliberate milestone, not a search loop. Never guess an existing control ID: inspect the ledger and set `CONTROL_EXP_ID` to the verified matching control before using the example.
 
 Each unique directory starts incomplete before child execution. It captures config bytes, exact argv, command/reproduce text, hypothesis/change/control, git commit/status/diff, environment, raw stdout/stderr, result/telemetry when available, KPI JSON/text and SHA256 inventory. Completed archives are sealed; verification detects edits/additions/deletions. Hashes detect accidental tampering, not cryptographic signer identity. Filesystem administrators can still modify files; consumers must verify. Interrupted archives remain incomplete and IDs are not reused. Ledgers are rebuildable indexes; raw archive evidence is authoritative.
 
