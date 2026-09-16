@@ -88,6 +88,35 @@ manifests describe the committed configurations and exact runner commands.
 
 ## Next bounded work
 
+### 09:00 UTC checkpoint — native feedback works; syntax still fails
+
+New opt-in diagnostic at `cd06b4215fbecdce7922afdc031148ece89c0908` uses a fresh
+fixture, strict whole-response parsing and native tool-result messages. It is
+not imported by service/MCP/frozen v2. Focused tests: 45 passed. See
+`docs/secretary-feedback-diagnostic.md` for limits and methodology boundaries.
+
+The Latitude ran the invoice example. After empty search results, its second
+model turn acknowledged the tool result but produced a plain-text clarification.
+Strict parsing rejected it; no move occurred; existing verification failed.
+Raw diagnostic: `benchmarks/results/invoice-feedback-0900/`. Do not repair the
+text or call this a v2 improvement. Service restoration was requested.
+
+Current background job: `Qualcomm-Large-Downloads-0900`, using the existing
+bounded range downloader with pinned 8B and 20B artifacts. Private queue is
+`local/large-download-queue.json` on the Mac; copied to Windows as
+`QualcommTools/large-download-queue-0900.json`. Download root/status:
+`QualcommTools/models/large-download-status.json`. Existing parts are reused;
+final files require exact size and SHA-256. Prior status was backed up. Worker
+deadline is six hours, task cap 375 minutes, both before the 16:00 UTC cutoff.
+Do not launch another download or benchmark concurrently without inspecting
+this status. These downloads do not establish architecture/runtime support.
+
+Next: verify transfer progress and gateway; use a real restrictive grammar
+canary before any constrained-output feedback trial. Keep this opt-in diagnostic
+separate from the frozen protocol and product defaults. The Flash route's prior
+quota reset was reported around 09:38; at the next hourly checkpoint a single
+fresh bounded review may be appropriate, without account rotation or paid fallback.
+
 ### 08:00 UTC checkpoint — six trials complete; 4B integration queued
 
 Six rotated development trials completed and their seals verified after transfer.
