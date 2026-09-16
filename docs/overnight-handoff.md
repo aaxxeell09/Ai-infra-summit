@@ -36,9 +36,14 @@ when producing the final morning handoff.
   a separately provenance-checked control/candidate pairing. Likewise inspect
   QAIRT native evidence before treating the generic dispatchflag as proof of no
   NPU use. No unsupported UI label changes or teammate messages were made.
-- Independent Flash review of the new binding code is still in progress at this
-  checkpoint: agent01a0aa88-f768-78e0-a411-15ec0705970b (Boyle). Owner has reviewed
-  code and tests; inspect any later concrete finding before promoting results.
+- Independent Flash review completed with scoped approval and no blocker.
+  Scope limitations: service-level controls beyond the selected axes are not
+  propagated; the recommendation file is reread after apply, so this is an
+  isolated integration check rather than an atomic signed export. Native
+  model/SDK/config binding is checked before execution. No worker remains active.
+  Clone preparation initially hit PowerShell NativeCommandError on redirected
+  git progress output; the owned clone was inspected and recovered without
+  deleting files, then its exact HEAD/clean state were asserted before launch.
   Next: verify both round bindings against actual native report, preserve final
   filesystem and exact-call grades separately, publish evidence, verify gateway.
   Finish remaining integration/presentation handoff within the16:00UTC cutoff.
