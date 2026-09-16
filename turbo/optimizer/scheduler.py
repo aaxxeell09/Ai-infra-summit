@@ -70,6 +70,8 @@ class Scheduler:
                                          else _queue_module.DEFAULT_HARDWARE_SECONDS)
         session.setdefault('cost_model', {})['default_hardware_seconds'] = {
             'value': self.default_hardware_seconds, 'source': 'declared default, not measured'}
+        self.event_coordinator = None
+        self.event_code_sha = None
         self._active = None
         self._hardware_mutex = threading.Lock()
         self.checkpoint_path = Path(checkpoint_path).resolve() if checkpoint_path else None
@@ -200,6 +202,8 @@ class Scheduler:
                 self.state['hardware_journal'][job_id] = entry
             self.checkpoint()
             try:
+                if self.event_coordinator is not None:
+                    self.event_coordinator.start(candidate,stage,job_id,code_sha=self.event_code_sha)
                 observation = self.executor(candidate, stage=stage)
                 if not isinstance(observation, dict):
                     raise TypeError('Hardware executor must return an observation object')
@@ -208,6 +212,10 @@ class Scheduler:
                 self.state.setdefault('failures', []).append(failure)
                 if entry is not None:
                     entry.update(status='failed', failure=failure, qualified=False)
+                if self.event_coordinator is not None:
+                    try:self.event_coordinator.uncertain(candidate,stage,job_id,exc,code_sha=self.event_code_sha)
+                    except Exception as observer_exc:
+                        self.state.setdefault('failures',[]).append(S.failure_record(observer_exc,where='event-coordinator'))
                 raise
             finally:
                 self.queue.release(candidate)
@@ -221,6 +229,9 @@ class Scheduler:
             if entry is not None:
                 entry.update(status='completed', completed_at=S.now(), observation=copy.deepcopy(observation))
             self.checkpoint()
+            if self.event_coordinator is not None:
+                self.event_coordinator.complete(candidate,stage,job_id,observation,
+                    control=bool(candidate.get('is_control')),code_sha=self.event_code_sha)
             self.console.stage(stage, candidate_id, str(outcome))
             return observation
         finally:

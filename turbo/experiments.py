@@ -664,7 +664,7 @@ def capture_block(meter,before,power_before,resolution):
 
 def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', change, hypothesis,
         control=None, diagnostic_dirty=False, timeout=600, command_override=None, capture_energy=False,
-        counter_resolution=None, execution_lock_timeout=30):
+        counter_resolution=None, execution_lock_timeout=30, child_hardware_lock=False):
     """Bounded child supervisor. Exit2 from evaluator is a recorded quality outcome.
 
     One supervised measurement at a time per archive root: overlapping runs would
@@ -672,6 +672,10 @@ def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', c
     clean provenance, so a second concurrent run is refused rather than measured.
     """
     root=Path(root).resolve();repo=Path(repo).resolve()
+    if child_hardware_lock and (dataset!='dev' or command_override is not None or capture_energy):
+        raise ValueError('Child-owned hardware locking supports only standard development runs without parent-scoped energy capture')
+    worker=repo/'scripts/autotune_hardware_worker.py'
+    worker_sha=sha(worker) if child_hardware_lock else None
     if dataset not in ('dev','all'):raise ValueError('Only dev or explicitly requested all milestones')
     if not change.strip() or not hypothesis.strip():raise ValueError('change and hypothesis required')
     if not finite(timeout) or timeout<=0:raise ValueError('timeout must be positive')
@@ -709,12 +713,17 @@ def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', c
         command=command_override or [sys.executable,'-X','utf8',str(Path(repo)/'eval/run_secretary_eval.py'),
                    '--dataset',dataset,'--candidate-name',path.name.split('_')[0],
                    '--config',str(path/'config.json'),'--output-dir',str(out)]
+        if child_hardware_lock:
+            command=[sys.executable,'-X','utf8',str(worker),'--archives-root',str(root),
+                     '--script','run_secretary_eval.py','--',*command[4:]]
         metadata=initialize(path,{**state,'timestamp':now(),'change':change,'hypothesis':hypothesis,
                      'control_experiment':control,'dataset':dataset,'benchmark':frozen,'command':command,
                      'execution_cwd':str(repo),'resolved_artifact_paths':{'model_path':str(model) if model else None,'sdk_dir':str(sdk) if sdk else None},
                      'qualification_status':'diagnostic_dirty' if state['dirty'] else 'pending_validation',
                      'environment':capture_environment(),'artifact_identity_before':pre,
                      'runner_identity_before':runner_before,'case_set_complete':False,
+                     'hardware_lock_owner':'native_child' if child_hardware_lock else 'supervisor',
+                     'hardware_worker_sha256':worker_sha,
                      'config_sha256':digest(config)},config_raw)
         meter=None;before=None;telemetry=None;status='failed';result=None;notes=[];exit_code=None;child=None;power_before=None
         try:
@@ -744,6 +753,7 @@ def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', c
                 metadata.update({k:v for k,v in observed.items() if k not in ('git_commit','branch','dirty','environment','config_sha256')})
                 reasons=[]
                 if command_override is not None: reasons.append('Custom command is diagnostic only')
+                if child_hardware_lock and sha(worker)!=worker_sha:reasons.append('Hardware worker source changed during run')
                 from eval.scoring import load_dataset
                 files=[Path(repo)/'eval/datasets/secretary_dev.json']
                 if dataset=='all': files.append(Path(repo)/'eval/datasets/secretary_heldout.json')
@@ -791,5 +801,6 @@ def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', c
         finish(path,metadata,result,telemetry,status,notes)
         return path
 
+    if child_hardware_lock:return supervised()
     with archive_lock(root,'hardware-execution',timeout=execution_lock_timeout):
         return supervised()

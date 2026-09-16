@@ -292,7 +292,7 @@ def promote_best(state, survivors, console, *, selector_module, evaluated, confi
 RESUME_SETTINGS = ('control_config','control_name','backend','split','budget_minutes','session_dir',
                    'archive_root','dry_run','mock_llm','max_points','stage_limit','owner_decision',
                    'simulated_seconds_per_case','s2_cases','s3_cases','canary_seed','canary_timeout',
-                   'startup_timeout','llm_timeout','diagnostic_dirty','timeout')
+                   'startup_timeout','llm_timeout','diagnostic_dirty','timeout','event_driven')
 
 
 def restore_resume_settings(args):
@@ -349,6 +349,15 @@ def _run_session_locked(args, *, clock, executor, session_path, console, advisor
         console=console, owner_decisions=state['owner_decisions'], clock=clock,
         dry_run=args.dry_run, checkpoint_path=session_path).install_interrupt_handler()
 
+    if getattr(args,'event_driven',False):
+        from turbo.optimizer.event_coordinator import Coordinator
+        from turbo.experiments import git_state
+        engine.event_code_sha=git_state()['git_commit']
+        engine.event_coordinator=Coordinator(Path(session_path).parent/'coordination.json',require_registry=not args.dry_run)
+        engine.event_coordinator.recover(state['hardware_journal'],code_sha=engine.event_code_sha)
+        engine.event_coordinator.flush_registry()
+        engine.event_coordinator.start_observer()
+        args.stage_limit=1  # An immediate stage decision after each completed treatment.
     settings = {key: getattr(args, key, None) for key in RESUME_SETTINGS}
     settings['control_config'] = str(Path(args.control_config).resolve())
     settings['session_dir'] = str(Path(args.session_dir).resolve())
@@ -369,6 +378,8 @@ def _run_session_locked(args, *, clock, executor, session_path, console, advisor
         state.setdefault('failures', []).append(state_module.failure_record(exc, where='session'))
         engine.checkpoint()
         raise
+    finally:
+        if engine.event_coordinator is not None:engine.event_coordinator.close()
 
 
 def _continue_session(args, state, engine, session_budget, console, advisor, session_path):
@@ -422,11 +433,23 @@ def _continue_session(args, state, engine, session_budget, console, advisor, ses
             workflow['generated_signatures'].append(signature)
             engine.checkpoint()
         progressed = False
-        for stage in plan['stages']:
+        stages=plan['stages']
+        if engine.event_coordinator is not None:
+            engine.event_coordinator.heartbeat()
+            ready=engine.event_coordinator.ready(pool,
+                lambda candidate,stage:hardware_queue.priority(candidate,family_stats=state.get('families',{}),phase=phase))
+            stages=(ready[1],) if ready else ()
+            if ready:
+                chosen=ready[2]['candidate_id']
+                pool[ready[1]].sort(key=lambda c:c['candidate_id']!=chosen)
+        for stage in stages:
             if not pool[stage] or session_budget.exhausted or engine.interrupted:
                 continue
             progressed = _run_batch(engine, state, args, stage, phase, console) or progressed
         if not progressed:
+            if engine.event_coordinator is not None:
+                console.warn('No eligible READY work remains for the event coordinator')
+                break
             stage = next((name for name in ('S3','S4','S5','S2','S1') if pool[name]), None)
             if stage is None or session_budget.exhausted or engine.interrupted:
                 console.warn('no work remains for the current control')
@@ -459,6 +482,11 @@ def _run_batch(engine, state, args, stage, phase, console):
         waiting = workflow['pool'][stage]
         engine.enqueue(waiting, phase=phase)
         ordered = engine.queue.drain()
+        if engine.event_coordinator is not None:
+            ready=engine.event_coordinator.ready({stage:ordered},lambda candidate,_stage:hardware_queue.priority(candidate,family_stats=state.get('families',{}),phase=phase))
+            if ready:
+                chosen=ready[2]['candidate_id'];ordered.sort(key=lambda c:c['candidate_id']!=chosen)
+            else:return False
         workflow['batch_counter'] += 1
         batch = {'id': 'B-' + str(workflow['batch_counter']), 'stage': stage, 'phase': phase,
                  'waiting': copy.deepcopy(ordered),
@@ -480,6 +508,17 @@ def _run_batch(engine, state, args, stage, phase, console):
         if control.get('runtime_error') or control.get('outcome') in ('failed','crashed','timed_out','refused','skipped'):
             raise RuntimeError('Control has no usable observation at ' + stage + '; batch remains blocked and unqualified')
     observations, failed_ids = [], set()
+    if engine.event_coordinator is not None and not any(
+            journal.get(batch['id']+':'+c['candidate_id'],{}).get('status')=='completed'
+            for c in batch['selected']):
+        # Decisions made while the control was running affect only unlaunched work.
+        ready=engine.event_coordinator.ready({stage:batch['waiting']},
+            lambda candidate,_stage:hardware_queue.priority(candidate,family_stats=state.get('families',{}),phase=phase))
+        if ready:batch['selected']=[ready[2]]
+        else:
+            failed_ids.update(c['candidate_id'] for c in batch['selected'])
+            batch['selected']=[]
+        engine.checkpoint()
     for candidate in batch['selected']:
         job = batch['id'] + ':' + candidate['candidate_id']
         if failed(job):
@@ -495,15 +534,29 @@ def _run_batch(engine, state, args, stage, phase, console):
     before = copy.deepcopy(state)
     try:
         survivors, _, evaluated = funnel(stage, observations, control, console)
+        repeats=[]
+        if engine.event_coordinator is not None:
+            survivors_by_id={c['candidate_id'] for c in survivors}
+            for candidate,observation in observations:
+                decision=engine.event_coordinator.decide(candidate,stage,
+                    'survive' if candidate['candidate_id'] in survivors_by_id else 'drop',
+                    ['Existing '+stage+' gate evaluated'],observation=observation,
+                    control_config_hash=batch['control'].get('config_hash'),job_id=batch['id']+':'+candidate['candidate_id'])
+                if decision in ('repeat','hold','reject'):
+                    survivors=[c for c in survivors if c['candidate_id']!=candidate['candidate_id']]
+                if decision=='repeat':repeats.append(candidate)
         done = failed_ids | {candidate['candidate_id'] for candidate, _ in observations}
         workflow['pool'][stage] = [c for c in batch['waiting'] if c['candidate_id'] not in done]
+        workflow['pool'][stage].extend(repeats)
         if stage == 'S4':
             workflow['dev35_observations'].update(evaluated)
         if stage == 'S5':
             workflow['confirmations'].update(evaluated)
         if stage in ('S4','S5') and survivors:
-            promote_best(state, survivors, console, selector_module=selector,
+            selection=promote_best(state, survivors, console, selector_module=selector,
                 evaluated=workflow['dev35_observations'], confirmations=workflow['confirmations'])
+            if engine.event_coordinator is not None and selection:
+                engine.event_coordinator.record_selection(selection)
         following = successive_halving.next_stage(stage)
         if following in workflow['pool']:
             workflow['pool'][following].extend(survivors)
@@ -518,6 +571,7 @@ def _run_batch(engine, state, args, stage, phase, console):
 
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--event-driven',action='store_true',help='Opt-in immediate decisions, durable coordination and ten-minute observer checkpoints')
     p.add_argument('--budget-minutes', type=float, default=120.0)
     p.add_argument('--backend', choices=space.BACKENDS)
     p.add_argument('--split', choices=['development'], default='development',
@@ -601,18 +655,27 @@ def main(argv=None):
         # Each stage goes to the executor entitled to answer it. One executor
         # for all five, as an earlier version had, meant the real path ran the
         # full development set five times and called the first three cheap.
+        diagnostic_process=None
+        if getattr(args,'event_driven',False):
+            from turbo.optimizer.event_coordinator import diagnostic_runner
+            diagnostic_process=diagnostic_runner(args.archive_root or DEFAULT_ARCHIVES)
+        tracked_run=None
+        if getattr(args,'event_driven',False):
+            from functools import partial
+            from turbo.experiments import run as run_tracked
+            tracked_run=partial(run_tracked,child_hardware_lock=True)
         executor = scheduler_module.staged_executor(
             probe=scheduler_module.startup_probe_executor(
-                repo=ROOT, timeout_s=args.startup_timeout,
+                repo=ROOT, timeout_s=args.startup_timeout,runner=diagnostic_process,
                 config_directory=home / 'candidates'),
             canary=scheduler_module.canary_executor(
                 repo=ROOT, seed_label=args.canary_seed or 'turbolab',
                 sizes={'S2': args.s2_cases, 'S3': args.s3_cases},
-                output_directory=home / 'canaries', timeout_s=args.canary_timeout,
+                output_directory=home / 'canaries', timeout_s=args.canary_timeout,runner=diagnostic_process,
                 config_directory=home / 'candidates'),
             tracker=scheduler_module.tracker_executor(
                 root=args.archive_root or DEFAULT_ARCHIVES, dataset='dev',
-                timeout=args.timeout, diagnostic_dirty=args.diagnostic_dirty,
+                timeout=args.timeout, diagnostic_dirty=args.diagnostic_dirty,runner=tracked_run,
                 config_directory=home / 'candidates'))
 
     advisor = advisor_module.Advisor(
