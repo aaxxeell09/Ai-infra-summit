@@ -1,0 +1,49 @@
+{
+  "schema_version": "local-turbo.comparison-request.v1",
+  "request_id": "live-backend-1812-htp-after-qairt",
+  "comparison": "speed",
+  "execution": "sequential",
+  "prompt_id": "quick",
+  "prompt": "In two sentences, explain why local AI can work without an internet connection.",
+  "baseline": {
+    "cell_id": "cpu-t0",
+    "model": "Qwen3-0.6B-Q4_0.gguf",
+    "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+    "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+    "plugin": "llama_cpp",
+    "requested_device": "cpu",
+    "source_sha256": "1be55c445a053fb499e9037c4e6cdbe8fbe0884ab8c5c19cedace8dd9277ca00",
+    "params": {
+      "warmup": 1,
+      "repetitions": 3,
+      "n_prompt": 512,
+      "n_gen": 128,
+      "temperature": 0.0,
+      "seed": 42,
+      "n_ctx": 4096,
+      "n_threads": 0,
+      "n_gpu_layers": 0
+    }
+  },
+  "selected": {
+    "cell_id": "npu",
+    "model": "Qwen3-0.6B-Q4_0.gguf",
+    "model_sha256": "33bcc57074ec7b6eada5a90651ee546ec0c2b271002c22baf9f1b2dd1e8f75cb",
+    "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+    "plugin": "llama_cpp",
+    "requested_device": "npu",
+    "source_sha256": "1be55c445a053fb499e9037c4e6cdbe8fbe0884ab8c5c19cedace8dd9277ca00",
+    "params": {
+      "warmup": 1,
+      "repetitions": 3,
+      "n_prompt": 512,
+      "n_gen": 128,
+      "temperature": 0.0,
+      "seed": 42,
+      "n_ctx": 4096,
+      "n_threads": 0,
+      "n_gpu_layers": -1
+    }
+  },
+  "routing": null
+}

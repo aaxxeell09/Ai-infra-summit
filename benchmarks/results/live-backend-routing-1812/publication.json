@@ -1,0 +1,144 @@
+{
+  "schema_version": "local-turbo.publication.v1",
+  "scope": "Public answer demonstration, not frozen correctness evaluation; all completed native attempts through 18:12 label",
+  "source_representation": "JSON-decoded API response serialized without semantic edits",
+  "files": {
+    "auto-default-1/request.json": {
+      "sha256": "e656788b0ed963e6a6526f4d3717c44f33797b3e278d13c41505c00b491e17d6",
+      "bytes": 1032
+    },
+    "auto-default-1/device-result.json": {
+      "sha256": "8be84d2f9eca6b8f90c3b9be776e8ff43566c4f4d9d29685597dc2b087d20579",
+      "bytes": 44008
+    },
+    "gpu-after-qairt-failure/request.json": {
+      "sha256": "a3e9ed82a5219591007cc6278656592f8b8cfdc3539e9a90d1a99a8173a723ae",
+      "bytes": 1544
+    },
+    "gpu-after-qairt-failure/device-result.json": {
+      "sha256": "c830ea67534551b3b5256c4e54b83d08d87b8be97bf31c80876967cc7f14b9f3",
+      "bytes": 10318
+    },
+    "gpu-sdk-cleanup/request.json": {
+      "sha256": "02323731978b40da40015847bd6624ad67a31cc1b37a067046e49bd334c17cfa",
+      "bytes": 1544
+    },
+    "gpu-sdk-cleanup/device-result.json": {
+      "sha256": "495a46e3eb0961ff6dd8b56c8cef101dc191092160d84b60050d53bc4dfe2190",
+      "bytes": 36662
+    },
+    "auto-default-2/request.json": {
+      "sha256": "4e187a5d4891216098023dbfa1474a19980e07aa1031bbf58744bf91e3e95151",
+      "bytes": 1039
+    },
+    "auto-default-2/device-result.json": {
+      "sha256": "ab5416f8b14b990ecaef624299b4f0cf53c024bf53515263708a35d8b48ec5fd",
+      "bytes": 50179
+    },
+    "htp-after-qairt/request.json": {
+      "sha256": "9e925a68469e2574fa3f6c76c64219f8befa97c85c114de1ecbb7d5f3e2af112",
+      "bytes": 1556
+    },
+    "htp-after-qairt/device-result.json": {
+      "sha256": "7d7bbd3b8401ac4cf8614fd7cfde3e45c73039f24059c4295f55c3674c4969ac",
+      "bytes": 36437
+    }
+  },
+  "attempts": [
+    {
+      "directory": "auto-default-1",
+      "request_id": "live-backend-1750-qairt",
+      "state": "completed",
+      "git_commit": "5434ec1325fb83647d6d7b30001a0af64cb2b053",
+      "working_tree_clean": true,
+      "selected_route": "qwen06-qairt",
+      "generation": {
+        "max_tokens": 128,
+        "temperature_requested": 0,
+        "seed": -1,
+        "seed_scope": "SDK default, not a deterministic seeded trial",
+        "greedy_zero": false,
+        "fresh_model_each_lane": true,
+        "fresh_kv": true,
+        "warmup": 0
+      }
+    },
+    {
+      "directory": "gpu-after-qairt-failure",
+      "request_id": "live-backend-1753-gpu",
+      "state": "failed",
+      "git_commit": "5434ec1325fb83647d6d7b30001a0af64cb2b053",
+      "working_tree_clean": true,
+      "selected_route": null,
+      "generation": {
+        "max_tokens": 128,
+        "temperature_requested": 0,
+        "seed": -1,
+        "seed_scope": "SDK default, not a deterministic seeded trial",
+        "greedy_zero": false,
+        "fresh_model_each_lane": true,
+        "fresh_kv": true,
+        "warmup": 0
+      }
+    },
+    {
+      "directory": "gpu-sdk-cleanup",
+      "request_id": "live-backend-1802-gpu",
+      "state": "completed",
+      "git_commit": "775bceae3dabbb0d72ebeb29c5044d6fa20563d1",
+      "working_tree_clean": true,
+      "selected_route": null,
+      "generation": {
+        "max_tokens": 128,
+        "temperature_requested": 0,
+        "seed": -1,
+        "seed_scope": "SDK default, not a deterministic seeded trial",
+        "greedy_zero": false,
+        "fresh_model_each_lane": true,
+        "fresh_kv": true,
+        "warmup": 0
+      }
+    },
+    {
+      "directory": "auto-default-2",
+      "request_id": "live-backend-1808-qairt-greedy",
+      "state": "completed",
+      "git_commit": "775bceae3dabbb0d72ebeb29c5044d6fa20563d1",
+      "working_tree_clean": true,
+      "selected_route": "qwen06-qairt",
+      "generation": {
+        "max_tokens": 128,
+        "temperature_requested": 0,
+        "seed": -1,
+        "seed_scope": "SDK default, not a deterministic seeded trial",
+        "greedy_zero": false,
+        "fresh_model_each_lane": true,
+        "fresh_kv": true,
+        "warmup": 0
+      }
+    },
+    {
+      "directory": "htp-after-qairt",
+      "request_id": "live-backend-1812-htp-after-qairt",
+      "state": "completed",
+      "git_commit": "775bceae3dabbb0d72ebeb29c5044d6fa20563d1",
+      "working_tree_clean": true,
+      "selected_route": null,
+      "generation": {
+        "max_tokens": 128,
+        "temperature_requested": 0,
+        "seed": -1,
+        "seed_scope": "SDK default, not a deterministic seeded trial",
+        "greedy_zero": false,
+        "fresh_model_each_lane": true,
+        "fresh_kv": true,
+        "warmup": 0
+      }
+    }
+  ],
+  "notes": [
+    "auto-default-2 was saved under a local filename ending in greedy before deployment failed. Its result correctly records source775bcea and temperature0, so it is NOT a greedy-sampler trial.",
+    "The unsuccessful deployment and transport setup are not inference outcomes.",
+    "No outcome omitted; the first QAIRT answer is factually wrong, and GPU-after-QAIRT failed during default CPU loading."
+  ]
+}
