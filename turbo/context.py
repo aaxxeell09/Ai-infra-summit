@@ -18,16 +18,22 @@ class ContextStore:
         self.root.mkdir(parents=True, exist_ok=True)
 
     def put(self, text: str) -> str:
-        key = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        raw = text.encode("utf-8")
+        key = hashlib.sha256(raw).hexdigest()
         target = self.root / (key + ".txt")
         if not target.exists():
-            target.write_text(text, encoding="utf-8")
+            target.write_bytes(raw)
+        elif target.read_bytes() != raw:
+            raise ValueError("context reference integrity mismatch")
         return key
 
     def get(self, key: str) -> str:
         if len(key) != 64 or any(c not in "0123456789abcdef" for c in key):
             raise ValueError("invalid context reference")
-        return (self.root / (key + ".txt")).read_text(encoding="utf-8")
+        raw = (self.root / (key + ".txt")).read_bytes()
+        if hashlib.sha256(raw).hexdigest() != key:
+            raise ValueError("context reference integrity mismatch")
+        return raw.decode("utf-8")
 
     def compact(self, text: str, *, fields: list[str] | None = None,
                 preview_chars: int | None = None) -> dict:

@@ -140,3 +140,20 @@ def test_runner_passes_candidate_setting_without_altering_generation(monkeypatch
     assert captured['chat']['temperature']==0
     assert captured['chat']['reset'] is True
     assert captured['chat']['max_tokens']==128
+
+
+@pytest.mark.parametrize('prefix', [
+    b'<tool_call>{"name":"clarify","arguments":{"question":"literal </tool_call>',
+    b'<tool_call>not-json</tool_call>',
+])
+def test_literal_marker_diagnostic_does_not_claim_valid_action(tmp_path, prefix):
+    m, runtime, _ = model(tmp_path, True, [prefix, b' trailing completion'])
+    with m:
+        result = m.chat([{'role': 'user', 'content': 'synthetic'}])
+    runtime.close()
+    assert result['text'] == prefix.decode()
+    assert result['generation_control']['delimiter_seen'] is True
+    assert result['generation_control']['native_text_modified'] is False
+    codec = SecretaryAdapter.from_files([])
+    with pytest.raises((ValueError, json.JSONDecodeError)):
+        codec.decode(result['text'], snapshot_digest=codec.digest)

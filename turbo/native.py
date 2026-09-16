@@ -588,6 +588,8 @@ def _qairt_bundle_input(path: str) -> tuple[str, int]:
         paths.append(candidate)
     if not supplied.is_dir() and supplied.resolve() not in paths:
         raise ValueError('QAIRT model file is not a declared context shard')
+    if paths[0].parent != root:
+        raise ValueError('QAIRT first context shard must be directly inside the bundle root')
     return str(paths[0]), context
 
 
@@ -848,19 +850,29 @@ class NativeModel:
         gout = geniex_LlmGenerateOutput()
         keepalive.extend([gin, prompt_b, gout])
 
-        # Optional diagnostics around exactly the native generation call.
-        with self.generation_observer.measure('inference') if self.generation_observer else nullcontext():
-            t0 = time.perf_counter()
-            code = lib.geniex_llm_generate(c_void_p(self._handle), byref(gin), byref(gout))
-            total_s = time.perf_counter() - t0
-        state['alive'] = False
-        self.runtime._check(code)
-
-        text = ''
-        if gout.full_text:
-            raw = ctypes.cast(gout.full_text, c_char_p).value
-            text = raw.decode('utf-8', errors='replace') if raw else ''
-            self.runtime._free(gout.full_text)  # original void*
+        # The SDK can populate full_text and still return an error. Release it
+        # on every exit without replacing the original generation exception.
+        try:
+            with self.generation_observer.measure('inference') if self.generation_observer else nullcontext():
+                t0 = time.perf_counter()
+                code = lib.geniex_llm_generate(c_void_p(self._handle), byref(gin), byref(gout))
+                total_s = time.perf_counter() - t0
+            self.runtime._check(code)
+            text = ''
+            if gout.full_text:
+                raw = ctypes.cast(gout.full_text, c_char_p).value
+                text = raw.decode('utf-8', errors='replace') if raw else ''
+        finally:
+            state['alive'] = False
+            if gout.full_text:
+                original_error = sys.exc_info()[0] is not None
+                pointer = gout.full_text
+                gout.full_text = None
+                try:
+                    self.runtime._free(pointer)
+                except Exception:
+                    if not original_error:
+                        raise
 
         p = gout.profile_data
         profile = {
