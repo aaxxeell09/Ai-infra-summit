@@ -20,6 +20,8 @@ PROMPTS = {
     'reasoning': 'A demo starts at 14:00. Setup takes 25 minutes, testing takes 20 minutes, and we need a 10-minute buffer. Testing must follow setup. What is the latest time we can start? Show the schedule.',
 }
 CPU_CELLS = tuple(f'cpu-t{n}' for n in (0, 2, 4, 6, 8, 10, 12))
+LIVE_CELLS = (*CPU_CELLS, 'gpu', 'npu')
+BACKENDS = {'cpu': 'llama_cpp_cpu', 'gpu': 'llama_cpp_gpu', 'npu': 'llama_cpp_htp'}
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -55,36 +57,52 @@ class LiveComparisons:
         self.manifest = json.loads((self.source / 'sweep.json').read_text())
 
     def capabilities(self):
-        return {'available': self.enabled, 'supported_cell_ids': list(CPU_CELLS) if self.enabled else [],
+        from .demo_routing import POLICY, catalog
+        routes = catalog(self.engine.config)
+        return {'available': self.enabled, 'supported_cell_ids': list(LIVE_CELLS) if self.enabled else [],
                 'model_sha256': self.manifest['model_sha256'], 'comparison': 'speed',
-                'backend': 'llama_cpp_cpu', 'quality': 'not_evaluated',
+                'backends': list(BACKENDS.values()), 'quality': 'not_evaluated',
+                'routing': {'available': self.enabled and any(row['available'] for row in routes),
+                            'policy': POLICY, 'routes': routes, 'selections': ['auto', *[row['id'] for row in routes]],
+                            'scope': 'Experimental public-prompt task policy; not a calibrated speed/quality ranking'},
                 'scope': 'Opt-in native answer demonstration; one pair is not a confirmed speedup.'}
 
     def _validate(self, request):
         if not self.enabled:
             raise ValueError('Live answer comparison is not enabled on this gateway')
         if (request.get('schema_version') != 'local-turbo.comparison-request.v1'
-                or request.get('comparison') != 'speed' or request.get('execution') != 'sequential'):
-            raise ValueError('Only sequential same-model speed comparisons are supported; routing is not calibrated')
+                or request.get('comparison') not in ('speed', 'routing') or request.get('execution') != 'sequential'):
+            raise ValueError('Only sequential public-demo comparisons are supported')
         ident = request.get('request_id')
         if not isinstance(ident, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}', ident):
             raise ValueError('Invalid request ID')
         if request.get('prompt_id') not in PROMPTS or request.get('prompt') != PROMPTS[request['prompt_id']]:
             raise ValueError('Choose one of the two fixed public presentation prompts')
+        routing = request.get('comparison') == 'routing'
+        if routing:
+            from .demo_routing import POLICY, ROUTES
+            options = request.get('routing')
+            if (not isinstance(options, dict) or options.get('policy') != POLICY
+                    or options.get('allow_uncalibrated') is not True
+                    or options.get('selection') not in ('auto', *[row[0] for row in ROUTES])
+                    or request.get('selected') is not None):
+                raise ValueError('Routing requires an explicit experimental policy and a supported selection')
         for lane, key in [('default', 'baseline'), ('turbo', 'selected')]:
+            if routing and lane == 'turbo':
+                continue
             cfg = request.get(key)
-            if not isinstance(cfg, dict) or cfg.get('cell_id') not in CPU_CELLS:
-                raise ValueError(f'{lane}: select a supported CPU configuration on the Compare screen')
+            if not isinstance(cfg, dict) or cfg.get('cell_id') not in LIVE_CELLS:
+                raise ValueError(f'{lane}: select a supported CPU, GPU or HTP configuration on Compare')
             if lane == 'default' and cfg['cell_id'] != 'cpu-t0':
                 raise ValueError('Default lane must use the recorded CPU automatic-thread configuration')
+            report = json.loads((self.source / (cfg['cell_id'] + '.json')).read_text())
             expected = {'model': self.manifest['model_name'], 'model_sha256': self.manifest['model_sha256'],
                         'runtime_sha256': self.manifest['runtime_sha256'], 'plugin': 'llama_cpp',
-                        'requested_device': 'cpu'}
+                        'requested_device': report['device']}
             if any(cfg.get(k) != v for k, v in expected.items()):
                 raise ValueError(f'{lane}: model, runtime, backend or source identity differs from the recorded selection')
             if cfg.get('source_sha256') not in _manifest_hashes(self.source / 'sweep.json'):
                 raise ValueError(f'{lane}: recorded source hash differs, including after Git CRLF normalization')
-            report = json.loads((self.source / (cfg['cell_id'] + '.json')).read_text())
             if cfg.get('params') != report['params']:
                 raise ValueError(f'{lane}: requested parameters differ from the recorded selection')
         return ident
@@ -154,7 +172,7 @@ class LiveComparisons:
         lanes = {}
         final_state, final_error = 'failed', None
         result = {'schema_version': 'local-turbo.comparison-result.v1', 'request_id': ident,
-                  'mode': 'live', 'comparison': 'speed', 'execution': 'sequential', 'lanes': lanes,
+                  'mode': 'live', 'comparison': request['comparison'], 'execution': 'sequential', 'lanes': lanes,
                   'winner': None, 'speedup': None, 'quality': 'not_evaluated', 'routing': None,
                   'prompt_sha256': hashlib.sha256(request['prompt'].encode()).hexdigest(),
                   'generation': {'max_tokens': 128, 'temperature_requested': 0, 'seed': -1,
@@ -180,19 +198,47 @@ class LiveComparisons:
             if self.engine.runtime is None:
                 self.engine.runtime = NativeRuntime(self.engine.config['sdk_dir'])
                 self.engine.runtime_binding = binding
+            route, decision = None, None
+            if request['comparison'] == 'routing':
+                from .demo_routing import choose_route
+                from .tuning import _sha256
+                route, decision = choose_route(self.engine.config, request, self.engine.runtime)
+                route_spec = self.engine.config['models'][route['model_id']]
+                route['model_sha256'] = _sha256(route_spec['path'], deadline=time.monotonic() + max(0, deadline-time.perf_counter()))
+                pins = {'qwen06': self.manifest['model_sha256'],
+                        'qwen4b': 'e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2'}
+                if route['model_id'] in pins and route['model_sha256'] != pins[route['model_id']]:
+                    raise ValueError('Selected model weights differ from the pinned demo artifact')
+                result['routing'] = decision
             for lane, key in [('default', 'baseline'), ('turbo', 'selected')]:
                 if job['cancel_requested'] or time.perf_counter() >= deadline:
                     raise InterruptedError('Comparison cancelled or deadline reached')
-                cfg = request[key]
+                selected_route = route if lane == 'turbo' else None
+                lane_spec, lane_model_id = spec, model_id
+                if selected_route:
+                    lane_model_id = route['model_id']
+                    lane_spec = self.engine.config['models'][lane_model_id]
+                    cfg = dict(cell_id=route['id'], model=route['model'], model_sha256=route['model_sha256'],
+                               runtime_sha256=self.manifest['runtime_sha256'], plugin=route['plugin'],
+                               requested_device=route['device'], params={'n_threads': route['threads'], 'n_ctx': route['context']})
+                else:
+                    cfg = request[key]
                 params = cfg['params']
-                ack = {'cell_id': cfg['cell_id'], 'model': cfg['model'], 'model_id': model_id,
+                backend = route['backend_id'] if selected_route else BACKENDS[cfg['requested_device']]
+                ack = {'cell_id': cfg['cell_id'], 'model': cfg['model'], 'model_id': lane_model_id,
                        'model_sha256': cfg['model_sha256'], 'runtime_sha256': cfg['runtime_sha256'],
                        'runtime_hash_scope': 'benchmark executable; current SDK/plugin hashes are in runtime_binding',
-                       'sdk_sha256': binding['sha256'], 'plugin': 'llama_cpp', 'device': 'cpu',
-                       'backend_id': 'llama_cpp_cpu', 'threads': params['n_threads'], 'context': params['n_ctx'],
+                       'sdk_sha256': binding['sha256'], 'plugin': cfg['plugin'], 'device': cfg['requested_device'],
+                       'backend_id': backend, 'threads': params['n_threads'], 'context': params['n_ctx'],
                        'thread_scope': 'Value passed to the SDK; zero requests automatic selection, resolved worker count unavailable',
-                       'quantization': 'Q4_0', 'source_sha256': cfg['source_sha256'],
+                       'quantization': route['quantization'] if selected_route else 'Q4_0', 'source_sha256': cfg.get('source_sha256'),
                        'source_hash_validation': 'Exact JSON bytes or Git CRLF-to-LF conversion only'}
+                if selected_route:
+                    ack.update(route_id=route['id'], source_sha256=None, source_hash_validation=None,
+                               quantization_scope=route.get('quantization_scope', 'Pinned Q4_0 GGUF'),
+                               model_hash_scope='Full bundle via tuning._sha256 (host path separators)' if cfg['plugin'] == 'qairt' else 'Exact GGUF bytes')
+                    decision['effective_configuration'] = copy.deepcopy(ack)
+                    self._event(job, {'type': 'route', 'lane': lane, 'routing': copy.deepcopy(decision)})
                 lane_result = {'status': 'running', 'answer': '', 'configuration_applied': False,
                                'effective_configuration': None, 'ttft_ms': None, 'total_time_s': None,
                                'inference_time_s': None, 'native_decode_tps': None, 'output_tokens': None,
@@ -201,14 +247,20 @@ class LiveComparisons:
                                'ttft_scope': 'Native generation TTFT, excluding model loading',
                                'memory': None, 'energy': None}
                 lanes[lane] = lane_result
-                self._event(job, {'type': 'start', 'lane': lane})
+                self._event(job, {'type': 'start', 'lane': lane, 'effective_configuration': ack})
                 lane_start = time.perf_counter()
                 model = None
                 try:
-                    model = (self.model_factory or NativeModel)(self.engine.runtime, spec['path'], device='cpu',
-                            threads=params['n_threads'], context=params['n_ctx'], plugin='llama_cpp')
-                    if model.provenance()['backend_id'] != 'llama_cpp_cpu':
-                        raise ValueError('Native backend acknowledgement differs from requested CPU backend')
+                    model = (self.model_factory or NativeModel)(self.engine.runtime, lane_spec['path'], device=cfg['requested_device'],
+                            threads=params['n_threads'], context=params['n_ctx'], plugin=cfg['plugin'], backend=backend)
+                    provenance = model.provenance()
+                    from .demo_routing import resolved_matches
+                    if provenance['backend_id'] != backend or not resolved_matches(backend, provenance.get('resolved_device')):
+                        raise ValueError('Native backend acknowledgement differs from requested backend')
+                    provenance['model_path_or_id'] = cfg['model']
+                    ack['native_provenance'] = provenance
+                    if selected_route:
+                        decision['effective_configuration'] = copy.deepcopy(ack)
                     lane_result.update(configuration_applied=True, effective_configuration=ack)
                     def token(piece):
                         if job['cancel_requested'] or time.perf_counter() >= deadline:
@@ -222,12 +274,13 @@ class LiveComparisons:
                                         temperature=0, reset=True, on_token=token)
                     # Native text is authoritative, including a truncated/cancelled answer.
                     lane_result['answer'] = native['text']
-                    if native.get('backend_id') not in (None, 'llama_cpp_cpu'):
-                        raise ValueError('Generation reported a backend other than CPU')
+                    if native.get('backend_id') not in (None, backend):
+                        raise ValueError('Generation reported a different backend')
                     profile = native.get('profile', {})
                     lane_result.update(native_profile=profile, sampling=native.get('sampling'),
                         ttft_ms=_metric(profile.get('ttft')) / 1000 if _metric(profile.get('ttft')) is not None else None,
                         output_tokens=_metric(profile.get('generated_tokens')), native_decode_tps=_metric(profile.get('decoding_speed')),
+                        native_prefill_tps=_metric(profile.get('prefill_speed')),
                         inference_time_s=_metric(native.get('timings', {}).get('total')), finish_reason=profile.get('stop_reason'))
                     if job['cancel_requested'] or time.perf_counter() >= deadline:
                         raise InterruptedError('Comparison cancelled or deadline reached')

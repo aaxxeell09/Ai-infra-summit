@@ -29,7 +29,9 @@ class Model:
         self.closed = False
         self.instances.append(self)
     def provenance(self):
-        return {'backend_id': 'llama_cpp_cpu'}
+        return {'backend_id': self.config['backend'], 'resolved_device':
+                {'cpu': 'CPU', 'gpu': 'GPUOpenCL', 'npu': 'NPU' if self.config['plugin'] == 'qairt' else 'HTP0'}[self.config['device']],
+                'dispatch_verified': False}
     def chat(self, messages, **kwargs):
         if self.block:
             self.block.wait(2)
@@ -100,6 +102,41 @@ class ComparisonTests(unittest.TestCase):
         request=copy.deepcopy(self.request);request['comparison']='routing'
         with self.assertRaises(ValueError): self.manager.start(request)
         self.assertEqual(Model.instances, [])
+    def test_gpu_uses_recorded_same_weights_settings_and_acknowledges_native_device(self):
+        cfg = self.request['selected']
+        cfg.update(cell_id='gpu', requested_device='gpu', params=json.loads((self.manager.source/'gpu.json').read_text())['params'])
+        self.manager.start(self.request); state = self.finish()
+        self.assertEqual(state['state'], 'completed', state['error'])
+        ack = state['result']['lanes']['turbo']['effective_configuration']
+        self.assertEqual(ack['backend_id'], 'llama_cpp_gpu')
+        self.assertEqual(ack['native_provenance']['resolved_device'], 'GPUOpenCL')
+        self.assertFalse(ack['native_provenance']['dispatch_verified'])
+    def test_routing_binds_selected_artifact_and_runs_actual_selected_plugin(self):
+        self.engine.config['models'] = {'qwen06-qairt': {'path': 'compiled-bundle'}}
+        route = dict(id='qwen06-qairt', model_id='qwen06-qairt', model='compiled-bundle', plugin='qairt',
+                     device='npu', backend_id='qairt_npu', threads=0, context=4096, quantization=None)
+        decision = dict(selection='auto', selected_route_id=route['id'], policy='public-demo-v1', quality='not_calibrated')
+        self.request.update(comparison='routing', selected=None,
+                            routing={'selection': 'auto', 'policy': 'public-demo-v1', 'allow_uncalibrated': True})
+        with patch('turbo.demo_routing.choose_route', return_value=(route, decision)), patch('turbo.tuning._sha256', return_value='a'*64):
+            self.manager.start(self.request); state = self.finish()
+        self.assertEqual(state['state'], 'completed', state['error'])
+        self.assertEqual([m.config['plugin'] for m in Model.instances], ['llama_cpp', 'qairt'])
+        ack = state['result']['routing']['effective_configuration']
+        self.assertEqual(ack['model_sha256'], 'a'*64)
+        self.assertEqual(ack['native_provenance']['resolved_device'], 'NPU')
+        self.assertIsNone(ack['quantization'])
+        self.assertEqual(len([e for e in state['events'] if e['type'] == 'route']), 1)
+        self.assertIsNone(state['result']['winner'])
+    def test_native_cpu_fallback_fails_gpu_lane_without_retry(self):
+        cfg = self.request['selected']
+        cfg.update(cell_id='gpu', requested_device='gpu', params=json.loads((self.manager.source/'gpu.json').read_text())['params'])
+        with patch.object(Model, 'provenance', return_value={'backend_id': 'llama_cpp_cpu', 'resolved_device': 'CPU'}):
+            self.manager.start(self.request); state = self.finish()
+        self.assertEqual(state['state'], 'failed')
+        self.assertEqual(state['result']['lanes']['default']['status'], 'completed')
+        self.assertFalse(state['result']['lanes']['turbo']['configuration_applied'])
+        self.assertEqual(len(Model.instances), 2)
     def test_partial_first_lane_survives_second_failure(self):
         Model.fail_threads=10
         self.manager.start(self.request);state=self.finish()

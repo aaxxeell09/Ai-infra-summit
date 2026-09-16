@@ -25,6 +25,8 @@ def test_explicit_identities_and_legacy_defaults(tmp_path):
     assert backend_options('llama_cpp_cpu') == ('llama_cpp', 'cpu')
     assert backend_options('llama_cpp_htp') == ('llama_cpp', 'npu')
     assert backend_options('llama_cpp_htp', device='HTP0') == ('llama_cpp', 'HTP0')
+    assert backend_options('llama_cpp_gpu') == ('llama_cpp', 'gpu')
+    assert backend_options('llama_cpp_gpu', device='GPUOpenCL') == ('llama_cpp', 'GPUOpenCL')
     assert backend_options('qairt_npu', model_path=tmp_path) == ('qairt', 'npu')
 
 
@@ -34,6 +36,8 @@ def test_explicit_identities_and_legacy_defaults(tmp_path):
     {'backend':'qairt_npu', 'device':'cpu'},
     {'backend':'llama_cpp_htp', 'plugin':'qairt'},
     {'backend':'llama_cpp_cpu', 'model_path':'bundle'},
+    {'backend':'llama_cpp_gpu', 'device':'cpu'},
+    {'backend':'llama_cpp_gpu', 'plugin':'qairt'},
 ])
 def test_invalid_selection_fails_before_sdk(options):
     with pytest.raises(ValueError):
@@ -127,7 +131,7 @@ def test_qairt_requires_all_declared_shards_and_rejects_escape(tmp_path):
 
 
 def test_cpu_and_htp_identities_reach_existing_sdk():
-    for backend, resolved, ngl in [('llama_cpp_cpu','CPU',0), ('llama_cpp_htp','HTP0',99)]:
+    for backend, resolved, ngl in [('llama_cpp_cpu','CPU',0), ('llama_cpp_htp','HTP0',99), ('llama_cpp_gpu','GPUOpenCL',99)]:
         NativeRuntime._shared.clear()
         runtime, lib = _make_runtime()
         lib._resolve = (resolved, ngl, None)
@@ -135,7 +139,29 @@ def test_cpu_and_htp_identities_reach_existing_sdk():
             assert lib.captured_create_input.plugin_id == b'llama_cpp'
             assert lib.captured_create_input.device_id == resolved.encode()
             assert model.provenance()['backend_id'] == backend
+            assert model.provenance()['n_gpu_layers'] == ngl
         runtime.close()
+
+
+@pytest.mark.parametrize('resolved', ['CPU', 'HTP0', None])
+def test_explicit_gpu_rejects_fallback_before_model_load(resolved):
+    NativeRuntime._shared.clear()
+    runtime, lib = _make_runtime()
+    runtime.resolve_device = lambda *args: (resolved, 0, None)
+    with pytest.raises(ValueError, match='refusing fallback'):
+        NativeModel(runtime, '/fake/model.gguf', backend='llama_cpp_gpu')
+    assert not any(call[0] == 'llm_create' for call in lib.calls)
+    runtime.close()
+
+
+def test_gpu_identity_inferred_for_legacy_device_selection():
+    NativeRuntime._shared.clear()
+    runtime, lib = _make_runtime()
+    lib._resolve = ('GPUOpenCL', 99, None)
+    with NativeModel(runtime, '/fake/model.gguf', device='gpu') as model:
+        assert model.provenance()['backend_id'] == 'llama_cpp_gpu'
+        assert model.provenance()['dispatch_verified'] is False
+    runtime.close()
 
 
 def test_candidate_report_redacts_private_artifact_path(tmp_path, monkeypatch):

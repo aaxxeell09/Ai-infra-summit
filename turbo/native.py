@@ -522,6 +522,7 @@ class NativeRuntime:
 
 BACKEND_CONFIGS = {
     'llama_cpp_cpu': ('llama_cpp', 'cpu'),
+    'llama_cpp_gpu': ('llama_cpp', 'gpu'),
     'llama_cpp_htp': ('llama_cpp', 'npu'),
     'qairt_npu': ('qairt', 'npu'),
 }
@@ -537,6 +538,8 @@ def backend_options(backend=None, plugin=None, device=None, model_path=None):
     allowed_devices = {wanted_device}
     if backend == 'llama_cpp_htp':
         allowed_devices.add('HTP0')
+    if backend == 'llama_cpp_gpu':
+        allowed_devices.add('GPUOpenCL')
     if plugin is not None and plugin != wanted_plugin:
         raise ValueError(f'{backend} conflicts with plugin {plugin}')
     if device is not None and device not in allowed_devices:
@@ -685,6 +688,8 @@ class NativeModel:
         device_id, ngl, warning = runtime.resolve_device(self.plugin_id, device)
         if warning:
             print(f'geniex: {warning}', file=sys.stderr)
+        if backend == 'llama_cpp_gpu' and not (device_id or '').upper().startswith('GPU'):
+            raise ValueError(f'{backend} resolved to incompatible device {device_id}; refusing fallback')
         if backend is not None and device_id:
             resolved = device_id.upper()
             if ((backend == 'llama_cpp_cpu' and resolved.startswith(('HTP', 'GPU')))
@@ -732,11 +737,14 @@ class NativeModel:
                 resolved = (self._device_id or '').upper()
                 if resolved.startswith('HTP'):
                     identity = 'llama_cpp_htp'
+                elif resolved.startswith('GPU'):
+                    identity = 'llama_cpp_gpu'
                 elif resolved == 'CPU' or (not resolved and self.device_alias == 'cpu'):
                     identity = 'llama_cpp_cpu'
         return {
             'backend_id': identity, 'runtime': self.plugin_id,
             'requested_device': self.device_alias, 'resolved_device': self._device_id,
+            'n_gpu_layers': self._ngl,
             'device_resolution_warning': self.resolution_warning,
             'model_artifact_type': 'QAIRT' if self.plugin_id == 'qairt' else 'GGUF',
             'model_path_or_id': self.model_path,
