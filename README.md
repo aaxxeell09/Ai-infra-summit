@@ -20,7 +20,7 @@ The live HTTP tuner now exports CPU/NPU configurations that are applied through 
 
 ## Local demo interface
 
-The three-screen frontend previews the target machine, compares the recorded Latitude screening results, and previews default-versus-Local-Turbo answers with separate speed and routing views. It does not yet run live inference or apply configurations to the device.
+The three-screen frontend previews the target machine, presents the confirmed CPU-fast versus automatic-NPU-efficient Latitude comparison, and shows a scripted answer-comparison flow. The original screening sweep remains available in benchmark evidence. A `qairt` NPU study is visibly pending; the UI does not invent its result. It does not yet run live inference or apply configurations to the device.
 
 ```sh
 cd frontend

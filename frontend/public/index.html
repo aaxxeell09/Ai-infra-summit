@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f8fa">
   <title>localturbo — Local inference tuning</title>
-  <meta name="description" content="Compare recorded Snapdragon inference configurations and preview side-by-side model answers.">
+  <meta name="description" content="Explore confirmed CPU and NPU performance on a Snapdragon laptop, with an honest preview of the comparison flow.">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
   <script type="module" src="/app.mjs"></script>
@@ -20,11 +20,11 @@
       <nav class="step-nav" aria-label="Demo screens">
         <a href="#device" data-step="device"><span>01</span> Machine</a>
         <a href="#calibration" data-step="calibration"><span>02</span> Compare</a>
-        <a href="#demo" data-step="demo"><span>03</span> In action</a>
+        <a href="#demo" data-step="demo"><span>03</span> Preview</a>
       </nav>
-      <span class="mode-tag" id="mode-tag"><span class="mode-dot"></span>Recorded results</span>
+      <span class="mode-tag" id="mode-tag"><span class="mode-dot"></span>Device results</span>
     </header>
-    <main id="main" tabindex="-1"><div class="loading-state"><span class="spinner"></span><p>Opening recorded results…</p></div></main>
+    <main id="main" tabindex="-1"><div class="loading-state"><span class="spinner"></span><p>Opening device results…</p></div></main>
     <footer class="app-footer"><span>localturbo <span class="footer-divider">/</span> AI INFRA SUMMIT 2026</span><button class="text-button" id="evidence-button">Benchmark evidence <span aria-hidden="true">↗</span></button></footer>
   </div>
   <dialog id="evidence-dialog" aria-labelledby="evidence-title"><div class="dialog-head"><div><span class="eyebrow">MEASUREMENTS & PROVENANCE</span><h2 id="evidence-title">Behind the numbers.</h2></div><button class="icon-button" id="close-dialog" aria-label="Close evidence">✕</button></div><div id="evidence-content"></div></dialog>

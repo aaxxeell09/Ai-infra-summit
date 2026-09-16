@@ -6,12 +6,14 @@ import { createHash } from 'node:crypto';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const resultsRoot = path.resolve(here, '../benchmarks/results/screen-01');
+const confirmedRoot = path.resolve(here, '../benchmarks/results');
 const assets = new Map([
   ['/', ['index.html', 'text/html']],
   ['/styles.css', ['styles.css', 'text/css']],
   ['/brand-manrope.woff2', ['brand-manrope.woff2', 'font/woff2']],
   ['/app.mjs', ['app.mjs', 'text/javascript']],
   ['/data.mjs', ['data.mjs', 'text/javascript']],
+  ['/confirmed.mjs', ['confirmed.mjs', 'text/javascript']],
   ['/demo.mjs', ['demo.mjs', 'text/javascript']],
   ['/comparison.mjs', ['comparison.mjs', 'text/javascript']],
   ['/favicon.svg', ['favicon.svg', 'image/svg+xml']],
@@ -40,6 +42,28 @@ async function snapshot() {
   };
 }
 
+async function confirmedSnapshot() {
+  const recommendationBytes = await readFile(path.join(confirmedRoot, 'recommended.json'));
+  const recommendation = JSON.parse(recommendationBytes);
+  if (recommendation.schema_version !== 'turbo.recommended.v1' ||
+      recommendation.scope?.evidence !== 'confirm-auto-01/sweep.json') {
+    throw new Error('Unsupported confirmed recommendation');
+  }
+  const manifestBytes = await readFile(path.join(confirmedRoot, recommendation.scope.evidence));
+  const manifest = JSON.parse(manifestBytes);
+  if (manifest.model_sha256 !== recommendation.model_sha256 || !Array.isArray(manifest.cells)) {
+    throw new Error('Confirmation manifest does not match the recommendation');
+  }
+  return {
+    schema_version: 'local-turbo.confirmed.v1', mode: 'recorded',
+    source: 'benchmarks/results/recommended.json',
+    recommendation_sha256: createHash('sha256').update(recommendationBytes).digest('hex'),
+    manifest_sha256: createHash('sha256').update(manifestBytes).digest('hex'),
+    energy_channel: 'SYS', dispatch_evidence: 'dispatch/npu-ops.txt',
+    recommendation,
+  };
+}
+
 const server = http.createServer(async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -56,6 +80,8 @@ const server = http.createServer(async (req, res) => {
     let type;
     if (url.pathname === '/api/recorded') {
       body = JSON.stringify(await snapshot()); type = 'application/json';
+    } else if (url.pathname === '/api/confirmed') {
+      body = JSON.stringify(await confirmedSnapshot()); type = 'application/json';
     } else if (url.pathname === '/api/health') {
       body = JSON.stringify({ ok: true, mode: 'recorded', live_backend: false }); type = 'application/json';
     } else if (assets.has(url.pathname)) {
@@ -69,7 +95,7 @@ const server = http.createServer(async (req, res) => {
   } catch (error) {
     console.error(error.message);
     res.writeHead(503, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Recorded results could not be loaded. Check benchmarks/results/screen-01.' }));
+    res.end(JSON.stringify({ error: 'Device results could not be loaded. Check benchmarks/results/.' }));
   }
 });
 const port = Number(process.env.PORT || 4173);

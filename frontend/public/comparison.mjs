@@ -21,8 +21,37 @@ export function createComparisonRequest(snapshot, row, metric, mode, promptId, r
     routing: mode === 'routing' ? { status: 'pending_calibration', objective: 'latency', quality_requirement: null } : null };
 }
 
+export function createConfirmedComparisonRequest(snapshot, confirmed, mode, promptId, requestId) {
+  const scenario = PROMPTS.find(item => item.id === promptId);
+  if (!scenario || !['speed', 'routing'].includes(mode) || !requestId ||
+      !confirmed || snapshot.modelHash !== confirmed.modelHash) {
+    throw new Error('Confirmed comparison and model identity are unavailable.');
+  }
+  const configuration = (profile, requestedDevice, resolvedDevice) => ({
+    schema_version: 'local-turbo.performance-profile.v1', status: 'measured',
+    model: snapshot.model, model_sha256: confirmed.modelHash,
+    source: confirmed.source, source_sha256: confirmed.recommendationHash,
+    requested_device: requestedDevice, resolved_device: resolvedDevice,
+    params: { n_threads: profile.threads, n_ctx: profile.context },
+    measured: profile.metrics, quality_calibrated: false, applied_to_device: false,
+  });
+  return { schema_version: 'local-turbo.comparison-request.v1', request_id: requestId,
+    evidence_source: 'confirmed', comparison: mode, prompt_id: promptId, prompt: scenario.prompt,
+    execution: 'sequential', baseline: configuration(confirmed.efficient, 'auto', 'HTP0'),
+    selected: mode === 'speed' ? configuration(confirmed.fast, 'cpu', 'CPU') : null,
+    routing: mode === 'routing' ? { status: 'pending_calibration', objective: 'latency', quality_requirement: null } : null };
+}
+
 export function comparisonLanes(request) {
   const scenario = PROMPTS.find(item => item.id === request.prompt_id);
+  if (request.evidence_source === 'confirmed') return {
+    default: { title: 'Automatic setup', model: request.baseline.model.replace(/\.gguf$/, ''),
+      configuration: request.comparison === 'speed' ? 'Auto → NPU (HTP0)' : 'Fixed model for every prompt',
+      reason: 'The measured automatic placement on this Latitude.' },
+    turbo: { title: 'Local Turbo', model: request.comparison === 'speed' ? request.selected.model.replace(/\.gguf$/, '') : scenario.route,
+      configuration: request.comparison === 'speed' ? 'CPU · 10 threads' : 'Illustrative route · model not selected yet',
+      reason: request.comparison === 'speed' ? 'The confirmed fast profile.' : scenario.reason },
+  };
   return {
     default: { title: 'Default setup', model: request.baseline.model.replace(/\.gguf$/, ''),
       configuration: request.comparison === 'speed' ? 'CPU · automatic threads' : 'Fixed model for every prompt',
