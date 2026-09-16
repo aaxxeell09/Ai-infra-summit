@@ -31,6 +31,7 @@ def setup(tmp_path, monkeypatch, native):
     model = tmp_path / "weights.gguf"
     model.write_bytes(b"test weights only")
     exe = tmp_path / "fake-bench.py"
+    (tmp_path / "geniex.dll").write_bytes(b"packaged native bridge fixture")
     exe.write_text(f"""
 import json, sys, time
 from pathlib import Path

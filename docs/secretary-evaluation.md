@@ -180,3 +180,19 @@ The repository's newer context tests require pytest; dataset validation and the 
 ### Verification of this update
 
 152 tests and 5 subtests passed on the development Mac, including 22 evaluation tests; all 50 golden cases validate and the held-out exact-text scan found no duplicates outside the canonical dataset. Synthetic test outputs are not model results. A bounded independent review checked scoring/provenance; its two baseline-approval findings were fixed. External Fable/Claude review is unavailable on this Mac because the Claude executable is absent.
+
+
+### September 15 integration findings for benchmark ownership
+
+The first native QAIRT full result is committed as `qairt-native-06-v1` (23/50).
+Its comparison returns `NOT_COMPARABLE` because the newer runner changes
+`evaluator_sha256` relative to the immutable baseline. Agree on a provenance
+migration or a matched reference run before an official candidate gate; the
+application must not weaken this guard or replace the old baseline.
+
+The full unit suite also exposes an existing issue in `leakage()`: it scans saved
+`eval/results/` reports, including `baseline.json`, and treats their required
+failed-prompt evidence as held-out leakage. The test needs an owner-approved
+scope that distinguishes archived evaluation evidence from application inputs.
+The scanner, golden prompts, fixture, expected actions and scoring are unchanged
+in this integration. This issue remains visible rather than being suppressed.

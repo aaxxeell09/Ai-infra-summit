@@ -3,13 +3,19 @@ import json
 from pathlib import Path
 from turbo.service import Engine
 from turbo.secretary import create_fixture,execute_tool,grade_task,load_tasks
+from turbo.runtime_identity import runtime_identity
 
 
 def make_engine(tmp_path):
     model = tmp_path/'model.gguf'; model.write_bytes(b'test weights')
     rec = tmp_path/'rec.json'
-    rec.write_text(json.dumps({'model_sha256':hashlib.sha256(model.read_bytes()).hexdigest(),'scope':{'evidence':'test','quality_calibrated':False},'modes':{'fast':{'device':'cpu','threads':10,'context':4096,'metrics':{'decode_tps':90,'tokens_per_joule':1.4}},'efficient':{'device':'npu','threads':0,'context':4096,'metrics':{'decode_tps':36,'tokens_per_joule':2.1}}}}))
-    return Engine({'models':{'small':{'path':str(model)}},'default':'small','recommendation_file':str(rec),'data_dir':str(tmp_path/'demo')})
+    sdk = tmp_path/'sdk'; sdk.mkdir()
+    exe = sdk/'bench.exe'; exe.write_bytes(b'benchmark')
+    (sdk/'geniex.dll').write_bytes(b'native bridge')
+    rec.write_text(json.dumps({'schema_version':'turbo.recommended.v2','plugin':'llama_cpp',
+        'runtime_binding':runtime_identity(exe,sdk),
+        'model_sha256':hashlib.sha256(model.read_bytes()).hexdigest(),'scope':{'evidence':'test','quality_calibrated':False},'modes':{'fast':{'device':'cpu','threads':10,'context':4096,'metrics':{'decode_tps':90,'tokens_per_joule':1.4}},'efficient':{'device':'npu','threads':0,'context':4096,'metrics':{'decode_tps':36,'tokens_per_joule':2.1,'energy_channel':'SYS','energy_scope':'full_process_trial'}}}}))
+    return Engine({'models':{'small':{'path':str(model)}},'default':'small','recommendation_file':str(rec),'data_dir':str(tmp_path/'demo'), 'sdk_dir':str(sdk),'tuner':{'exe':str(exe)}})
 
 
 def test_mode_switch_releases_old_model_and_applies_config(tmp_path):
@@ -77,3 +83,57 @@ def test_tune_releases_models_without_reinitializing_windows_sdk(tmp_path, monke
     e.tuning_process.thread.join(timeout=2)
     assert not e.tuning_process.thread.is_alive()
     assert e.runtime is runtime and model.closed and not e.loaded
+
+
+def test_sdk_drift_rejects_profile_and_retained_runtime(tmp_path):
+    import pytest
+    e = make_engine(tmp_path)
+    e.apply('fast')
+    original = e._current_runtime_binding()
+    (Path(e.config['sdk_dir'])/'geniex.dll').write_bytes(b'updated bridge')
+    with pytest.raises(ValueError, match='Runtime identity'):
+        e.apply('fast')
+    # Even a freshly tuned matching on-disk profile cannot replace DLLs that
+    # remain resident in this Windows process.
+    e.runtime_binding = original
+    p = Path(e.config['recommendation_file']); rec = json.loads(p.read_text())
+    rec['runtime_binding'] = e._current_runtime_binding(); p.write_text(json.dumps(rec))
+    with pytest.raises(ValueError, match='restart the service'):
+        e.apply('fast')
+
+
+def test_efficient_mode_requires_scoped_measured_energy(tmp_path):
+    import pytest
+    e = make_engine(tmp_path)
+    p = Path(e.config['recommendation_file']); rec = json.loads(p.read_text())
+    rec['modes']['efficient']['metrics']['energy_channel'] = None
+    p.write_text(json.dumps(rec))
+    with pytest.raises(ValueError, match='measured tokens/J'):
+        e.apply('efficient')
+
+
+def test_qairt_bundle_apply_and_baseline_keep_compiled_context(tmp_path, monkeypatch):
+    import pytest
+    import turbo.native as native
+    from turbo.tuning import _sha256
+    e = make_engine(tmp_path)
+    bundle = tmp_path/'bundle'; bundle.mkdir()
+    (bundle/'weights.bin').write_bytes(b'compiled weights')
+    (bundle/'genie_config.json').write_text(json.dumps({'dialog':{'context':{'size':2048},
+        'engine':{'model':{'binary':{'ctx-bins':['weights.bin']}}}}}))
+    e.config['models']['small'].update(path=str(bundle),plugin='qairt',compiled_contexts=[2048])
+    p=Path(e.config['recommendation_file']); rec=json.loads(p.read_text())
+    rec.update(model_sha256=_sha256(bundle),plugin='qairt')
+    rec['modes']['fast'].update(device='npu',threads=0,context=2048)
+    p.write_text(json.dumps(rec))
+    assert e.apply('baseline')['config']=={'device':'npu','threads':0,'context':2048}
+    assert e.apply('fast')['config']=={'device':'npu','threads':0,'context':2048}
+    captured={}
+    class FakeModel:
+        def __init__(self, runtime, path, **kwargs): captured.update(kwargs)
+    monkeypatch.setattr(native,'NativeRuntime',lambda _: object())
+    monkeypatch.setattr(native,'NativeModel',FakeModel)
+    e.load('small')
+    assert captured['plugin']=='qairt' and captured['context']==2048 and captured['threads']==0
+    (bundle/'weights.bin').write_bytes(b'replaced weights')
+    with pytest.raises(ValueError,match='different model weights'): e.apply('fast')
