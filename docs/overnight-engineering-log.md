@@ -83,3 +83,9 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Reporting checkpoint: `b3f8329`; generated local SUMMARY, campaign and development-error reports. Only available development report has 25/35 correct and 9/9 failed clarify cases; this is Qwen4B historical evidence, not QAIRT-stop evidence.
 - Windows failure traced to platform-default decoding of the frozen UTF-8 inventory: set execution UTF-8 explicitly, no frozen file edit. Linux failure is an unbounded GGUF metadata length allocation; fixing reader separately.
 - Added bounded optional Git/Node/npm and machine/Python version capture; 45 tracker tests pass. Historical metadata remains untouched.
+
+## Independent optimization research — 2026-09-16 UTC
+
+- Host/encoding checkpoint: `ef917b5`.
+- Implemented opt-in standalone exact-command action proposals, never executed or connected to frozen evaluation. 45 synthetic safety/abstention tests pass. Quality/energy benefit unmeasured; integration requires versioned approval.
+- Added static prefix inventory inspection with exclusive outputs; three tests pass. Exact bytes reported, token counts and prefix-cache support left unknown. No heldout optimization or prompt change.
