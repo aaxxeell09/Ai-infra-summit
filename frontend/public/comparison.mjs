@@ -33,6 +33,37 @@ export function comparisonLanes(request) {
   };
 }
 
+const measured = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+const percentChange = (before, after) => before > 0 && after !== null ? (after / before - 1) * 100 : null;
+
+// The preview answer is scripted, but the surrounding performance evidence is
+// taken directly from the recorded benchmark rows. Energy remains diagnostic:
+// it is one full-process screening interval, not a confirmed efficiency claim.
+export function comparisonEvidence(snapshot, selected) {
+  const baseline = snapshot?.rows?.find(row => row.id === 'cpu-t0');
+  if (!baseline || !selected || baseline.status !== 'completed' || selected.status !== 'completed' ||
+      baseline.signature !== selected.signature) {
+    throw new Error('Comparable recorded evidence is unavailable.');
+  }
+  const lane = row => ({
+    decode_tps: measured(row.metrics?.decode),
+    energy_j: measured(row.telemetry?.energy_j),
+  });
+  const defaultLane = lane(baseline);
+  const turboLane = lane(selected);
+  return {
+    default: defaultLane,
+    turbo: turboLane,
+    speed_gain_pct: percentChange(defaultLane.decode_tps, turboLane.decode_tps),
+    energy_change_pct: percentChange(defaultLane.energy_j, turboLane.energy_j),
+    answer_check: 'scripted_match',
+    accuracy_pct: null,
+    energy_status: defaultLane.energy_j !== null && turboLane.energy_j !== null ? 'diagnostic' : 'unavailable',
+    energy_channel: 'SYS',
+    energy_scope: 'full process screening interval including initialization and warmup',
+  };
+}
+
 function pause(ms, signal) {
   return new Promise((resolve, reject) => {
     signal?.throwIfAborted();

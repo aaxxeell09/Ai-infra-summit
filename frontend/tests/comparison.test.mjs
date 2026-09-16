@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PROMPTS, createComparisonRequest, comparisonLanes, createPreviewComparisonProvider } from '../public/comparison.mjs';
+import { PROMPTS, createComparisonRequest, comparisonLanes, comparisonEvidence, createPreviewComparisonProvider } from '../public/comparison.mjs';
 import { normalizeSnapshot } from '../public/data.mjs';
 import { readFileSync } from 'node:fs';
 function snapshot() {
@@ -22,6 +22,18 @@ test('routing preview distinguishes example roles from calibrated model identiti
   assert.equal(quick.selected, null); assert.equal(quick.routing.status, 'pending_calibration');
   assert.notEqual(comparisonLanes(quick).turbo.model, comparisonLanes(hard).turbo.model);
   assert.match(comparisonLanes(hard).turbo.configuration, /Illustrative/);
+});
+test('scripted preview exposes recorded speed and diagnostic energy without inventing accuracy', () => {
+  const data = snapshot();
+  const evidence = comparisonEvidence(data, data.rows.find(row => row.id === 'cpu-t10'));
+  assert.equal(evidence.default.decode_tps, 95.950082);
+  assert.equal(evidence.turbo.decode_tps, 97.90581);
+  assert.ok(evidence.speed_gain_pct > 2 && evidence.speed_gain_pct < 2.1);
+  assert.equal(evidence.default.energy_j, 429.0452043732);
+  assert.equal(evidence.turbo.energy_j, 321.0678077976);
+  assert.equal(evidence.energy_status, 'diagnostic');
+  assert.equal(evidence.answer_check, 'scripted_match');
+  assert.equal(evidence.accuracy_pct, null);
 });
 test('preview executes sequentially with equal scripted answers and no measured winner', async () => {
   const events=[]; const r=request(); const result=await createPreviewComparisonProvider({delay:0}).execute(r,{onEvent:e=>events.push(e)});

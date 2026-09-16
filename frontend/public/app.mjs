@@ -1,6 +1,6 @@
 import { createRecordedProvider, METRICS, rankRows, exportConfiguration } from './data.mjs';
 import { createLatestResultsProvider } from './latest.mjs';
-import { PROMPTS, createComparisonRequest, comparisonLanes, createPreviewComparisonProvider } from './comparison.mjs';
+import { PROMPTS, createComparisonRequest, comparisonLanes, comparisonEvidence, createPreviewComparisonProvider } from './comparison.mjs';
 
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -124,6 +124,12 @@ function demoScreen() {
   try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, 'preview-layout'); }
   catch (error) { setupError = error.message; }
   const descriptions = request ? comparisonLanes(request) : null;
+  let evidence;
+  if (state.comparison === 'speed' && !setupError) {
+    try { evidence = comparisonEvidence(state.snapshot, currentRow()); }
+    catch (error) { setupError = error.message; }
+  }
+  const signed = value => value === null ? null : `${value > 0 ? '+' : value < 0 ? '−' : ''}${number(Math.abs(value), 1)}%`;
   const lanes = ['default', 'turbo'].map(key => {
     const lane = state.lanes[key] || { status: 'idle', answer: '' };
     const meta = descriptions?.[key];
@@ -131,14 +137,20 @@ function demoScreen() {
     const identity = !meta ? 'Configuration unavailable' : state.comparison === 'speed'
       ? `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`
       : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
+    const metrics = evidence?.[key];
+    const evidenceFooter = evidence ? `<div class="lane-evidence ${state.result ? 'revealed' : ''}">
+      <div><span>Generation speed</span><strong>${number(metrics.decode_tps, 1)}<small>tok/s</small></strong>${key === 'turbo' && evidence.speed_gain_pct !== null ? `<em>${signed(evidence.speed_gain_pct)}</em>` : ''}</div>
+      <div><span>Answer check</span><strong>${state.result ? 'Same' : '—'}</strong><small>${state.result ? 'scripted output' : 'after preview'}</small></div>
+      <div><span>SYS energy<sup>*</sup></span><strong>${number(metrics.energy_j, 0)}<small>J</small></strong>${key === 'turbo' && evidence.energy_change_pct !== null ? `<em class="energy-delta">${signed(evidence.energy_change_pct)}</em>` : ''}</div>
+    </div>` : `<div class="routing-evidence"><span>Quality and energy</span><strong>Pending calibration</strong></div>`;
     return `<article class="response-column ${key === 'turbo' ? 'response-turbo' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
       <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p></header>
+      ${evidenceFooter}
       <div class="response-text ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${esc(lane.answer)}</div>
-      <div class="response-timing"><span>Animation time</span><strong data-clock="${key}">${clockText(key)}</strong></div>
     </article>`;
   }).join('');
   return `<section class="screen comparison-demo">
-    <div class="demo-heading"><h1>Compare answers</h1><div class="comparison-switch" role="group" aria-label="Comparison type"><button data-comparison="speed" aria-pressed="${state.comparison === 'speed'}" ${busy ? 'disabled' : ''}>Speed</button><button data-comparison="routing" aria-pressed="${state.comparison === 'routing'}" ${busy ? 'disabled' : ''}>Model routing</button></div></div>
+    <div class="demo-heading"><div><span class="eyebrow">SAME MODEL. SAME ANSWER.</span><h1>See what tuning changes.</h1></div><div class="comparison-switch" role="group" aria-label="Comparison type"><button data-comparison="speed" aria-pressed="${state.comparison === 'speed'}" ${busy ? 'disabled' : ''}>Speed</button><button data-comparison="routing" aria-pressed="${state.comparison === 'routing'}" ${busy ? 'disabled' : ''}>Model routing</button></div></div>
     <div class="comparison-workspace">
       <div class="prompt-composer"><div class="prompt-controls"><span class="prompt-label">Prompt</span><details class="prompt-picker" ${busy ? 'inert' : ''}><summary aria-label="Example prompt: ${esc(scenario.label)}">${esc(scenario.label)}<span aria-hidden="true">⌄</span></summary><div class="prompt-options" role="group" aria-label="Example prompts">${PROMPTS.map(item => `<button data-scenario="${item.id}" aria-pressed="${state.scenario === item.id}">${item.label}<span aria-hidden="true">${state.scenario === item.id ? '✓' : ''}</span></button>`).join('')}</div></details></div>
         <p class="prompt-copy">${esc(scenario.prompt)}</p>
@@ -147,7 +159,8 @@ function demoScreen() {
       <div class="response-grid">${lanes}</div>
     </div>
     ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
-    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential.</p></div></details></div>
+    ${evidence ? `<p class="demo-evidence-note"><sup>*</sup> Speed and SYS energy come from the recorded screening run. Energy covers one full process interval and is diagnostic, not a confirmed efficiency gain. “Same” means the scripted preview text matches; it is not an accuracy score.</p>` : ''}
+    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'The scripted answer makes the presentation repeatable. The speed and energy figures are read from the benchmark evidence for the default and selected configurations.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>No accuracy percentage is inferred from a scripted answer. Live task quality remains a separate validation step.</p></div></details></div>
     <span class="sr-only" role="status" aria-live="polite">${state.result ? 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
   </section>`;
 }
