@@ -1,0 +1,27 @@
+{
+  "scope": "One actual browser presentation rehearsal. No official benchmark or confirmed speed/quality claim.",
+  "frontend_commit": "86eb559",
+  "native_commit": "410931fb03e8d50977da52128ba5a8b9c81a4d49",
+  "browser_export_matches_device_result": true,
+  "requested_and_acknowledged_threads": [
+    0,
+    10
+  ],
+  "files": [
+    {
+      "path": "browser-result.json",
+      "sha256": "1fba60bd2a1e44cac80a446383c4850ef8dad51cb36d24d869e2113e466bdbc5",
+      "bytes": 12118
+    },
+    {
+      "path": "device-result.json",
+      "sha256": "1a35af63223183a3100cf2ea3f49664af5be6e2ee66494bfe9deed7e9f9f65dd",
+      "bytes": 29174
+    },
+    {
+      "path": "request.json",
+      "sha256": "f0a7ae1784f78f666d88e22c7154c1bfc9e52a47bfb6a2717aa4a9f968cb6f29",
+      "bytes": 2874
+    }
+  ]
+}

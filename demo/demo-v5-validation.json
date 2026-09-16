@@ -1,0 +1,21 @@
+{
+  "artifact": "local-turbo-demo-v5.pptx",
+  "sha256": "01c5f8a078f85a4fac2cd53bbb409290a0a1c2ad2404451028b0a2cb70f2da1f",
+  "bytes": 25127,
+  "slides": 4,
+  "package_integrity": "pass",
+  "layout_findings": 0,
+  "native_chart_count": 1,
+  "native_chart_workbook_validation": true,
+  "reimport_verified": true,
+  "visual_review": "All four slides rendered from the finalized PPTX and visually inspected; no clipping or overlap observed.",
+  "native_powerpoint_open_verified": false,
+  "style_reference": "Teammate frontend 204a9fb: blue accents, near-white background, dark type; preserved measured claims.",
+  "sources": [
+    "benchmarks/results/bound-feedback-mcp-1400/integration.json",
+    "benchmarks/results/live-ui-1720/browser-result.json",
+    "eval/results/qairt-repeats-0700.md",
+    "eval/results/qwen8b-full-1200/README.md"
+  ],
+  "scope": "Live CPU frontend path browser-rehearsed; MCP file action separately verified; QAIRT chart is a separate recorded development study. No broad quality or task-energy win."
+}

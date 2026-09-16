@@ -1,6 +1,6 @@
 # Prompt comparison finale
 
-Status: **interactive preview implemented; live bridge pending**. No file operations. `comparison.mjs` exports the request builder, lane descriptions and scripted provider. The UI supports two fixed examples; it does not pretend to answer arbitrary edited prompts.
+Status: **live CPU Speed path verified in the browser on the Latitude**; [rehearsal evidence](../benchmarks/results/live-ui-1720/README.md). Model routing and GPU/NPU answer comparisons remain unavailable. No file operations. `comparison.mjs` exports the request builder, lane descriptions and scripted provider; `live-comparison.mjs` supplies the opt-in native provider. The UI supports two fixed examples, not arbitrary edited prompts.
 
 ## Current preview
 
@@ -12,7 +12,7 @@ The view also keeps independent browser animation clocks: start on each lane’s
 
 ## Live integration requirements
 
-Implement a separate provider and update the view's preview-specific labels and metric bindings together. Do not simply replace the scripted text while leaving candidate names, timing placeholders or preview status in place. No live HTTP endpoints are currently implemented.
+The separate live provider updates the view's labels and metric bindings. `/api/live-comparisons` creates the native job, a request-ID endpoint polls its state, and a cancel endpoint requests native cleanup. The requirements below remain the integration contract; the current narrow implementation supports CPU Speed only.
 
 Before execution, finalize the request with exact prompt hash, generation limits, seed/temperature, warmup/cache policy, execution order and source evidence. Confirm the requested and effective model/hash, runtime/hash, quantization, backend, threads and context for each lane. Do not send recorded synthetic benchmark token counts as the actual token counts of a natural-language prompt.
 

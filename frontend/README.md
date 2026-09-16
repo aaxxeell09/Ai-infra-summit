@@ -23,17 +23,17 @@ npm test
 - The Compare screen adds one compact QAIRT before/after finding beneath the original same-model tuning chart. Larger-model milestones remain available in Benchmark evidence; the main presentation labels the result experimental and does not name a qualified winner.
 - The final screen compares **Default setup** with **Local Turbo**, using one shared prompt and launch button.
 - **Speed** carries the recorded default and the selected settings for the same model. **Model routing** illustrates candidate roles for a quick explanation or reasoning question; no calibrated model choice is claimed.
-- Two sequential scripted answers, equal animation pacing, stop/reset and stale-result protection. Per-answer clocks measure browser animation only; inference timings and answer quality remain unavailable, with no fabricated winner.
+- Optional real sequential answers on the Latitude, with applied configuration acknowledgements, native metrics, cancellation and result export. Without the live connection configured, an explicitly labelled scripted preview remains available.
 
-## What is not connected
+## Live scope
 
-The answer comparison is a preview. It does not call inference, execute a calibrated router, apply settings or grade answers. The single provider in `public/app.mjs` is `createPreviewComparisonProvider()` from `public/comparison.mjs`. The live request/result handoff is specified in [comparison-contract.md](comparison-contract.md); a live bridge and its rendering bindings are still needed.
+The Speed comparison can call actual inference and apply the recorded CPU settings using `public/live-comparison.mjs`. The [browser rehearsal](../benchmarks/results/live-ui-1720/README.md) verifies that path. Routing, GPU/NPU answer comparisons and answer-quality grading remain unavailable. See [comparison-contract.md](comparison-contract.md) and the opt-in instructions below.
 
 The earlier `public/demo.mjs`, its tests and `task-contract.md` preserve the previous file-task adapter for reference. They are **not used by the current screen**. File operations are no longer the presentation workflow.
 
 ## Backend boundary
 
-Implemented server endpoints remain read-only: `GET /api/health` reports recorded mode; `GET /api/recorded` reads sanitized `screen-01` records; `GET /api/latest-results` summarizes the published QAIRT, 4B and 8B evaluation artifacts without exposing task contents. No live execution endpoint is claimed. `public/data.mjs` normalizes recorded tuning evidence, `public/latest.mjs` validates the latest study, and `public/comparison.mjs` owns the prompt comparison preview.
+Recorded endpoints remain read-only: `GET /api/recorded` reads sanitized `screen-01` records and `GET /api/latest-results` summarizes the published studies. The optional `/api/live-comparisons` proxy connects the native gateway; `GET /api/health` reports whether that connection is configured. `public/data.mjs` normalizes recorded tuning evidence, `public/latest.mjs` validates the latest study, and the comparison providers keep preview and live results explicit.
 
 ### Recorded response
 

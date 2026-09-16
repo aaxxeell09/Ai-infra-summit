@@ -1,11 +1,34 @@
 # Local inference tuning with verified agent actions
 
-Use [the four-slide presentation](../demo/local-turbo-narrow-demo-v4.pptx)
+Use [the four-slide presentation](../demo/local-turbo-demo-v5.pptx)
 for this short technical demonstration. The invoice run and the QAIRT
 experiment are separate pieces of evidence. Do not imply the invoice ran on
 QAIRT or that stopping generation increased native decode tokens per second.
 
-## Three-minute sequence
+## Preferred live frontend sequence
+
+Use Ilan's **Machine → Compare → In action** design with the opt-in live
+connection described in [the frontend README](../frontend/README.md).
+The rehearsal used frontend `86eb559` and native gateway `410931f`.
+[Original downloaded and device results](../benchmarks/results/live-ui-1720/README.md)
+match. The frozen quality benchmark remains unchanged.
+
+1. Show Machine, then Compare. Explain that the chart is recorded native
+   screening evidence. Select CPU/10 for the rehearsed path.
+2. Continue to the demo and click **Run on Latitude**. Both answers come from
+   real local inference, sequentially, with exact configuration acknowledgements.
+3. Explain the separate metrics: load+answer+unload, native TTFT excluding load,
+   and native decode rate with actual output-token counts. One pair is not a
+   confirmed speedup; the metrics can favor different configurations.
+4. Download the result. Use slides 2–3 for the separate verified MCP file action
+   and repeated QAIRT study. Label these as recorded evidence unless separately
+   rehearsing the invoice command below with exclusive device access.
+
+The QAIRT card in the frontend and slide 3 describe different recorded studies:
+the complete candidate comparison and repeated development blocks respectively.
+Do not mix their sample counts or calculate a cross-study speedup.
+
+## Three-minute invoice sequence
 
 **Opening, 20 seconds.** “We measure local inference configurations on a
 Snapdragon laptop, then connect local models to agent tools. This is a technical
@@ -40,7 +63,7 @@ The combined tuner→MCP run is now verified for two public-fixture rounds;
 see [the recovered evidence](../benchmarks/results/bound-feedback-mcp-1400/README.md).
 Fast applied CPU/10 and Efficient CPU/6; both moved the invoice correctly, while
 both exact-call checks failed. These single observations do not establish a
-speed or efficiency winner. Slide 2 in the v4 deck shows the two verified rounds.
+speed or efficiency winner. Slide 2 in the v5 deck shows the two verified rounds.
 Do not claim a production-ready secretary.
 
 ## Live preparation on the Latitude
@@ -93,6 +116,8 @@ or silently fall back to a recorded result after a live failure.
 - [Six QAIRT development blocks](../eval/results/qairt-repeats-0700.md)
 - [8B full milestone and failed cases](../eval/results/qwen8b-full-1200/README.md)
 
-The frontend's comparison finale is still labelled preview. Its animation clock
-is not model latency. Use the deck and evidence files for this narrow sequence
-until a real provider is wired and independently validated.
+With the live connection configured, the CPU Speed finale uses actual device
+results and has been browser-rehearsed. With no connection configured, it remains
+a labelled preview whose animation clock is not model latency. Failed live runs
+never silently fall back to preview. Live routing and GPU/NPU answer comparisons
+remain unavailable in this adapter.

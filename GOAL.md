@@ -121,3 +121,15 @@ steps. This is not a v2 result or an accepted integrated demo. Both 8B and
 20B artifacts are downloaded and checksum-verified; sequential development
 evaluations are queued through the immutable tracker. See the latest section
 of `docs/overnight-handoff.md` for source, evidence, jobs and remaining gates.
+
+## September 16 live-demo checkpoint
+
+The teammate frontend now reaches actual local inference: recorded CPU selection
+→ sequential native answers → acknowledged configuration and measured metrics
+→ downloaded result. Browser frontend `86eb559`, native gateway `410931f`; see
+`benchmarks/results/live-ui-1720/`. The v5 presentation matches the frontend's
+blue-and-white style. The one-command MCP invoice presenter also completed on
+the Latitude (`benchmarks/results/presenter-mcp-1645/`). These are bounded demo
+acceptances; broader Secretary quality, task energy and calibrated routing
+remain unqualified. Keep the demo gateway available and isolate Axel's later
+optimization-loop sessions from live presentation requests.
