@@ -19,11 +19,16 @@ def main(argv=None):
     p.add_argument('--config',required=True,type=Path)
     p.add_argument('--task-id',required=True,help='Public demo fixture only; not golden v2')
     p.add_argument('--output',required=True,type=Path)
+    p.add_argument('--constrain-tools',action='store_true',help='Separate grammar diagnostic; requires a successful restrictive native canary')
     args=p.parse_args(argv)
     if not args.enable_candidate:p.error('Explicit --enable-candidate required; default service remains unchanged')
     commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     if subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip():p.error('Clean committed source required')
     config=parse_json(args.config.read_bytes(),require_object=True)
+    grammar = None
+    if args.constrain_tools:
+        from turbo.tool_grammar import tool_grammar
+        grammar = tool_grammar()
     task=next((t for t in load_tasks() if t['id']==args.task_id),None)
     if task is None:p.error('Unknown demo task')
     args.output.mkdir(parents=True,exist_ok=False)
@@ -34,7 +39,10 @@ def main(argv=None):
         'config':{k:v for k,v in config.items() if k not in ('sdk_dir','model_path')},'max_turns':6,'max_tokens_per_turn':128,'max_loop_seconds':90,
         'scope':'Separate opt-in interactive diagnostic; not secretary-eval-v2; no quality qualification',
         'sdk_identity':runtime_identity(Path(config['sdk_dir'])/'bin/geniex-bench.exe',config['sdk_dir']),
-        'model_sha256':None,'completed':False}
+        'model_sha256':None,'completed':False,
+        'grammar_enabled':args.constrain_tools,
+        'grammar_sha256':hashlib.sha256(grammar.encode()).hexdigest() if grammar else None}
+    if grammar:(args.output/'tool-grammar.gbnf').write_text(grammar,encoding='utf-8')
     path=Path(config['model_path'])
     if path.is_file():
         with path.open('rb') as stream:record['model_sha256']=hashlib.file_digest(stream,'sha256').hexdigest()
@@ -45,17 +53,26 @@ def main(argv=None):
     save();runtime=NativeRuntime(config['sdk_dir'])
     try:
         with NativeModel(runtime,config['model_path'],**options) as model:
-            result=run_feedback(lambda messages:model.chat(messages,tools=TOOLS,max_tokens=128,temperature=0,reset=True),
-                task['prompt'],args.output/'workspace',enabled=True)
+            if grammar:
+                from turbo.tool_grammar import CANARY_GRAMMAR,CANARY_TEXT
+                canary=model.chat([{'role':'user','content':'Reply only BETA.'}],max_tokens=32,temperature=0,reset=True,grammar=CANARY_GRAMMAR)
+                record['grammar_canary']={'expected':CANARY_TEXT,'response':canary,'passed':canary.get('text')==CANARY_TEXT}
+                save()
+                if not record['grammar_canary']['passed']:
+                    raise ValueError('Restrictive native grammar canary failed; no fixture actions attempted')
+            result=run_feedback(lambda messages:model.chat(messages,tools=TOOLS,max_tokens=128,temperature=0,reset=True,grammar=grammar),
+                task['prompt'],args.output/'workspace',enabled=True,
+                max_turns=record['max_turns'],max_seconds=record['max_loop_seconds'])
             record['loop']=result
             calls=[r['action'] for r in result['turns'] if 'tool_result' in r]
             results=[r['tool_result'] for r in result['turns'] if 'tool_result' in r]
             record['existing_demo_verification']=grade_task(task,calls,results,args.output/'workspace')
-            record['completed']=True
+            record['completed']=result['status'] != 'runtime_error'
+            if result['status']=='runtime_error':record['error']=result.get('error','Native feedback loop failed')
     except Exception as exc:record['error']=str(exc)
     finally:
-        record['total_process_elapsed_s']=time.monotonic()-start
-        record['timing_scope']='SDK/model hashing, model load, fixture creation, feedback loop and final-state verification; not frozen v2 timing'
+        record['diagnostic_elapsed_s']=time.monotonic()-start
+        record['timing_scope']='Artifact hashing, model load, optional canary, fixture creation, feedback loop, verification and model destruction; excludes initial argument/Git reads, final serialization and SDK shutdown; not frozen v2 timing'
         save()
         runtime.close()
     print(json.dumps({'completed':record['completed'],'loop_status':record.get('loop',{}).get('status'),'verification':record.get('existing_demo_verification')}))

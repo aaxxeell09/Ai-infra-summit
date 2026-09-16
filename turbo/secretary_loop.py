@@ -55,6 +55,8 @@ def run_feedback(complete, prompt, workspace, *, enabled=False, max_turns=6,
         raise ValueError('max_turns must be 1..8')
     if not 0 < max_seconds <= 180 or not 1024 <= max_context_chars <= 64000:
         raise ValueError('Invalid diagnostic budget')
+    record['limits'] = dict(max_turns=max_turns, max_seconds=max_seconds,
+                            max_context_chars=max_context_chars, max_successful_moves=1)
     workspace = Path(workspace)
     workspace.mkdir(parents=True, exist_ok=False)
     inventory = create_fixture(workspace)

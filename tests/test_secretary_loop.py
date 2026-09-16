@@ -65,3 +65,32 @@ def test_clarify_and_done_do_not_claim_success(tmp_path):
     for n,response in enumerate([action('clarify',question='Which file?'),{'text':'DONE'}]):
         r=run_feedback(lambda _:response,'Request',tmp_path/str(n),enabled=True)
         assert r['task_success'] is None and r['initial_snapshot']==r['final_snapshot']
+
+
+def test_effective_limits_are_recorded(tmp_path):
+    r=run_feedback(lambda _:{'text':'DONE'},'Request',tmp_path/'fixture',enabled=True,max_turns=2,max_seconds=30)
+    assert r['limits']==dict(max_turns=2,max_seconds=30,max_context_chars=24000,max_successful_moves=1)
+
+
+def test_cli_native_failure_is_nonzero_and_preserved(tmp_path,monkeypatch):
+    import scripts.run_secretary_feedback as cli
+    import turbo.native as native
+    import turbo.runtime_identity as identities
+    monkeypatch.setattr(cli.subprocess,'check_output',lambda cmd,**kw:'test-commit' if 'rev-parse' in cmd else '')
+    monkeypatch.setattr(identities,'runtime_identity',lambda *args,**kw:{'test_only':True})
+    class Runtime:
+        def __init__(self,*args):pass
+        def close(self):pass
+    class Model:
+        def __init__(self,*args,**kwargs):pass
+        def __enter__(self):return self
+        def __exit__(self,*args):pass
+        def chat(self,*args,**kwargs):raise RuntimeError('synthetic native failure')
+    monkeypatch.setattr(native,'NativeRuntime',Runtime);monkeypatch.setattr(native,'NativeModel',Model)
+    model=tmp_path/'test.gguf';model.write_bytes(b'synthetic')
+    config=tmp_path/'config.json';config.write_text(json.dumps({'sdk_dir':str(tmp_path),'model_path':str(model)}))
+    out=tmp_path/'output'
+    assert cli.main(['--enable-candidate','--config',str(config),'--task-id','t13','--output',str(out)])==1
+    r=json.loads((out/'diagnostic.json').read_text())
+    assert r['completed'] is False and r['loop']['status']=='runtime_error'
+    assert r['error']=='synthetic native failure'
