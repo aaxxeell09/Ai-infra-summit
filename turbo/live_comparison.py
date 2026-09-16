@@ -303,9 +303,19 @@ class LiveComparisons:
             final_state, final_error = 'failed', str(exc)
         finally:
             if acquired:
+                # Qualcomm plugins can retain DSP sessions beyond model.close().
+                # Tear down the SDK between jobs before the next backend opens.
+                if self.model_factory is None and self.engine.runtime is not None:
+                    try:
+                        self.engine.runtime.close()
+                        self.engine.runtime = None
+                        self.engine.runtime_binding = None
+                    except Exception as exc:
+                        final_state = 'failed'
+                        final_error = f'{final_error + "; " if final_error else ""}SDK cleanup failed: {exc}'
                 self.engine.lock.release()
             result['total_time_s'] = time.perf_counter() - start
-            result['timing_scope'] = 'Pair identity checks, prior-model unload, both lane load/generate/unload cycles; excludes HTTP/browser transport'
+            result['timing_scope'] = 'Pair identity checks, prior-model unload, both lane load/generate/unload cycles and final SDK cleanup; excludes HTTP/browser transport'
             with self.guard:
                 job.update(state=final_state, error=final_error, result=result)
                 self.active = None
