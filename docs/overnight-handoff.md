@@ -5,6 +5,44 @@ Save results and a morning handoff at the cutoff. Scheduled hourly continuation
 is installed in the current task, ending at the cutoff. Pause that automation
 when producing the final morning handoff.
 
+## 14:00 UTC checkpoint — fresh recommendation binding queued
+
+- Pushedf1b8298 and3380a65: `verify_tuner_loop.py --feedback-mcp` now runs the
+  existing MCP tune/apply/native smoke, exports its selected device/threads/context
+  with model/plugin/SDK identities, unloads the resident model, then invokes the
+  opt-in feedback MCP. CLI validates those bindings before model creation/fixture
+  actions. Unbound batching/speculation/backend/cancellation overrides are rejected.
+  Defaults and frozenv2 are unchanged.40focused tests passed; no new hardware
+  success claim until the queued result is inspected. Grammar/task output budget
+  remain explicit diagnostic controls, not calibrated benchmark workload settings.
+- Task `Qualcomm-Bound-MCP-1400` uses clean checkout `bound-mcp-1400`, source
+  `3380a652dda56b5389c84b2c545fc60645f566ff`, for two sequential rounds. CPU6/10,
+  context4096,32generated benchmark tokens,2repeats; then selected Fast and, if
+  available, Efficient. Both modes may select the same configuration. Results:
+  `local/bound-mcp-loop-1400/integration.json`; supervisor status/log:
+  `local/bound-mcp-1400-supervisor/`. Child900s watchdog, task17min. No overlapping
+  jobs. Supervisor `overnight_bound_mcp_1400.py` restores the scheduled gateway.
+- The gateway had exited between checkpoints (tasklastresult267014, exitfile-1;
+  log only showed listening). Cause is unknown. Preserved original task XML as
+  private `turbo-service-task-before-headless-1400.xml` and changed only its
+  action to `run-turbo-service-headless-1400.py` via pythonw. That supervisor runs
+  the existingroadmap-a8c3707 service with CREATE_NO_WINDOW and captured log,
+  preserving prior task settings/config/power behavior. Check actual restoration
+  and persistence next wake; do not claim the underlying exit cause is fixed.
+- Teammate frontend branch advanced toff0faa6; PR1 remains open, no merge/edit.
+  A read-only Flash review confirms latest metrics are wired but finale is still
+  preview data, not the live service. Review's NOT_COMPARABLE warning refers to
+  each artifact's historical-reference guard; it does not by itself invalidate
+  a separately provenance-checked control/candidate pairing. Likewise inspect
+  QAIRT native evidence before treating the generic dispatchflag as proof of no
+  NPU use. No unsupported UI label changes or teammate messages were made.
+- Independent Flash review of the new binding code is still in progress at this
+  checkpoint: agent01a0aa88-f768-78e0-a411-15ec0705970b (Boyle). Owner has reviewed
+  code and tests; inspect any later concrete finding before promoting results.
+  Next: verify both round bindings against actual native report, preserve final
+  filesystem and exact-call grades separately, publish evidence, verify gateway.
+  Finish remaining integration/presentation handoff within the16:00UTC cutoff.
+
 ## 13:00 UTC checkpoint — full 8B result and native MCP test
 
 - Full50 8B result:38/50 (76%), moves8/8, clarify2/13, invalid2/50 (4%).
