@@ -44,9 +44,8 @@ function speedConfiguration(config) {
 }
 
 function routeConfiguration(route) {
-  const device = String(route?.device || 'route').toUpperCase();
-  const threads = Number.isInteger(route?.threads) && route.threads > 0 ? route.threads + ' threads' : 'runtime default threads';
-  return device + ' · ' + threads;
+  const artifact = route?.plugin === 'qairt' ? 'Compiled artifact' : 'GGUF';
+  return artifact + (route?.quantization ? ' · ' + route.quantization : '');
 }
 
 export function comparisonLanes(request, { route = null } = {}) {

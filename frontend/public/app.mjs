@@ -205,7 +205,7 @@ function resetDemo() {
   taskAbort?.abort();
   clearInterval(clockTick); laneClocks = {};
   demoGeneration++; state.demo = 'idle'; state.lanes = {};
-  state.result = null; state.error = null;
+  state.result = null; state.error = null; state.turboDispatched = undefined;
 }
 
 async function runDemo() {
