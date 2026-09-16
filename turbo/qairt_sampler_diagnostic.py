@@ -113,12 +113,12 @@ class LaneCQairtSamplerModel(NativeModel):
             try:
                 result = super()._chat_locked(messages, tools, max_tokens,
                     self._requested_sampling['temperature'], True, None, None, False)
-            except SamplerVerificationError as exc:
+            except Exception as exc:
                 exc.sampling_evidence = {'requested':dict(self._requested_sampling),
                     'abi_submitted':proxy.submitted,
                     'effective_native':None if synthetic else proxy.observed,
                     'synthetic_effective':proxy.observed if synthetic else None,
-                    'verification':'failed'}
+                    'verification':'failed' if isinstance(exc, SamplerVerificationError) else 'unavailable_after_runtime_error'}
                 raise
             finally:
                 self.runtime = original_runtime
@@ -132,7 +132,7 @@ class LaneCQairtSamplerModel(NativeModel):
 
 
 def five_repeat_diagnostic(model, prompt):
-    """Same model, same prompt, reset per call; exact bytes are not semantic accuracy."""
+    """Compare UTF-8 encodings of returned Python text, not original native buffers."""
     if not isinstance(model, LaneCQairtSamplerModel):
         raise SamplerVerificationError('Five-repeat diagnostic requires the verified Lane C adapter')
     rows = []
@@ -143,7 +143,9 @@ def five_repeat_diagnostic(model, prompt):
         except Exception as exc:
             rows.append({'repeat':index+1, 'status':'failed_verification_or_runtime',
                          'error':type(exc).__name__, 'reason':str(exc),
-                         'sampling':getattr(exc, 'sampling_evidence', None)})
+                         'sampling':getattr(exc, 'sampling_evidence', {
+                             'requested':dict(model._requested_sampling), 'abi_submitted':None,
+                             'effective_native':None, 'verification':'unavailable'})})
             break  # A verification failure stops the diagnostic; no accepted determinism result.
     complete = len(rows) == 5 and all(row['status'] == 'returned' for row in rows)
     exact = all(row['text'].encode('utf-8') == rows[0]['text'].encode('utf-8') for row in rows) if complete else None
@@ -151,7 +153,9 @@ def five_repeat_diagnostic(model, prompt):
             'qualified':False, 'promotion_evidence':False, 'requested_repeats':5,
             'attempted_repeats':len(rows),
             'completed_repeats':sum(row['status']=='returned' for row in rows),
-            'all_identical_utf8_bytes':exact, 'semantic_correctness':None, 'rows':rows}
+            'all_identical_utf8_bytes':exact,
+            'equality_boundary':'UTF-8 encoding of returned Python text; native invalid UTF-8 has already been replacement-decoded',
+            'semantic_correctness':None, 'rows':rows}
 
 
 def blocked_report(config, requested, prompt):

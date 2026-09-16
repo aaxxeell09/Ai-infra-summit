@@ -122,3 +122,49 @@ def test_cli_writes_blocked_evidence_without_native_load(tmp_path,monkeypatch,ca
     assert report['completed_repeats']==0 and report['all_identical_utf8_bytes'] is None
     assert 'no inference attempted' in capsys.readouterr().out
     with pytest.raises(SystemExit): cli.main(args)
+
+
+@pytest.mark.parametrize('failure_kind', ['native_error','readback_error'])
+def test_runtime_failures_retain_sampling_evidence_and_release_output(tmp_path,monkeypatch,failure_kind):
+    model,runtime,lib,submitted=fake_model(tmp_path,monkeypatch)
+    original_runtime=model.runtime
+    if failure_kind=='native_error':
+        original_generate=lib.geniex_llm_generate
+        def failing_generate(*args):
+            original_generate(*args)  # Native failure can still allocate its output.
+            return -200101
+        lib.geniex_llm_generate=failing_generate
+        expected_error='NativeError'
+    else:
+        def failing_readback(handle):
+            raise RuntimeError('readback unavailable')
+        monkeypatch.setattr(model._readback,'read_effective_sampler_after_generation',failing_readback)
+        expected_error='RuntimeError'
+    with model:
+        frees_before=len([call for call in lib.calls if call[0]=='free'])
+        report=diagnostic.five_repeat_diagnostic(model,'fixed prompt')
+        assert model.runtime is original_runtime
+        assert len([call for call in lib.calls if call[0]=='free'])==frees_before+2
+    runtime.close()
+    row=report['rows'][0]
+    assert row['error']==expected_error
+    assert row['sampling']['requested']==REQUEST
+    assert row['sampling']['abi_submitted']==submitted[0]
+    assert row['sampling']['effective_native'] is None
+    assert row['sampling']['synthetic_effective'] is None
+    assert row['sampling']['verification']=='unavailable_after_runtime_error'
+    assert report['attempted_repeats']==1 and report['completed_repeats']==0
+    assert report['all_identical_utf8_bytes'] is None
+
+
+def test_readback_exception_object_is_not_replaced(tmp_path,monkeypatch):
+    model,runtime,lib,submitted=fake_model(tmp_path,monkeypatch)
+    original_error=RuntimeError('original failure')
+    def fail(handle): raise original_error
+    monkeypatch.setattr(model._readback,'read_effective_sampler_after_generation',fail)
+    with model:
+        with pytest.raises(RuntimeError) as caught:
+            model.chat([{'role':'user','content':'fixed prompt'}])
+    runtime.close()
+    assert caught.value is original_error
+    assert caught.value.sampling_evidence['requested']==REQUEST
