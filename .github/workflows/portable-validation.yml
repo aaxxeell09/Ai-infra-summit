@@ -1,0 +1,48 @@
+name: Portable validation
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  portable:
+    name: Unit, frozen data and frontend (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      # Source and historical archive identities are byte hashes. Frozen fixtures
+      # additionally retain their independent -text checkout regression test.
+      - name: Preserve committed LF bytes for provenance checks
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test dependencies
+        run: python -m pip install pytest
+      - name: Validate frozen dataset without changes
+        run: python eval/validate_dataset.py
+      - name: Audit heldout exposure and pinned archive integrity
+        run: python eval/leakage_audit.py
+      - name: Run portable tests (no models or Snapdragon required)
+        run: python -m pytest tests -q -p no:cacheprovider
+      - name: Check frontend syntax
+        working-directory: frontend
+        run: npm run check
+      - name: Test frontend
+        working-directory: frontend
+        run: npm test
+      - name: Assert tracked files remain unchanged
+        run: git diff --exit-code

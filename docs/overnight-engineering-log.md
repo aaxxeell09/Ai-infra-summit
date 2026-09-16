@@ -19,3 +19,9 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Focused native/context tests: 82 passed. Integrated suite: **514 passed, 1 skipped, 13 subtests passed**.
 - Hardware smoke test remains required; recorded SSH route timed out. Continuing portable work.
 - Commit: recorded in the next checkpoint after commit creation.
+
+## Portable validation checkpoint — 2026-09-16 UTC
+
+- Native/context checkpoint committed as `905fc23`.
+- MCP tests use synthetic models; historical leaked archives are exact-byte pinned while novel leakage fails. Frozen validator behavior remains unchanged. Added Linux/macOS/Windows CI.
+- Focused MCP/leakage/golden: **46 passed**. Integrated suite: **514 passed, 1 skipped, 13 subtests passed**. Hosted Windows execution remains pending.
