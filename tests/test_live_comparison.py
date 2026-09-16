@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from turbo.live_comparison import LiveComparisons, ROOT, PROMPTS, _hash
+from turbo.live_comparison import LiveComparisons, ROOT, PROMPTS, _hash, _manifest_hashes
 
 
 class Engine:
@@ -144,6 +144,17 @@ class ComparisonTests(unittest.TestCase):
         self.manager.enabled=False
         with self.assertRaises(ValueError): self.manager.start(self.request)
         self.assertFalse(self.manager.capabilities()['available'])
+
+    def test_git_line_endings_are_portable_but_content_changes_are_rejected(self):
+        import hashlib
+        path = Path(self.temp.name)/'manifest.json'
+        lf = b'{\n  "value": 1\n}\n'
+        path.write_bytes(lf.replace(b'\n', b'\r\n'))
+        self.assertIn(hashlib.sha256(lf).hexdigest(), _manifest_hashes(path))
+        self.assertNotIn(hashlib.sha256(lf.replace(b'1', b'2')).hexdigest(), _manifest_hashes(path))
+        self.request['baseline']['source_sha256'] = '0' * 64
+        with self.assertRaises(ValueError):
+            self.manager.start(self.request)
 
 if __name__ == '__main__':
     unittest.main()

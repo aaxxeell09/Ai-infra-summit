@@ -35,6 +35,13 @@ def _metric(value):
     return value if type(value) in (int, float) and math.isfinite(value) and value >= 0 else None
 
 
+def _manifest_hashes(path):
+    # Git's Windows checkout can expand LF to CRLF. Accept those two exact byte
+    # representations only; do not normalize content, whitespace or JSON values.
+    raw = Path(path).read_bytes()
+    return {hashlib.sha256(raw).hexdigest(), hashlib.sha256(raw.replace(b'\r\n', b'\n')).hexdigest()}
+
+
 class LiveComparisons:
     def __init__(self, engine, *, root=ROOT, model_factory=None):
         self.engine = engine
@@ -72,9 +79,11 @@ class LiveComparisons:
                 raise ValueError('Default lane must use the recorded CPU automatic-thread configuration')
             expected = {'model': self.manifest['model_name'], 'model_sha256': self.manifest['model_sha256'],
                         'runtime_sha256': self.manifest['runtime_sha256'], 'plugin': 'llama_cpp',
-                        'requested_device': 'cpu', 'source_sha256': _hash(self.source / 'sweep.json')}
+                        'requested_device': 'cpu'}
             if any(cfg.get(k) != v for k, v in expected.items()):
                 raise ValueError(f'{lane}: model, runtime, backend or source identity differs from the recorded selection')
+            if cfg.get('source_sha256') not in _manifest_hashes(self.source / 'sweep.json'):
+                raise ValueError(f'{lane}: recorded source hash differs, including after Git CRLF normalization')
             report = json.loads((self.source / (cfg['cell_id'] + '.json')).read_text())
             if cfg.get('params') != report['params']:
                 raise ValueError(f'{lane}: requested parameters differ from the recorded selection')
@@ -182,7 +191,8 @@ class LiveComparisons:
                        'sdk_sha256': binding['sha256'], 'plugin': 'llama_cpp', 'device': 'cpu',
                        'backend_id': 'llama_cpp_cpu', 'threads': params['n_threads'], 'context': params['n_ctx'],
                        'thread_scope': 'Value passed to the SDK; zero requests automatic selection, resolved worker count unavailable',
-                       'quantization': 'Q4_0', 'source_sha256': cfg['source_sha256']}
+                       'quantization': 'Q4_0', 'source_sha256': cfg['source_sha256'],
+                       'source_hash_validation': 'Exact JSON bytes or Git CRLF-to-LF conversion only'}
                 lane_result = {'status': 'running', 'answer': '', 'configuration_applied': False,
                                'effective_configuration': None, 'ttft_ms': None, 'total_time_s': None,
                                'inference_time_s': None, 'native_decode_tps': None, 'output_tokens': None,
