@@ -57,3 +57,10 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Unique OS-locked EXP allocation, single-snapshot historical import, exclusive sealed inventories, retained failures/timeouts, source/model/config pre/post checks and explicit dirty diagnostics implemented. All attempts contribute block energy; incomplete denominators suppress J/correct.
 - Tracker/hardening/report integration: **55 passed**. Required archive structure, crash-release locks, forged identities, Unicode/BOM, timeout cleanup and concurrency covered.
 - Rules/protocol and pending owner decisions recorded. Proceeding immediately to historical import and reporting; no new hardware run.
+
+## Phase B and campaign preparation — 2026-09-16 UTC
+
+- Immutable tracker committed/pushed as `99591e8`. Six available historical reports copied to EXP-001..006, all seals verified. Re-import produced the same six archives. Missing requested CPU/HTP/QAIRT-stop dev and 300-second probe artifacts remain explicitly unavailable; no remembered numbers substituted.
+- 128 frozen file hashes unchanged. Frontend syntax passes and all 28 frontend tests pass.
+- Added development-only offline balanced campaign planner with config hash/drift and single-variable checks; 14 tests passed. Added nine synthetic parser/filesystem characterization tests without changing frozen semantics.
+- Runtime experiments still blocked by inaccessible recorded SSH route. Continuing analysis/documentation and CI verification.
