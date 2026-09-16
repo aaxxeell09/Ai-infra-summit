@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
+import math
 import mimetypes
 import re
 import subprocess
@@ -15,6 +15,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from .policy import Profile, choose
+from .runtime_identity import binding_matches, runtime_identity
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -70,6 +71,7 @@ class Engine:
         self.config = config
         self.lock = threading.RLock()
         self.runtime = None
+        self.runtime_binding = None
         self.loaded = {}
         self.history = []
         self.profiles = [Profile(**p) for p in config.get('profiles', [])]
@@ -104,12 +106,21 @@ class Engine:
                 mmproj_path=spec.get('mmproj_path')))
             search = dict(devices=['cpu', 'npu'], threads=[0, 10], contexts=[4096],
                           prompt_tokens=512, gen_tokens=128, repeats=3, warmup=0)
+            if variant.plugin == 'qairt':
+                from .native import _qairt_bundle_input
+                _, compiled_context = _qairt_bundle_input(spec['path'])
+                if tuple(variant.compiled_contexts or ()) != (compiled_context,):
+                    raise ValueError('Register the QAIRT artifact compiled context before tuning')
+                if not settings.get('prompt_file'):
+                    raise ValueError('QAIRT tuning requires a configured text prompt_file')
+                search.update(devices=['npu'], threads=[0], contexts=[compiled_context])
             search.update(body.get('search_space', {}))
             space = SearchSpace.from_dict(search)
             cells = plan_cells([variant], space)
             objective = body.get('objective', 'fast')
             if objective not in {'fast', 'efficient', 'balanced', 'decode', 'prefill'}:
                 raise ValueError('Unknown objective')
+            self._check_resident_runtime()
             for model in self.loaded.values():
                 model.close()
             self.loaded.clear()
@@ -123,7 +134,8 @@ class Engine:
             def execute(job):
                 record = run_tuning(settings['exe'], [variant], space, str(self.tuning_dir),
                     objective=objective, progress=job.progress, timeout_s=min(300, settings.get('timeout_s', 120)),
-                    budget_s=min(1800, settings.get('budget_s', 600)))
+                    budget_s=min(1800, settings.get('budget_s', 600)),
+                    prompt_file=settings.get('prompt_file'))
                 if record.get('recommendation_path'):
                     with self.lock:
                         self.config['recommendation_file'] = record['recommendation_path']
@@ -164,21 +176,45 @@ class Engine:
                 raise ValueError('Unknown model')
             base = self.config['models'][model_id]
             if mode == 'baseline':
-                cfg = {'device': 'auto', 'threads': 0, 'context': 4096}
-                evidence = {'source': 'GenieX default automatic placement', 'quality_calibrated': False}
+                if base.get('plugin') == 'qairt':
+                    from .native import _qairt_bundle_input
+                    _, context = _qairt_bundle_input(base['path'])
+                    cfg = {'device': 'npu', 'threads': 0, 'context': context}
+                    source = 'QAIRT compiled artifact defaults; separate from the official GGUF reference'
+                else:
+                    cfg = {'device': 'auto', 'threads': 0, 'context': 4096}
+                    source = 'GenieX default automatic placement'
+                evidence = {'source': source, 'quality_calibrated': False}
             else:
                 record = self.modes()
                 if mode not in record['modes']:
                     raise ValueError('Mode has no eligible measured profile')
+                if record.get('schema_version') != 'turbo.recommended.v2':
+                    raise ValueError('Recommendation requires fresh tuner v2 measurements')
+                if record.get('plugin') != base.get('plugin', 'llama_cpp'):
+                    raise ValueError('Recommendation belongs to a different runtime plugin')
                 path = Path(base['path'])
-                stamp = (str(path.resolve()), path.stat().st_size, path.stat().st_mtime_ns)
+                paths = sorted(p for p in path.rglob('*') if p.is_file()) if path.is_dir() else [path]
+                stamp = tuple((str(p.resolve()), p.stat().st_size, p.stat().st_mtime_ns,
+                               p.stat().st_ctime_ns) for p in paths)
                 if stamp not in self.hash_cache:
-                    with path.open('rb') as f:
-                        self.hash_cache[stamp] = hashlib.file_digest(f, 'sha256').hexdigest()
+                    from .tuning import _sha256
+                    self.hash_cache[stamp] = _sha256(path)
                 if self.hash_cache[stamp] != record['model_sha256']:
                     raise ValueError('Recommendation belongs to different model weights; tune this model first')
+                current = self._current_runtime_binding()
+                self._check_resident_runtime(current)
+                if not binding_matches(record.get('runtime_binding'), current):
+                    raise ValueError('Runtime identity differs from measurements; rerun the tuner')
                 cfg = {k: record['modes'][mode][k] for k in ('device', 'threads', 'context')}
                 evidence = {'source': record['scope']['evidence'], 'scope': record['scope'], 'metrics': record['modes'][mode]['metrics']}
+                if mode == 'efficient':
+                    metrics = evidence['metrics']
+                    efficiency = metrics.get('tokens_per_joule')
+                    if (type(efficiency) not in (int, float) or not math.isfinite(efficiency)
+                            or efficiency <= 0 or not metrics.get('energy_channel')
+                            or metrics.get('energy_scope') != 'full_process_trial'):
+                        raise ValueError('Efficient mode requires measured tokens/J with channel and scope')
             applied = {'model': model_id, 'mode': mode, 'config': cfg, 'evidence': evidence}
             if self.applied != applied:
                 for loaded in self.loaded.values():
@@ -187,18 +223,31 @@ class Engine:
             self.applied = applied
             return applied
 
+    def _current_runtime_binding(self):
+        return runtime_identity((self.config.get('tuner') or {}).get('exe'),
+                                self.config.get('sdk_dir'), use_cache=True)
+
+    def _check_resident_runtime(self, current=None):
+        if self.runtime_binding is not None:
+            current = current or self._current_runtime_binding()
+            if not binding_matches(self.runtime_binding, current):
+                raise ValueError('Native SDK changed while loaded; restart the service before tuning or inference')
+
     def load(self, model_id):
+        self._check_resident_runtime()
         if model_id not in self.loaded:
             from .native import NativeRuntime, NativeModel
             if self.runtime is None:
+                binding = self._current_runtime_binding() if self.config.get('tuner') else None
                 self.runtime = NativeRuntime(self.config['sdk_dir'])
+                self.runtime_binding = binding
             spec = self.config['models'][model_id]
             settings = self.applied['config'] if self.applied and self.applied['model'] == model_id else spec
             self.loaded[model_id] = NativeModel(self.runtime, spec['path'],
                 device=settings.get('device', 'cpu'), threads=settings.get('threads', 0),
                 context=settings.get('context', 4096), spec_type=settings.get('spec_type', 'none'),
                 draft_tokens=settings.get('draft_tokens', 8), threads_batch=settings.get('threads_batch', 0),
-                ubatch=settings.get('ubatch', 0))
+                ubatch=settings.get('ubatch', 0), plugin=spec.get('plugin', 'llama_cpp'))
         return self.loaded[model_id]
 
     def select(self, messages, mode, requested=None):

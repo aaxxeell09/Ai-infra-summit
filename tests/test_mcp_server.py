@@ -513,6 +513,7 @@ def real_engine_server(tmp: Path, recommendation_file: Path):
         "recommendation_file": str(recommendation_file),
         "results_dir": str(tmp / "results"),
         "data_dir": str(tmp / "data"),
+        "tuner": {"exe": str(tmp / "bench.exe")},
         "profiles": [],
     }
     cfg_path = tmp / "config.json"
@@ -558,7 +559,12 @@ class RealEngineIntegrationTests(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp = Path(tempfile.mkdtemp(prefix="mcp-e2e-"))
         build_stub_dylib(cls.tmp)
-        rec = dict(REC_V1)
+        rec = json.loads(json.dumps(REC_V1))
+        from turbo.runtime_identity import runtime_identity
+        exe = cls.tmp / 'bench.exe'; exe.write_bytes(b'benchmark fixture')
+        rec.update(schema_version='turbo.recommended.v2',plugin='llama_cpp',
+                   runtime_binding=runtime_identity(exe,cls.tmp))
+        rec['modes']['efficient']['metrics'].update(energy_channel='SYS',energy_scope='full_process_trial')
         rec["model_sha256"] = "0" * 64  # placeholder; Engine verifies model hash on apply
         rec_path = cls.tmp / "recommended.json"
         # Reuse the real model's measured record; engine.hash check needs the

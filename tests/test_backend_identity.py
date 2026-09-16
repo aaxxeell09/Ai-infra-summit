@@ -54,6 +54,8 @@ def test_qairt_reuses_native_abi_and_additive_metadata(tmp_path):
         assert result['backend'] == 'geniex'
         assert result['backend_id'] == 'qairt_npu'
         assert result['runtime'] == 'qairt'
+        assert result['sampling']['sdk_zero_temperature_uses_default'] is True
+        assert result['sampling']['zero_temperature_default_source'] == 'bundle_then_plugin'
         assert result['requested_device'] == 'npu'
         assert result['resolved_device'] == 'HTP0'
         assert result['qairt_version'] is None

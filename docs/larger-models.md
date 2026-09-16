@@ -5,7 +5,7 @@ artifacts, not a promise that each model runs on the installed backend.
 
 | Candidate | Weights | Role to test | Status |
 | --- | --- | --- | --- |
-| Qwen3-4B-Instruct-2507 Q4_0 | 2.376 GB | Instruction-focused secretary | Download in progress |
+| Qwen3-4B-Instruct-2507 Q4_0 | 2.376 GB | Instruction-focused secretary | Mac download complete and SHA-256 verified; Latitude transfer pending |
 | Qwen3-8B Q4_K_M | 5.028 GB | Larger dense model, same broad family | Pinned; download/runtime validation pending |
 | gpt-oss-20b MXFP4 | 12.110 GB | Local planner and difficult tool requests | Pinned; download/runtime validation pending |
 

@@ -190,3 +190,18 @@ nested fixture, including binary assets. Do not renormalize or edit these files.
 `core.autocrlf=true` in a temporary repository, including a control file that
 actually converts to CRLF. Run `python eval/validate_dataset.py` after a Windows
 checkout; changing attributes does not repair an already modified working file.
+
+### September 15 integration findings for benchmark ownership
+
+The first native QAIRT full result is committed as `qairt-native-06-v1` (23/50).
+Its comparison returns `NOT_COMPARABLE` because the newer runner changes
+`evaluator_sha256` relative to the immutable baseline. Agree on a provenance
+migration or a matched reference run before an official candidate gate; the
+application must not weaken this guard or replace the old baseline.
+
+The full unit suite also exposes an existing issue in `leakage()`: it scans saved
+`eval/results/` reports, including `baseline.json`, and treats their required
+failed-prompt evidence as held-out leakage. The test needs an owner-approved
+scope that distinguishes archived evaluation evidence from application inputs.
+The scanner, golden prompts, fixture, expected actions and scoring are unchanged
+in this integration. This issue remains visible rather than being suppressed.

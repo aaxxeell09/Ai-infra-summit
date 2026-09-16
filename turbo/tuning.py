@@ -11,6 +11,8 @@ import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+from .runtime_identity import binding_matches, runtime_identity
+
 
 class TuningError(ValueError):
     """Invalid request or unsupported benchmark capability."""
@@ -351,6 +353,9 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
         if path not in cache:
             cache[path] = _sha256(path, deadline)
         return cache[path]
+    runtime_binding = runtime_identity(bench_exe, deadline=deadline)
+    record["runtime_binding"] = runtime_binding
+    record["bench_exe"] = str(Path(bench_exe).resolve())
     save()
     for i, cell in enumerate(cells):
         variant = next(v for v in variants if v.id == cell.variant_id)
@@ -385,7 +390,7 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
             for key in ("devices", "threads", "contexts", "batch", "ubatch", "energy_channel"):
                 workload.pop(key)
             row.update(command=cmd, artifact_sha256=artifacts, model_sha256=artifacts["model"],
-                runtime_sha256=fingerprint(bench_exe), workload=workload, workload_id=_digest(workload), status="running")
+                runtime_sha256=runtime_binding["sha256"], workload=workload, workload_id=_digest(workload), status="running")
             row["group_id"] = _group(row)
             save()
             remaining = min(timeout_s, deadline - time.monotonic())
@@ -399,6 +404,9 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
                 raise TimeoutError('native benchmark exceeded cell deadline')
             data = json.loads(target.read_text(encoding="utf-8-sig"), parse_constant=_invalid_constant)
             row.update(_parse_result_json(data, space.gen_tokens, space.repeats))
+            if variant.plugin == "qairt":
+                row["prefill_metric_kind"] = "runtime-reported prompt tokens divided by TTFT; may include compiled padding"
+                row["prefill_is_independent_measurement"] = False
             params = data.get("params") or {}
             expected = dict(repetitions=space.repeats, n_gen=space.gen_tokens, warmup=space.warmup,
                 temperature=space.temperature, seed=space.seed, n_threads=cell.threads,
@@ -431,11 +439,13 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
         and len({_group(r) for r in record["results"] if _eligible(r)}) == 1 else None,
         cells_run=sum("exit_code" in r for r in record["results"]), output_dir=str(out))
     try:
+        if not binding_matches(runtime_binding, runtime_identity(bench_exe, deadline=deadline)):
+            raise TuningError("Native SDK changed during tuning; recommendation rejected")
         record["recommendation"] = recommendation_record(record)
         recpath = out / "recommended.json"
         recpath.write_text(json.dumps(record["recommendation"], indent=2, allow_nan=False), encoding="utf-8")
         record["recommendation_path"] = str(recpath)
-    except TuningError as exc:
+    except (OSError, ValueError, TimeoutError) as exc:
         record.update(recommendation=None, recommendation_path=None, recommendation_error=str(exc))
     save()
     return record
@@ -455,9 +465,9 @@ def recommendation_record(record, group_id=None):
         raise TuningError("no eligible measurements for service modes")
     first = rows[0]
     model = first["model"]
-    if (first["plugin"] != "llama_cpp" or first["kind"] != "llm"
+    if (first["plugin"] not in ("llama_cpp", "qairt") or first["kind"] != "llm"
             or model.get("tokenizer_path") or model.get("mmproj_path")):
-        raise TuningError("current parent apply supports llama_cpp LLM without artifact overrides only")
+        raise TuningError("current parent apply supports LLM without artifact overrides only")
     modes, unavailable = {}, {}
     for mode in ("fast", "efficient", "balanced"):
         ranked = rank_results(rows, mode, record.get("constraints"), record.get("variability_penalty", 0))
@@ -467,7 +477,8 @@ def recommendation_record(record, group_id=None):
         r = ranked[0]
         metrics = {k: r.get(k) for k in ("decode_tps", "prefill_tps", "latency_s", "tokens_per_joule")}
         metrics.update(median_decode_tps=r["decode_tps"], median_ttft_ms=r["ttft_ms"],
-                       median_peak_mib=r.get("peak_working_set_mb"))
+                       median_peak_mib=r.get("peak_working_set_mb"),
+                       energy_channel=r.get("energy_channel"), energy_scope=r.get("energy_scope"))
         modes[mode] = dict(device=r["device"], threads=r["threads"], context=r["context"],
             metrics=metrics, evidence=r["result_path"], command=r["command"],
             provisional=True, requires_paired_confirmation=True)
@@ -476,6 +487,7 @@ def recommendation_record(record, group_id=None):
     return dict(schema_version="turbo.recommended.v2", model_id=first["variant_id"],
         model_sha256=first["model_sha256"], model=model, plugin=first["plugin"],
         artifact_sha256=first["artifact_sha256"], runtime_sha256=first["runtime_sha256"],
+        runtime_binding=record.get("runtime_binding"),
         scope=dict(group_id=group_id, workload=first["workload"], power_state=first["power_state"],
             power_scope=first["power_scope"], quality_calibrated=False, cold_kv=True,
             evidence=str(Path(record["output_dir"]) / "record.json"),
@@ -489,6 +501,7 @@ def export_recommended(record, path, group_id=None):
         raise TuningError("no eligible recommendation; select a group for multiple models/workloads")
     config = dict(schema_version="turbo.recommended.v2", model=rec["model"],
         model_sha256=rec["model_sha256"], artifact_sha256=rec["artifact_sha256"],
+        runtime_binding=record.get("runtime_binding"),
         plugin=rec["plugin"], device=rec["device"], threads=rec["threads"], context=rec["context"],
         scope={k: rec[k] for k in ("group_id", "workload", "power_state", "power_scope", "runtime_sha256", "objective")},
         provisional=True, requires_paired_confirmation=True)

@@ -14,6 +14,8 @@ Private tool-using AI on a Snapdragon X Elite laptop. Our primary objective is t
 
 ## Current status
 
+Native QAIRT now has a complete [50-case result](eval/results/candidate_qairt-native-06-v1.md): **23/50 (46%)**, 34% invalid outputs, mean inference **786 ms**. It is not qualified. The historical comparison correctly remains `NOT_COMPARABLE` after the evaluator provenance changed. A [QAIRT tuner cell](benchmarks/results/qairt-tuner-smoke-01/README.md) also ran on the Latitude. QAIRT mode application and SDK hash binding are implemented; the repeated hardware integration test is pending restored device access.
+
 The [task-energy protocol](docs/energy-protocol.md) and optional per-task instrumentation are prepared for CPU, llama.cpp HTP and QAIRT. The [decision matrix](docs/decision-matrix.md) remains unmeasured: no new hardware energy run or winning backend is claimed.
 
 Actual Latitude measurements show **2.67× aggregate decode throughput** for CPU/10 versus default auto/NPU on the same 0.6B weights. The stronger CPU-default comparison measured +16.9% aggregate but only +3.2% median individual-run throughput, with substantial variability. See [results and limits](benchmarks/results/README.md).
