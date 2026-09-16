@@ -64,7 +64,10 @@ def candidate(kind, codec):
     result = {'protocol': SCHEMA, 'lane': 'C', 'qualified': False,
               'promotion_evidence': False, 'kind': kind, 'executes_actions': False}
     if kind == 'prompt':
-        result['system_prompt'] = codec.instructions() + PROMPT_SUFFIX
+        original = codec.instructions()
+        if original.count('at most four') != 1:
+            raise ValueError('Frozen prompt changed; review the diagnostic variant')
+        result['system_prompt'] = original.replace('at most four', 'exactly one') + PROMPT_SUFFIX
     elif kind == 'schema':
         tools = deepcopy(TOOLS)
         next(t['function'] for t in tools if t['function']['name'] == 'clarify')['description'] = CLARIFY_DESCRIPTION

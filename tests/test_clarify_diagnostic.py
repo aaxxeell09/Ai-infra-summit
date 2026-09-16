@@ -69,7 +69,9 @@ def test_candidates_are_separate_copies_and_cannot_modify_schema(setup):
         assert before['function']['parameters'] == after['function']['parameters']
         if before['function']['name'] != 'clarify': assert before == after
     assert result['lane'] == 'C' and result['qualified'] is False
-    assert d.candidate('prompt', codec)['system_prompt'].startswith(codec.instructions())
+    exported = d.candidate('prompt', codec)['system_prompt']
+    assert 'at most four' not in exported and 'exactly one' in exported
+    assert 'at most four' in codec.instructions()
 
 
 def test_shadow_detector_uses_inventory_not_case_labels():
