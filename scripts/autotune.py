@@ -141,6 +141,25 @@ def productive_families(state, fallback):
     return tuple(names) or tuple(fallback)
 
 
+def generate_by_family(engine, console, families, max_points):
+    """Generate one bounded grid per family, never one across all of them.
+
+    The product across families is tens of thousands of points on the llama.cpp
+    backends. Most of them say nothing a within-family grid plus later
+    refinement does not, and a point that crosses four families explains nothing
+    on its own. A family whose own grid still exceeds the bound is skipped with
+    its reason rather than truncated, because a truncated design is an arbitrary
+    prefix of a design, and the session continues on the families that fit.
+    """
+    candidates = []
+    for family in families:
+        try:
+            candidates.extend(engine.generate(families=[family], max_points=max_points))
+        except ValueError as exc:
+            console.warn('family ' + str(family) + ' skipped: ' + str(exc))
+    return candidates
+
+
 def measure_control(engine, state, stage):
     """Run the current control at this stage so comparisons have a baseline.
 
@@ -296,19 +315,12 @@ def run_session(args, *, clock, executor, session_path, console):
                 # the llama.cpp backends, most of which say nothing that a
                 # within-family grid plus later refinement does not, and a point
                 # that crosses four families explains nothing on its own.
-                candidates = []
-                for family in plan['families']:
-                    try:
-                        candidates.extend(engine.generate(families=[family],
-                                                          max_points=args.max_points))
-                    except ValueError as exc:
-                        console.warn('family ' + family + ' skipped: ' + str(exc))
+                candidates = generate_by_family(engine, console, plan['families'],
+                                                 args.max_points)
             else:
-                families = productive_families(state, plan['families'])
-                parameters = [name for name in space.supported_parameters(backend)
-                              if space.PARAMETERS[name]['family'] in families]
-                candidates = engine.generate(parameters=parameters or None,
-                                             max_points=args.max_points)
+                candidates = generate_by_family(
+                    engine, console, productive_families(state, plan['families']),
+                    args.max_points)
             pool['S1'].extend(engine.admit(candidates))
         progressed = False
         for stage in plan['stages']:
