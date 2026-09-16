@@ -37,3 +37,30 @@ No item below blocks unrelated engineering. Defaults remain unchanged.
 13. **Status refresh (TRK-015):** `docs/CURRENT_STATUS.md` states 674 tests where 739 now
     pass and tabulates EXP-001..006, which do not exist in a fresh checkout. Confirm
     whether those archives exist on the Snapdragon before the document is refreshed.
+
+## From TurboLab V1 (docs/turbolab.md, BACKEND_CAPABILITY_MATRIX.md)
+
+14. **QAIRT explicit sampler control (Lane C, first item to review):** every QAIRT
+    result so far ran under an unrecorded effective sampler. The frozen runner has no
+    configuration path for `top_k`, `top_p`, `temperature` or `seed`, and
+    `docs/qairt-sampling.md` records that a requested temperature of zero defers to the
+    bundle, which declares temperature 0.8 and top-k 40, while the llama.cpp comparison
+    ran with seed -1. Part of the observed QAIRT versus llama.cpp gap may therefore be
+    sampling rather than backend, and nothing in the repository settles it. The smallest
+    safe extension is a separately versioned runner contract accepting an optional
+    sampler object and recording requested and effective values, refusing to run when
+    the effective values cannot be read back. This exposes an inference control; it does
+    not change what the benchmark measures. Validation requires at least five repeats of
+    one development case per setting, compared byte for byte, before any determinism
+    claim. Full detail in `turbo/optimizer/lane_c.py`.
+
+15. **Diagnostic canary subset:** the frozen runner exposes development, heldout and
+    all, with no supported way to request eight cases, so the cheap elimination stages
+    need a separate probe outside the frozen runner. Confirm that a clearly labelled
+    `DIAGNOSTIC_CANARY` path, which cannot produce a qualified archive, is acceptable,
+    or that TurboLab should run with startup probes and full dev35 only.
+
+16. **Declared default hardware cost:** before commissioning, TurboLab needs some cost
+    estimate to decide whether a candidate fits the remaining budget. It currently
+    declares 180 s and records it as a declared default rather than a measurement.
+    Confirm that value, or supply a measured one once commissioning has run.
