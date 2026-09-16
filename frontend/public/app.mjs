@@ -1,5 +1,6 @@
 import { createRecordedProvider, METRICS, rankRows, exportConfiguration } from './data.mjs';
 import { createLatestResultsProvider } from './latest.mjs';
+import { createLiveComparisonProvider } from './live-comparison.mjs';
 import { PROMPTS, createComparisonRequest, comparisonLanes, createPreviewComparisonProvider } from './comparison.mjs';
 
 const $ = selector => document.querySelector(selector);
@@ -8,8 +9,9 @@ const number = (value, digits = 2) => value === null || value === undefined ? 'U
 const arrow = '<span aria-hidden="true">↗</span>';
 const provider = createRecordedProvider();
 const latestProvider = createLatestResultsProvider();
-// Replace this provider with a device comparison provider at integration.
-const taskProvider = createPreviewComparisonProvider();
+let taskProvider = createPreviewComparisonProvider();
+let liveCapabilities = null;
+let liveSetupError = null;
 const state = { snapshot: null, latest: null, latestError: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
 let demoGeneration = 0;
 let taskAbort;
@@ -118,23 +120,25 @@ function calibrationScreen() {
 }
 
 function demoScreen() {
-  const busy = state.demo === 'running';
+  const busy = ['running', 'cancelling'].includes(state.demo);
+  const live = taskProvider.mode === 'live';
   const scenario = PROMPTS.find(item => item.id === state.scenario);
   let request; let setupError;
   try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, 'preview-layout'); }
   catch (error) { setupError = error.message; }
+  if (live && !setupError) setupError = liveSetupError || (!liveCapabilities?.available ? 'Live device is unavailable.' : state.comparison !== 'speed' ? 'Model routing needs calibration. Choose Speed for the live demo.' : !liveCapabilities.supported_cell_ids.includes(request?.selected?.cell_id) ? 'Select a CPU configuration on Compare for the live demo.' : null);
   const descriptions = request ? comparisonLanes(request) : null;
   const lanes = ['default', 'turbo'].map(key => {
     const lane = state.lanes[key] || { status: 'idle', answer: '' };
     const meta = descriptions?.[key];
-    const status = lane.status === 'running' ? 'Writing…' : lane.status === 'completed' ? 'Done' : busy ? 'Queued' : 'Ready';
+    const status = lane.status === 'running' ? 'Writing…' : lane.status === 'completed' ? 'Done' : lane.status === 'failed' ? 'Failed' : lane.status === 'cancelled' ? 'Cancelled' : busy ? 'Queued' : 'Ready';
     const identity = !meta ? 'Configuration unavailable' : state.comparison === 'speed'
       ? `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`
       : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
     return `<article class="response-column ${key === 'turbo' ? 'response-turbo' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
       <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p></header>
       <div class="response-text ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${esc(lane.answer)}</div>
-      <div class="response-timing"><span>Animation time</span><strong data-clock="${key}">${clockText(key)}</strong></div>
+      ${live ? `<div class="response-timing"><span>Load + answer + unload</span><strong>${lane.total_time_s == null ? '—' : number(lane.total_time_s) + ' s'}</strong></div><div class="response-timing"><span>First token · native, excludes load</span><strong>${lane.ttft_ms == null ? '—' : number(lane.ttft_ms) + ' ms'}</strong></div><div class="response-timing"><span>Native decode · ${lane.output_tokens == null ? 'tokens unavailable' : lane.output_tokens + ' output tokens'}</span><strong>${lane.native_decode_tps == null ? '—' : number(lane.native_decode_tps) + ' tok/s'}</strong></div>` : `<div class="response-timing"><span>Animation time</span><strong data-clock="${key}">${clockText(key)}</strong></div>`}
     </article>`;
   }).join('');
   return `<section class="screen comparison-demo">
@@ -142,13 +146,13 @@ function demoScreen() {
     <div class="comparison-workspace">
       <div class="prompt-composer"><div class="prompt-controls"><span class="prompt-label">Prompt</span><details class="prompt-picker" ${busy ? 'inert' : ''}><summary aria-label="Example prompt: ${esc(scenario.label)}">${esc(scenario.label)}<span aria-hidden="true">⌄</span></summary><div class="prompt-options" role="group" aria-label="Example prompts">${PROMPTS.map(item => `<button data-scenario="${item.id}" aria-pressed="${state.scenario === item.id}">${item.label}<span aria-hidden="true">${state.scenario === item.id ? '✓' : ''}</span></button>`).join('')}</div></details></div>
         <p class="prompt-copy">${esc(scenario.prompt)}</p>
-        <button class="button primary run-comparison" data-action="${busy ? 'reset-demo' : 'run-demo'}" ${setupError ? 'disabled' : ''}>${busy ? '<span aria-hidden="true">■</span> Stop' : state.result ? '↻ Replay' : 'Run preview <span aria-hidden="true">→</span>'}</button>
+        <button class="button primary run-comparison" data-action="${busy ? 'reset-demo' : 'run-demo'}" ${setupError || state.demo === 'cancelling' ? 'disabled' : ''}>${state.demo === 'cancelling' ? 'Stopping on device…' : busy ? '<span aria-hidden="true">■</span> Stop' : live && taskProvider.pendingRequest() ? 'Check device status' : state.result ? '↻ Run again' : live ? 'Run on Latitude <span aria-hidden="true">→</span>' : 'Run preview <span aria-hidden="true">→</span>'}</button>
       </div>
       <div class="response-grid">${lanes}</div>
     </div>
     ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
-    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential.</p></div></details></div>
-    <span class="sr-only" role="status" aria-live="polite">${state.result ? 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
+    <div class="demo-secondary">${live && state.result ? '<button class="button ghost" data-action="download-task">Download device result ↓</button>' : ''}<details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>${live ? 'Real local inference, sequential on the Latitude. Each lane includes loading and cleanup. Different answer lengths can affect latency; one pair does not establish a speedup. Answer quality is not evaluated. Model and runtime acknowledgements are included in the result.' : 'Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential.'}</p></div></details></div>
+    <span class="sr-only" role="status" aria-live="polite">${state.result ? taskProvider.mode === 'live' ? 'Device comparison finished. Results are available.' : 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
   </section>`;
 }
 
@@ -160,7 +164,7 @@ function render({ focus = false } = {}) {
     if (link.dataset.step === state.page) link.setAttribute('aria-current', 'step');
     else link.removeAttribute('aria-current');
   });
-  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Preview · scripted answers' : 'Device task' : 'Recorded results'}`;
+  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Preview · scripted answers' : 'Live · Snapdragon' : 'Recorded results'}`;
   $('#main').innerHTML = state.page === 'device' ? deviceScreen() : state.page === 'calibration' ? calibrationScreen() : demoScreen();
   if (keepExplanationOpen && $('#main .comparison-info')) $('#main .comparison-info').open = true;
   if (!focus && keepRunFocus) $('#main .run-comparison')?.focus({ preventScroll: true });
@@ -172,7 +176,7 @@ function render({ focus = false } = {}) {
 function navigate() {
   const next = location.hash.slice(1);
   const page = ['device', 'calibration', 'demo'].includes(next) ? next : 'device';
-  if (state.page !== page && ['preparing', 'running'].includes(state.demo)) {
+  if (state.page !== page && ['preparing', 'running', 'cancelling'].includes(state.demo)) {
     if (taskProvider.mode === 'live') { location.hash = 'demo'; notify('Wait for the device result before leaving this task.'); return; }
     resetDemo();
   }
@@ -187,19 +191,20 @@ function resetDemo() {
 }
 
 async function runDemo() {
-  if (['preparing', 'running'].includes(state.demo)) return;
+  if (['preparing', 'running', 'cancelling'].includes(state.demo)) return;
+  const pending = taskProvider.mode === 'live' ? taskProvider.pendingRequest() : null;
   resetDemo(); const generation = demoGeneration;
   let request;
-  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, crypto.randomUUID()); }
+  try { request = pending || createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, crypto.randomUUID()); }
   catch (error) { state.error = error.message; render(); return; }
   const controller = new AbortController(); taskAbort = controller;
   const timer = setTimeout(() => controller.abort(new Error('The device did not finish within two minutes. Its execution status is unknown; check the device before retrying.')), 120000);
   let rejectOnAbort;
-  const interrupted = new Promise((_, reject) => { rejectOnAbort = () => reject(controller.signal.reason); controller.signal.addEventListener('abort', rejectOnAbort, { once: true }); });
+  const interrupted = new Promise((_, reject) => { rejectOnAbort = () => { if (taskProvider.mode !== 'live') reject(controller.signal.reason); }; controller.signal.addEventListener('abort', rejectOnAbort, { once: true }); });
   state.demo = 'running'; render();
   clockTick = setInterval(updateClocks, 100);
   try {
-    const result = await Promise.race([interrupted, taskProvider.execute(request, { signal: controller.signal, onEvent(event) {
+    const execution = taskProvider.execute(request, { signal: controller.signal, onEvent(event) {
       if (generation !== demoGeneration) return;
       if (event.type === 'text') {
         state.lanes[event.lane].answer = event.answer;
@@ -213,9 +218,10 @@ async function runDemo() {
         state.lanes[event.lane] = event.type === 'complete' ? event.result : { status: 'running', answer: '' };
         render();
       }
-    } })]);
+    } });
+    const result = taskProvider.mode === 'live' ? await execution : await Promise.race([interrupted, execution]);
     if (generation !== demoGeneration) return;
-    state.result = result; state.lanes = result.lanes; state.demo = 'complete'; render();
+    state.result = result; state.lanes = result.lanes; state.demo = result.status === 'failed' ? 'failed' : 'complete'; state.error = result.error || null; render();
   } catch (error) {
     if (generation !== demoGeneration) return;
     state.error = error.message || 'The device run could not be verified. Check its status before retrying.';
@@ -246,6 +252,8 @@ document.addEventListener('click', event => {
   const picker = $('.prompt-picker');
   if (picker && !picker.contains(event.target)) picker.open = false;
   const target = event.target.closest('button'); if (!target) return;
+  if (taskProvider.mode === 'live' && ['running','cancelling'].includes(state.demo) && target.dataset.action !== 'reset-demo') { notify('Wait for the current device job to finish.'); return; }
+  if (taskProvider.mode === 'live' && taskProvider.pendingRequest() && !['run-demo','reset-demo'].includes(target.dataset.action)) { notify('Check device status before changing the comparison.'); return; }
   const metric = target.dataset.metric;
   if (metric) {
     resetDemo();
@@ -270,7 +278,7 @@ document.addEventListener('click', event => {
     case 'download-evidence': download(state.snapshot.raw, 'local-turbo-recorded-evidence.json'); break;
     case 'download-task': if (state.result?.mode === 'live') download(state.result, `local-turbo-task-${state.result.request_id}.json`); break;
     case 'run-demo': runDemo(); break;
-    case 'reset-demo': resetDemo(); render(); break;
+    case 'reset-demo': if (taskProvider.mode === 'live' && ['running','cancelling'].includes(state.demo)) { state.demo = 'cancelling'; taskAbort?.abort(new Error('Cancellation requested')); render(); } else { resetDemo(); render(); } break;
     case 'retry': load(); break;
   }
 });
@@ -293,10 +301,23 @@ async function load() {
     ]);
     if (snapshotResult.status === 'rejected') throw snapshotResult.reason;
     state.snapshot = snapshotResult.value;
+    const health = await fetch('/api/health', {signal:AbortSignal.timeout(10000)}).then(r => { if (!r.ok) throw new Error('Demo connection status unavailable'); return r.json(); });
+    if (health.live_backend) {
+      taskProvider = createLiveComparisonProvider();
+      try { liveCapabilities = await taskProvider.capabilities(); liveSetupError = null; } catch (error) { liveSetupError = error.message; }
+    }
     state.latest = latestResult.status === 'fulfilled' ? latestResult.value : null;
     state.latestError = latestResult.status === 'rejected' ? latestResult.reason?.message : null;
     resetDemo();
     state.selected = rankRows(state.snapshot).leaders[0] ?? null;
+    if (taskProvider.mode === 'live') {
+      const pending = taskProvider.pendingRequest();
+      if (pending) { state.selected = pending.selected.cell_id; state.scenario = pending.prompt_id; state.comparison = 'speed'; }
+      else if (liveCapabilities?.available) {
+        const ranked = rankRows(state.snapshot);
+        state.selected = ranked.rows.find(row => ranked.eligible(row) && liveCapabilities.supported_cell_ids.includes(row.id))?.id ?? state.selected;
+      }
+    }
     navigate();
   } catch (error) {
     $('#main').innerHTML = `<section class="error-state"><span class="eyebrow">RESULTS UNAVAILABLE</span><h1>We couldn’t open this run.</h1><p>${esc(error.message)}</p><button class="button primary" data-action="retry">Try again ↗</button></section>`;

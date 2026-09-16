@@ -71,3 +71,32 @@ Rank only completed, full-length comparable trials with valid provenance. Keep t
 See [comparison-contract.md](comparison-contract.md). Keep device addresses/credentials on the local server. Configuration tuning must use identical model weights; multi-model routing is a separate experiment. Never silently replace failed live runs with scripted answers.
 
 `ux-spec.json` is the current versioned UX source. The initial file-task quality review is historical; the prompt comparison has five additional tests covering baseline identity, illustrative routing, sequential preview events, abort and unsupported prompts.
+
+## Opt-in live answer demo
+
+The native gateway now supports the final screen's two public prompts using the
+recorded 0.6B weights and CPU settings. Enable `live_comparison_enabled: true` in
+its private config, then start this frontend with a local gateway or SSH tunnel:
+
+```sh
+LOCAL_TURBO_LIVE_URL=http://127.0.0.1:18083 PORT=4180 node server.mjs
+```
+
+The URL stays in the Node process. With no URL configured the labelled preview
+remains available. A configured but unreachable live device is an error; it never
+silently substitutes scripted answers. Invalid non-loopback/credential URLs
+prevent startup. The existing visual design is preserved.
+
+Choose **Speed** and a **CPU configuration**, then **Run on Latitude**. Both
+answers come from sequential native inference with the selected model/config
+acknowledged. The live view shows lane load+answer+unload time, native TTFT,
+actual output-token counts and native decode rate. It does not use browser
+animation time as inference latency. Recorded charts remain recorded charts.
+Routing and GPU/NPU answer comparisons are not enabled by this adapter.
+
+Stop requests cancellation and waits for native cleanup. Unknown execution
+retains its request ID in session storage; **Check device status** reconciles it
+before another run. First-lane evidence survives second-lane failure. Download
+the complete result for configuration hashes, generation policy and timing
+scopes. Different answer lengths and uncontrolled sampling remain visible;
+one pair does not establish a confirmed speed or quality win.

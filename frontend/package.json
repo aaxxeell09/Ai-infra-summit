@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "node server.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check server.mjs && node --check public/app.mjs && node --check public/data.mjs && node --check public/latest.mjs && node --check public/demo.mjs && node --check public/comparison.mjs"
+    "check": "node --check server.mjs && node --check public/app.mjs && node --check public/data.mjs && node --check public/latest.mjs && node --check public/demo.mjs && node --check public/comparison.mjs && node --check public/live-comparison.mjs && node --check live-proxy.mjs"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }

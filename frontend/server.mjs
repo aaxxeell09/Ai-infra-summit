@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { createLiveProxy, parseLiveBaseUrl } from './live-proxy.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '..');
@@ -16,8 +17,17 @@ const assets = new Map([
   ['/latest.mjs', ['latest.mjs', 'text/javascript']],
   ['/demo.mjs', ['demo.mjs', 'text/javascript']],
   ['/comparison.mjs', ['comparison.mjs', 'text/javascript']],
+  ['/live-comparison.mjs', ['live-comparison.mjs', 'text/javascript']],
   ['/favicon.svg', ['favicon.svg', 'image/svg+xml']],
 ]);
+
+const rawLiveUrl = process.env.LOCAL_TURBO_LIVE_URL;
+const liveBase = parseLiveBaseUrl(rawLiveUrl);
+if (typeof rawLiveUrl === 'string' && rawLiveUrl.trim() && !liveBase) {
+  console.error('LOCAL_TURBO_LIVE_URL must be a loopback http URL without credentials, path, query or fragment. Exiting.');
+  throw new Error('Invalid live backend configuration');
+}
+const liveProxy = createLiveProxy({ baseUrl: liveBase });
 
 const readJson = async relativePath => JSON.parse(await readFile(path.join(repoRoot, relativePath), 'utf8'));
 
@@ -97,13 +107,35 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer');
   res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'");
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
-    res.writeHead(405, { Allow: 'GET, HEAD' }); res.end(); return;
-  }
   let url;
   try { url = new URL(req.url, 'http://localhost'); }
   catch { res.writeHead(400); res.end('Invalid request URL'); return; }
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    if (liveBase && url.pathname.startsWith('/api/live-comparisons')) {
+      // POST proxy routes bypass the GET-only guard below with their own checks.
+    } else {
+    res.writeHead(405, { Allow: 'GET, HEAD' }); res.end(); return;
+    }
+  }
   try {
+    if (!liveBase && url.pathname.startsWith('/api/live-comparisons')) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: 'Live comparison backend is not configured.' }));
+      return;
+    }
+    if (liveBase && url.pathname === '/api/live-comparisons' ||
+        liveBase && url.pathname.startsWith('/api/live-comparisons/')) {
+      const origin = req.headers.origin;
+      if ((req.method === 'POST') && origin) {
+        let originUrl;
+        try { originUrl = new URL(origin); }
+        catch { res.writeHead(403); res.end('Invalid Origin'); return; }
+        const host = req.headers.host;
+        if (originUrl.origin !== 'http://' + host) { res.writeHead(403); res.end('Cross-origin live requests are not allowed'); return; }
+      }
+      await liveProxy.handle(req, res, url.pathname);
+      return;
+    }
     let body;
     let type;
     if (url.pathname === '/api/recorded') {
@@ -111,7 +143,7 @@ const server = http.createServer(async (req, res) => {
     } else if (url.pathname === '/api/latest-results') {
       body = JSON.stringify(await latestResults()); type = 'application/json';
     } else if (url.pathname === '/api/health') {
-      body = JSON.stringify({ ok: true, mode: 'recorded', live_backend: false }); type = 'application/json';
+      body = JSON.stringify({ ok: true, mode: 'recorded', live_backend: Boolean(liveBase) }); type = 'application/json';
     } else if (assets.has(url.pathname)) {
       const [filename, mime] = assets.get(url.pathname);
       body = await readFile(path.join(here, 'public', filename)); type = mime;
@@ -121,6 +153,12 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8` });
     res.end(req.method === 'HEAD' ? undefined : body);
   } catch (error) {
+    if (url.pathname.startsWith('/api/live-comparisons')) {
+      console.error(error.message);
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Live comparison proxy failed.' }));
+      return;
+    }
     console.error(error.message);
     res.writeHead(503, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Recorded results could not be loaded. Check benchmarks/results/screen-01.' }));
