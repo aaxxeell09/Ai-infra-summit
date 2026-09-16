@@ -45,7 +45,7 @@ function latestEvidence() {
   const q = state.latest.qairt;
   const stateBlock = (name, result, tuned = false) => `<article class="behavior-state ${tuned ? 'tuned' : ''}"><span class="behavior-name">${name}</span><div class="behavior-metrics"><div><span>Task success</span><strong>${number(result.accuracy_pct, 0)}<small>%</small></strong></div><div><span>Mean inference</span><strong>${number(result.average_inference_ms, 0)}<small>ms</small></strong></div></div></article>`;
   return `<section class="behavior-study" aria-labelledby="latest-evidence-title">
-    <header class="behavior-head"><div><span class="eyebrow">NPU GENERATION TUNING</span><h2 id="latest-evidence-title">And when it stops.</h2></div><p>Same NPU model. Same 50 tasks.</p></header>
+    <header class="behavior-head"><div><span class="eyebrow">NPU GENERATION TUNING</span><h2 id="latest-evidence-title">Stop at the right moment.</h2></div><p>Same NPU model. Same 50 tasks.</p></header>
     <div class="behavior-flow">
       ${stateBlock('Standard', q.control)}
       <div class="behavior-transition"><span class="transition-line"></span><div><small>TUNING STEP</small><strong>Stop after tool call</strong></div><span class="transition-arrow" aria-hidden="true">→</span></div>
