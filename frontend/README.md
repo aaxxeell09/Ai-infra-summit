@@ -1,6 +1,6 @@
 # Local Turbo demo UI
 
-Three screens: **Machine → Compare → Preview**. Local-only, dependency-free Node.js 20+ server and browser ES modules.
+Three screens: **Machine → Compare → In action**. Local-only, dependency-free Node.js 20+ server and browser ES modules.
 
 The header uses a typographic `localturbo` wordmark in a locally bundled Manrope variable font; the matching `lt` favicon is derived from the same letterforms. The font was converted to WOFF2 from the [Google Fonts Manrope source](https://github.com/google/fonts/tree/main/ofl/manrope) (source TTF SHA-256 `d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40`) and retains its [SIL Open Font License](licenses/Manrope-OFL.txt). The interface font remains the local system sans serif.
 
@@ -18,12 +18,10 @@ npm test
 
 ## What works
 
-- Three responsive screens: machine identity, confirmed CPU/NPU trade-off, scripted answer preview.
-- Published five-pair confirmation on the same model and workload: automatic NPU HTP0 versus CPU with 10 threads. The earlier ten-cell screening sweep remains accessible in Benchmark evidence.
-- Separate measured fast and efficient performance-profile exports. Neither export claims task quality or applies a setting to the device.
-- A clearly pending Qualcomm AI Engine Direct (`qairt`) study slot; no placeholder performance numbers.
+- Three responsive screens: machine identity, recorded configuration comparison, prompt/answer finale.
+- All ten recorded screening configurations and provisional configuration/evidence export.
 - The final screen compares **Default setup** with **Local Turbo**, using one shared prompt and launch button.
-- **Speed** labels the confirmed automatic NPU and CPU-fast settings for the same model, while the answers remain scripted. **Model routing** illustrates candidate roles for a quick explanation or reasoning question; no calibrated model choice is claimed.
+- **Speed** carries the recorded default and the selected settings for the same model. **Model routing** illustrates candidate roles for a quick explanation or reasoning question; no calibrated model choice is claimed.
 - Two sequential scripted answers, equal animation pacing, stop/reset and stale-result protection. Per-answer clocks measure browser animation only; inference timings and answer quality remain unavailable, with no fabricated winner.
 
 ## What is not connected
@@ -34,7 +32,7 @@ The earlier `public/demo.mjs`, its tests and `task-contract.md` preserve the pre
 
 ## Backend boundary
 
-Implemented server endpoints remain read-only: `GET /api/health` reports recorded mode; `GET /api/recorded` reads sanitized `screen-01` records; `GET /api/confirmed` reads `recommended.json` and checks its confirmation manifest. No live execution endpoint is claimed. `public/confirmed.mjs` validates the published comparison and creates profile exports. `public/data.mjs` retains the screening evidence boundary and `public/comparison.mjs` owns the prompt comparison preview.
+Implemented server endpoints remain read-only: `GET /api/health` reports recorded mode; `GET /api/recorded` reads sanitized `screen-01` records. No live execution endpoint is claimed. `public/data.mjs` normalizes recorded evidence and `public/comparison.mjs` owns the new prompt comparison preview.
 
 ### Recorded response
 
@@ -65,10 +63,10 @@ The device identity is repository-provided target metadata, not detection of the
 | Peak process memory | `telemetry.peak_working_set_mb`, divided by 1024 for GiB |
 | Failures | Manifest `status`, `exit_code`; missing reports and inconsistent trials also remain visible |
 
-The ten screening cells are historical context in the evidence dialog. The main Compare screen uses the published `confirm-auto-01` summary: aggregate native decode throughput, median individual-run TTFT, median process peak memory, and pooled full-trial `SYS` tokens/J. These metrics have different measurement intervals. The UI is **not a call to `turbo.policy.choose`** and does not present quality-calibrated model routing. Do not use the `bench.v1` client-observed measurements as native engine timings.
+Rank only completed, full-length comparable trials with valid provenance. Keep ties. Current ranking is a metric-specific recorded comparison, **not a call to `turbo.policy.choose`** and not quality-calibrated model routing. Do not use the `bench.v1` client-observed measurements in this native chart without a separate explicit normalization and timing-source label.
 
 ### Live integration
 
 See [comparison-contract.md](comparison-contract.md). Keep device addresses/credentials on the local server. Configuration tuning must use identical model weights; multi-model routing is a separate experiment. Never silently replace failed live runs with scripted answers.
 
-`ux-spec.json` is the current versioned UX source. The initial file-task quality review is historical; confirmed-result tests verify comparable workload, power and energy scope, export provenance, and automatic-NPU preview labels. The existing prompt tests cover baseline identity, illustrative routing, sequential preview events, abort and unsupported prompts.
+`ux-spec.json` is the current versioned UX source. The initial file-task quality review is historical; the prompt comparison has five additional tests covering baseline identity, illustrative routing, sequential preview events, abort and unsupported prompts.

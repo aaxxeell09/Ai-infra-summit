@@ -1,16 +1,14 @@
-import { createRecordedProvider } from './data.mjs';
-import { createConfirmedProvider, exportConfirmedProfile } from './confirmed.mjs';
-import { PROMPTS, createConfirmedComparisonRequest, comparisonLanes, createPreviewComparisonProvider } from './comparison.mjs';
+import { createRecordedProvider, METRICS, rankRows, exportConfiguration } from './data.mjs';
+import { PROMPTS, createComparisonRequest, comparisonLanes, createPreviewComparisonProvider } from './comparison.mjs';
 
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const number = (value, digits = 2) => value === null || value === undefined ? 'Unavailable' : value.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: digits });
 const arrow = '<span aria-hidden="true">↗</span>';
 const provider = createRecordedProvider();
-const confirmedProvider = createConfirmedProvider();
 // Replace this provider with a device comparison provider at integration.
 const taskProvider = createPreviewComparisonProvider();
-const state = { snapshot: null, confirmed: null, page: 'device', scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null };
+const state = { snapshot: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
 let demoGeneration = 0;
 let taskAbort;
 let toastTimer;
@@ -33,6 +31,11 @@ function updateClocks() {
 function notify(message) {
   clearTimeout(toastTimer); $('#toast').textContent = message; $('#toast').classList.add('visible');
   toastTimer = setTimeout(() => $('#toast').classList.remove('visible'), 3500);
+}
+
+function currentRow() {
+  const ranked = rankRows(state.snapshot, state.metric);
+  return state.snapshot.rows.find(row => row.id === state.selected) ?? ranked.rows.find(ranked.eligible);
 }
 
 function deviceScreen() {
@@ -59,34 +62,41 @@ function deviceScreen() {
 }
 
 function calibrationScreen() {
-  const s = state.snapshot; const c = state.confirmed;
-  const fast = c.fast.metrics; const efficient = c.efficient.metrics;
-  return `<section class="screen confirmed-screen">
-    <div class="confirmed-intro"><div><span class="eyebrow">MEASURED ON THE LATITUDE · BATTERY POWER</span>
-      <h1>Automatic chose NPU.<br><em>Speed chose CPU.</em></h1>
-      <p>Same Qwen model, same weights and workload. Five alternating trial pairs reveal two useful modes, depending on what matters to you.</p></div>
-      <span class="confirmed-model">${esc(s.model.replace(/\.gguf$/, ''))}<small>${c.scope.prompt_tokens} input · ${c.scope.generated_tokens} output tokens</small></span>
-    </div>
-    <div class="confirmed-statline" aria-label="Measured trade-off">
-      <div><span>FASTER ANSWER GENERATION</span><strong>${number(c.decodeRatio)}×</strong><p>CPU versus automatic NPU · native decode rate</p></div>
-      <div><span>BETTER FULL-TRIAL EFFICIENCY</span><strong>${number(c.energyRatio)}×</strong><p>NPU versus CPU · generated tokens per SYS joule</p></div>
-    </div>
-    <div class="confirmed-grid">
-      <article class="mode-card mode-fast"><div class="mode-card-top"><span class="mode-index">01 / FAST</span><span class="mode-status">Confirmed · CPU</span></div>
-        <h2>When response speed matters.</h2><div class="mode-primary-number">${number(fast.decode_tps)}<span>tok/s</span></div>
-        <p class="mode-number-label">Aggregate native answer generation · 10 threads</p>
-        <dl class="mode-measures"><div><dt>First token</dt><dd>${number(fast.median_ttft_ms, 0)} ms</dd></div><div><dt>Full-trial efficiency</dt><dd>${number(fast.tokens_per_joule)} tokens/J</dd></div><div><dt>Process peak memory</dt><dd>${number(fast.median_peak_mib / 1024)} GiB</dd></div></dl>
-        <button class="mode-export" data-profile="fast">Export fast profile <span aria-hidden="true">↗</span></button>
-      </article>
-      <article class="mode-card mode-efficient"><div class="mode-card-top"><span class="mode-index">02 / EFFICIENT</span><span class="mode-status">Confirmed · NPU HTP0</span></div>
-        <h2>When energy matters.</h2><div class="mode-primary-number">${number(efficient.tokens_per_joule)}<span>tokens/J</span></div>
-        <p class="mode-number-label">Generated output / full-trial SYS energy · automatic placement</p>
-        <dl class="mode-measures"><div><dt>Answer generation</dt><dd>${number(efficient.decode_tps)} tok/s</dd></div><div><dt>First token</dt><dd>${number(efficient.median_ttft_ms, 0)} ms</dd></div><div><dt>Process peak memory</dt><dd>${number(efficient.median_peak_mib / 1024)} GiB</dd></div></dl>
-        <button class="mode-export" data-profile="efficient">Export efficient profile <span aria-hidden="true">↗</span></button>
-      </article>
-    </div>
-    <div class="qairt-study"><div><span class="eyebrow">NEXT NPU STUDY</span><h2>Qualcomm AI Engine Direct <span>· qairt</span></h2><p>Compiled NPU bundles use a different runtime and model format. Its performance and task quality need separate device measurements.</p></div><span class="study-status">Awaiting measurements</span></div>
-    <div class="confirmed-bottom"><p>Confirmed engine performance for this fixed model and workload. Quality-calibrated task recommendations are still pending. NPU operations were verified in a separate diagnostic run.</p><button class="button primary" data-action="try">Open answer preview ${arrow}</button></div>
+  const s = state.snapshot;
+  const { rows, leaders, eligible, baseline } = rankRows(s, state.metric);
+  const metric = METRICS[state.metric];
+  const chosen = currentRow();
+  const max = Math.max(1, ...rows.filter(eligible).map(row => row.metrics[state.metric]));
+  const chartRows = rows.map((row, index) => {
+    const valid = eligible(row); const winner = leaders.includes(row.id); const selected = chosen?.id === row.id;
+    const value = row.metrics[state.metric];
+    const annotation = winner ? (leaders.length > 1 ? 'Tied here' : 'Best here') : row.id === 'cpu-t0' ? 'Default' : '';
+    return `<button class="result-row ${winner ? 'winner' : ''} ${selected ? 'selected' : ''} ${!valid ? 'invalid' : ''}" data-select="${esc(row.id)}" aria-pressed="${selected}" aria-label="${esc(row.label)}, ${valid ? `${number(value)} ${metric.unit}` : esc(row.reason || 'Not comparable')}" style="--delay:${Math.min(index * 55, 500)}ms">
+      <span class="row-label">${esc(row.label)}${annotation ? `<span class="row-annotation">${annotation}</span>` : ''}</span>
+      <span class="bar-track"><span class="bar" style="--bar:${valid ? value / max * 100 : 0}%"></span></span>
+      <span class="row-value">${valid ? number(value) : '—'}</span><span class="row-chevron" aria-hidden="true">↗</span>
+    </button>`;
+  }).join('');
+  const isEligible = chosen && eligible(chosen);
+  const isLeader = chosen && leaders.includes(chosen.id);
+  const secondaryMetric = state.metric === 'ttft' ? ['Answer writing speed', chosen?.metrics.decode, 'tok/s'] : ['Wait before answer', chosen?.metrics.ttft, 'ms'];
+  return `<section class="screen calibration-screen ${state.reveal ? 'reveal' : ''}">
+    <div class="section-heading"><div><div class="eyebrow">SAME MODEL. SAME WORKLOAD.</div><h1>Choose how it runs.</h1></div><span class="record-label">${esc(s.model.replace(/\.gguf$/, ''))}</span></div>
+    <div class="calibration-layout"><div class="chart-panel">
+      <div class="chart-toolbar"><div class="metric-tabs" role="group" aria-label="Measurement to compare" aria-describedby="metric-explanation">${['prefill', 'ttft', 'decode'].map(key => `<button data-metric="${key}" aria-pressed="${state.metric === key}" class="${state.metric === key ? 'active' : ''}">${METRICS[key].tab}</button>`).join('')}</div><span class="chart-unit">${metric.unit} · ${metric.hint}</span></div>
+      <div class="metric-explanation" id="metric-explanation"><p>${metric.description}</p><button class="metric-help-button" data-action="metric-help" aria-label="About ${metric.unit === 'tok/s' ? 'tokens per second' : 'milliseconds'}" aria-expanded="${state.metricHelp}" aria-controls="metric-unit-help"><span aria-hidden="true">ⓘ</span></button><span id="metric-unit-help" ${state.metricHelp ? '' : 'hidden'}>${metric.units}</span></div>
+      <div class="chart" aria-label="${esc(metric.label)} comparison">${chartRows}</div>
+      <div class="chart-foot"><span>${baseline?.params ? `Median of ${baseline.params.repetitions} repetitions · ${baseline.params.n_prompt} input / ${baseline.params.n_gen} output tokens` : 'No comparable workload available'}</span></div>
+    </div><aside class="selection-panel">
+      <div class="selection-top"><span class="eyebrow">SELECTED CONFIGURATION</span><span class="selection-icon" aria-hidden="true">${isLeader ? '↗' : '◇'}</span></div>
+      <h2>${chosen ? esc(chosen.label.replace(' · ', '<|>').split('<|>')[0]) : 'No result'}<span>${chosen?.device === 'cpu' ? esc(chosen.threads === 0 ? 'Automatic threads' : `${chosen.threads} threads`) : 'Recorded configuration'}</span></h2>
+      <p class="selection-caption">${isEligible ? (isLeader ? `${leaders.length > 1 ? 'Tied for fastest' : 'Fastest'} ${{ decode: 'answer generation', prefill: 'prompt processing', ttft: 'first response' }[state.metric]} in this run.` : 'Selected for the answer comparison. Other settings may be faster.') : esc(chosen?.reason || 'No comparable result available.')}</p>
+      <p class="ranking-scope">No overall winner yet.</p>
+      <div class="selection-metrics"><div><span>${secondaryMetric[0]}</span><strong>${number(secondaryMetric[1])}<small>${secondaryMetric[1] == null ? '' : secondaryMetric[2]}</small></strong></div><div><span>Peak process memory</span><strong>${chosen?.memory_mb == null ? 'Unavailable' : number(chosen.memory_mb / 1024, 2)}<small>${chosen?.memory_mb == null ? '' : 'GiB'}</small></strong></div></div>
+      <div class="evidence-note"><span class="note-dot"></span><p>Preliminary measurements.<br>Repeat comparison and task checks pending.${chosen && ['npu', 'hybrid'].includes(chosen.device) ? '<br>NPU execution is not yet verified.' : ''}</p></div>
+      <button class="button primary" data-action="try" ${!isEligible ? 'disabled' : ''}>Continue to demo ${arrow}</button>
+      <button class="button ghost" data-action="export" ${!isEligible ? 'disabled' : ''}>Export configuration <span aria-hidden="true">↓</span></button>
+    </aside></div>
   </section>`;
 }
 
@@ -94,7 +104,7 @@ function demoScreen() {
   const busy = state.demo === 'running';
   const scenario = PROMPTS.find(item => item.id === state.scenario);
   let request; let setupError;
-  try { request = createConfirmedComparisonRequest(state.snapshot, state.confirmed, state.comparison, state.scenario, 'preview-layout'); }
+  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, 'preview-layout'); }
   catch (error) { setupError = error.message; }
   const descriptions = request ? comparisonLanes(request) : null;
   const lanes = ['default', 'turbo'].map(key => {
@@ -102,16 +112,16 @@ function demoScreen() {
     const meta = descriptions?.[key];
     const status = lane.status === 'running' ? 'Writing…' : lane.status === 'completed' ? 'Done' : busy ? 'Queued' : '';
     const identity = !meta ? 'Configuration unavailable' : state.comparison === 'speed'
-      ? `${meta.model} · ${meta.configuration}`
+      ? `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`
       : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
-    return `<article class="response-column ${key === 'turbo' ? 'response-turbo' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Automatic setup answer'}">
-      <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Automatic setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p></header>
+    return `<article class="response-column ${key === 'turbo' ? 'response-turbo' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
+      <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p></header>
       <div class="response-text ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${esc(lane.answer)}</div>
       <div class="response-timing"><span>Animation time</span><strong data-clock="${key}">${clockText(key)}</strong></div>
     </article>`;
   }).join('');
   return `<section class="screen comparison-demo">
-    <div class="demo-heading"><div><span class="eyebrow">SCRIPTED INTERFACE PREVIEW</span><h1>See the comparison flow.</h1></div><div class="comparison-switch" role="group" aria-label="Comparison type"><button data-comparison="speed" aria-pressed="${state.comparison === 'speed'}" ${busy ? 'disabled' : ''}>Speed</button><button data-comparison="routing" aria-pressed="${state.comparison === 'routing'}" ${busy ? 'disabled' : ''}>Model routing</button></div></div>
+    <div class="demo-heading"><h1>Compare answers</h1><div class="comparison-switch" role="group" aria-label="Comparison type"><button data-comparison="speed" aria-pressed="${state.comparison === 'speed'}" ${busy ? 'disabled' : ''}>Speed</button><button data-comparison="routing" aria-pressed="${state.comparison === 'routing'}" ${busy ? 'disabled' : ''}>Model routing</button></div></div>
     <div class="comparison-workspace">
       <div class="prompt-composer"><div class="prompt-controls"><span class="prompt-label">Prompt</span><details class="prompt-picker" ${busy ? 'inert' : ''}><summary aria-label="Example prompt: ${esc(scenario.label)}">${esc(scenario.label)}<span aria-hidden="true">⌄</span></summary><div class="prompt-options" role="group" aria-label="Example prompts">${PROMPTS.map(item => `<button data-scenario="${item.id}" aria-pressed="${state.scenario === item.id}">${item.label}<span aria-hidden="true">${state.scenario === item.id ? '✓' : ''}</span></button>`).join('')}</div></details></div>
         <p class="prompt-copy">${esc(scenario.prompt)}</p>
@@ -120,7 +130,7 @@ function demoScreen() {
       <div class="response-grid">${lanes}</div>
     </div>
     ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
-    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'The labels use the confirmed automatic NPU and fast CPU profiles. The answers below are scripted and use neither configuration.' : 'Routing illustrates possible model roles. Actual model choices need calibrated speed and quality profiles.'}</p><p>Clocks measure browser animation only. Live task time and answer quality are unavailable here.</p></div></details></div>
+    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential.</p></div></details></div>
     <span class="sr-only" role="status" aria-live="polite">${state.result ? 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
   </section>`;
 }
@@ -133,12 +143,13 @@ function render({ focus = false } = {}) {
     if (link.dataset.step === state.page) link.setAttribute('aria-current', 'step');
     else link.removeAttribute('aria-current');
   });
-  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Preview · scripted answers' : 'Device task' : state.page === 'calibration' ? 'Confirmed device results' : 'Recorded device results'}`;
+  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Preview · scripted answers' : 'Device task' : 'Recorded results'}`;
   $('#main').innerHTML = state.page === 'device' ? deviceScreen() : state.page === 'calibration' ? calibrationScreen() : demoScreen();
   if (keepExplanationOpen && $('#main .comparison-info')) $('#main .comparison-info').open = true;
   if (!focus && keepRunFocus) $('#main .run-comparison')?.focus({ preventScroll: true });
-  if (!focus) $('#main .screen')?.classList.add('static-screen');
+  if (!focus && !state.reveal) $('#main .screen')?.classList.add('static-screen');
   if (focus) { $('#main').focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
+  state.reveal = false;
 }
 
 function navigate() {
@@ -162,7 +173,7 @@ async function runDemo() {
   if (['preparing', 'running'].includes(state.demo)) return;
   resetDemo(); const generation = demoGeneration;
   let request;
-  try { request = createConfirmedComparisonRequest(state.snapshot, state.confirmed, state.comparison, state.scenario, crypto.randomUUID()); }
+  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, crypto.randomUUID()); }
   catch (error) { state.error = error.message; render(); return; }
   const controller = new AbortController(); taskAbort = controller;
   const timer = setTimeout(() => controller.abort(new Error('The device did not finish within two minutes. Its execution status is unknown; check the device before retrying.')), 120000);
@@ -203,13 +214,11 @@ function download(data, filename) {
 }
 
 function showEvidence() {
-  if (!state.snapshot || !state.confirmed) return;
-  const s = state.snapshot; const c = state.confirmed;
-  $('#evidence-content').innerHTML = `<div class="evidence-summary"><span class="mode-tag">Confirmed on the Latitude</span><p>CPU and automatic NPU were measured on the same model and fixed workload, in five alternating battery-powered pairs. These results establish engine performance, not task correctness.</p></div>
-    <dl class="evidence-list"><div><dt>Machine</dt><dd>${esc(s.device.name)}</dd></div><div><dt>Confirmed source</dt><dd>${esc(c.source)} · ${esc(c.scope.evidence)}</dd></div><div><dt>Model SHA-256</dt><dd class="mono hash">${esc(c.modelHash)}</dd></div><div><dt>Recommendation SHA-256</dt><dd class="mono hash">${esc(c.recommendationHash)}</dd></div><div><dt>Trial manifest SHA-256</dt><dd class="mono hash">${esc(c.manifestHash)}</dd></div><div><dt>Workload</dt><dd>${c.scope.prompt_tokens} input · ${c.scope.generated_tokens} output · ${c.scope.context} context · cold KV · battery</dd></div><div><dt>Native decode</dt><dd>Generated tokens divided by native decode time across all clean repetitions. CPU ${number(c.fast.metrics.decode_tps)}; automatic NPU ${number(c.efficient.metrics.decode_tps)} tok/s.</dd></div><div><dt>Energy scope</dt><dd>${esc(c.energyChannel)} counter; generated output divided by full-trial joules including loading, prefill and decode. Not decode-only power or wall-socket energy.</dd></div><div><dt>NPU dispatch</dt><dd>HTP0 operations were captured in a separate diagnostic run (${esc(c.dispatchEvidence)}). Profiling timings are excluded from the clean comparison.</dd></div><div><dt>Quality</dt><dd>Not calibrated. No task-quality claim follows from these throughput results.</dd></div></dl>
-    <details><summary>Inspect confirmed recommendation</summary><pre>${esc(JSON.stringify(c.raw.recommendation, null, 2))}</pre></details>
-    <details><summary>Initial screening, kept for context</summary><p>Earlier three-repetition screening is not the confirmed CPU-versus-auto baseline. Source: ${esc(s.source)}.</p><pre>${esc(JSON.stringify(s.manifest, null, 2))}</pre></details>
-    <button class="button ghost" data-action="download-evidence">Download confirmed evidence ↓</button>`;
+  if (!state.snapshot) return;
+  const s = state.snapshot; const row = currentRow();
+  $('#evidence-content').innerHTML = `<div class="evidence-summary"><span class="mode-tag">Recorded screening</span><p>Measurements from the Dell Latitude, not this browser’s host. These observations do not establish a confirmed speedup or answer quality.</p></div>
+    <dl class="evidence-list"><div><dt>Machine</dt><dd>${esc(s.device.name)}</dd></div><div><dt>Recorded</dt><dd>${esc(new Date(s.recordedAt).toUTCString())}</dd></div><div><dt>Timing source</dt><dd>${esc(s.timingSource)}</dd></div><div><dt>Source</dt><dd>${esc(s.source)}</dd></div><div><dt>Model SHA-256</dt><dd class="mono hash">${esc(s.modelHash)}</dd></div><div><dt>Runtime SHA-256</dt><dd class="mono hash">${esc(s.runtimeHash)}</dd></div><div><dt>Workload</dt><dd>${row?.params ? `${row.params.n_prompt} input · ${row.params.n_gen} output · ${row.params.n_ctx} context · ${row.params.warmup} warmup · ${row.params.repetitions} repetitions` : 'Unavailable'}</dd></div><div><dt>Reported device</dt><dd>${esc(row?.resolvedDevice || 'Not reported')} · ${esc(row?.dispatch)}</dd></div><div><dt>Energy scope</dt><dd>SYS channel, full process including initialization and warmup. Energy efficiency unavailable: warmup token counts are missing.</dd></div></dl>
+    <details><summary>Inspect selected raw result</summary><pre>${esc(JSON.stringify(row?.raw ?? {}, null, 2))}</pre></details><button class="button ghost" data-action="download-evidence">Download recorded evidence ↓</button>`;
   $('#evidence-dialog').showModal();
 }
 
@@ -218,19 +227,28 @@ document.addEventListener('click', event => {
   const picker = $('.prompt-picker');
   if (picker && !picker.contains(event.target)) picker.open = false;
   const target = event.target.closest('button'); if (!target) return;
-  if (target.dataset.profile) {
-    try { download(exportConfirmedProfile(state.confirmed, target.dataset.profile), `local-turbo-${target.dataset.profile}-profile.json`); notify('Measured profile exported. Task quality is not yet calibrated.'); }
-    catch (error) { notify(error.message); }
-    return;
+  const metric = target.dataset.metric;
+  if (metric) {
+    resetDemo();
+    state.metric = metric; state.metricHelp = false; state.selected = rankRows(state.snapshot, metric).leaders[0] ?? null;
+    render(); document.querySelector(`[data-metric="${metric}"]`)?.focus({ preventScroll: true }); return;
+  }
+  if (target.dataset.select) {
+    resetDemo(); state.selected = target.dataset.select; render(); document.querySelector(`[data-select="${CSS.escape(state.selected)}"]`)?.focus({ preventScroll: true }); return;
   }
   if (target.dataset.comparison) { state.comparison = target.dataset.comparison; resetDemo(); render(); document.querySelector(`[data-comparison="${state.comparison}"]`)?.focus(); return; }
   if (target.dataset.scenario) { state.scenario = target.dataset.scenario; resetDemo(); render(); $('.prompt-picker summary')?.focus({ preventScroll: true }); return; }
   switch (target.dataset.action) {
-    case 'explore': location.hash = 'calibration'; break;
+    case 'metric-help': state.metricHelp = !state.metricHelp; render(); $('.metric-help-button')?.focus({ preventScroll: true }); break;
+    case 'explore': state.reveal = true; location.hash = 'calibration'; break;
     case 'try': resetDemo(); location.hash = 'demo'; break;
     case 'back': location.hash = 'calibration'; break;
+    case 'export': {
+      try { download(exportConfiguration(state.snapshot, currentRow(), state.metric), `local-turbo-${state.selected || currentRow().id}.json`); notify('Provisional configuration exported. Nothing was applied to the device.'); }
+      catch (error) { notify(error.message); } break;
+    }
     case 'evidence': showEvidence(); break;
-    case 'download-evidence': download(state.confirmed.raw, 'local-turbo-confirmed-evidence.json'); break;
+    case 'download-evidence': download(state.snapshot.raw, 'local-turbo-recorded-evidence.json'); break;
     case 'download-task': if (state.result?.mode === 'live') download(state.result, `local-turbo-task-${state.result.request_id}.json`); break;
     case 'run-demo': runDemo(); break;
     case 'reset-demo': resetDemo(); render(); break;
@@ -248,14 +266,11 @@ $('#evidence-dialog').addEventListener('click', event => { if (event.target === 
 window.addEventListener('hashchange', navigate);
 
 async function load() {
-  $('#main').innerHTML = '<div class="loading-state"><span class="spinner"></span><p>Opening device results…</p></div>';
+  $('#main').innerHTML = '<div class="loading-state"><span class="spinner"></span><p>Opening recorded results…</p></div>';
   try {
-    [state.snapshot, state.confirmed] = await Promise.all([
-      provider.load({ signal: AbortSignal.timeout(10000) }),
-      confirmedProvider.load({ signal: AbortSignal.timeout(10000) }),
-    ]);
-    if (state.snapshot.modelHash !== state.confirmed.modelHash) throw new Error('The screening and confirmation use different model weights.');
+    state.snapshot = await provider.load({ signal: AbortSignal.timeout(10000) });
     resetDemo();
+    state.selected = rankRows(state.snapshot).leaders[0] ?? null;
     navigate();
   } catch (error) {
     $('#main').innerHTML = `<section class="error-state"><span class="eyebrow">RESULTS UNAVAILABLE</span><h1>We couldn’t open this run.</h1><p>${esc(error.message)}</p><button class="button primary" data-action="retry">Try again ↗</button></section>`;

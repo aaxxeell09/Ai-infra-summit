@@ -1,14 +1,14 @@
 {
-  "version": 11,
+  "version": 10,
   "product": "Local Turbo",
-  "purpose": "Present confirmed Snapdragon CPU/NPU speed and energy trade-offs, then preview one prompt under automatic and fast settings. Speed tuning, Qualcomm AI Engine Direct and model routing are separate experiments.",
+  "purpose": "Compare recorded local inference configurations, then demonstrate one prompt answered by a default setup and Local Turbo. Speed tuning and model routing are separate experiments.",
   "visual_system": {
     "background": "#f7f8fa",
     "surface": "#ffffff",
     "text": "#171b25",
     "accent": "#1557ff",
     "typography": "locally bundled Manrope for the wordmark; local system sans serif for UI; monospace for metrics",
-    "motion": "screen entrance and answer preview; respects reduced motion",
+    "motion": "screen entrance, chart reveal, file arrival; respects reduced motion",
     "navigation": "one persistent three-step navigation; no secondary sidebar"
   },
   "screens": [
@@ -36,39 +36,49 @@
       "id": "calibration",
       "route": "#calibration",
       "nav_label": "Compare",
-      "headline": "Automatic chose NPU. Speed chose CPU.",
-      "purpose": "Present the confirmed automatic-NPU versus CPU-fast comparison and its energy trade-off.",
-      "metrics": ["aggregate native decode", "pooled full-trial SYS tokens/J", "median individual TTFT", "process peak memory"],
-      "content": [
-        "CPU fast profile",
-        "automatic NPU efficient profile",
-        "qairt study awaiting measurements",
-        "confirmed evidence dialog with historical screening"
+      "headline": "Choose how it runs.",
+      "purpose": "Compare one metric at a time and inspect the selected configuration.",
+      "metrics": [
+        "decode",
+        "prefill",
+        "ttft"
       ],
-      "comparison": "Same Qwen3-0.6B Q4_0 weights, 512 input / 128 output tokens, battery-powered five alternating pairs. Native decode and full-trial energy have different intervals.",
+      "content": [
+        "all attempted configurations",
+        "selected result details",
+        "provisional status",
+        "evidence dialog"
+      ],
+      "ranking": "Only completed comparable trials; TTFT ascending, throughput descending; keep ties.",
       "primary_action": {
-        "label": "Open answer preview",
+        "label": "Continue to demo",
         "next": "demo"
       },
       "secondary_action": {
-        "label": "Export fast or efficient profile",
+        "label": "Export configuration",
         "applies_to_device": false
       },
       "data_mode": "recorded",
-      "empty_state": "If confirmed provenance is unavailable, show a recoverable error instead of screening numbers.",
-      "quality_status": "Engine performance confirmed for this fixed workload; task quality not calibrated."
+      "empty_state": "No comparable result available.",
+      "failure_state": "Keep failed/incomplete rows visible with no numeric bar.",
+      "metric_labels": {
+        "prefill": "Read the prompt",
+        "ttft": "Start responding",
+        "decode": "Write the answer"
+      },
+      "metric_help": "Show one short explanation of the active measure; unit definitions appear through a labelled info button. Keep the Default badge and No overall winner yet."
     },
     {
       "id": "demo",
       "route": "#demo",
-      "nav_label": "Preview",
-      "headline": "See the comparison flow.",
+      "nav_label": "In action",
+      "headline": "Compare answers",
       "purpose": "Finish with readable answers side by side; no file operations.",
       "content": [
         "compact Speed / Model routing control",
         "one shared prompt with example selector",
         "one Run preview / Stop / Replay button",
-        "one split surface for Automatic setup and Local Turbo answers",
+        "one split surface for Default setup and Local Turbo answers",
         "one-line model and configuration identity",
         "optional comparison explanation"
       ],
@@ -114,21 +124,21 @@
       },
       "example_picker": "Styled disclosure with selected-state buttons, outside-click dismissal, Escape, and keyboard focus restoration.",
       "empty_state": "Empty answer areas retain their model headers and animation clocks; no placeholder prose.",
-      "preview_explanation": "Scripted preview using confirmed configuration labels. Clocks measure browser animation, not inference."
+      "preview_explanation": "Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential."
     }
   ],
   "rules": [
     "Never present animated recorded results as a live benchmark.",
     "Never use invented performance numbers or treat null as zero.",
-    "Never label screening gains as confirmed speedups; the main comparison comes from five alternating confirmation pairs.",
+    "Never label screening gains as confirmed speedups.",
     "Never infer verified NPU computation from a requested or reported device alone.",
-    "No duplicate navigation, unrelated marketing sections, or camera/Arduino workflow.",
+    "No duplicate navigation, metric-card grid, unrelated marketing sections, or camera/Arduino workflow.",
     "Preserve the same three-screen UX when a live provider is added, with explicit mode and evidence states.",
     "One persistent mode badge. Benchmark evidence is available from the footer; task evidence belongs with the task result.",
     "Do not animate the whole screen again on every state update.",
     "The final comparison is about model responses; do not introduce files or file-management tasks.",
     "Use equal animation pacing for preview lanes. Do not stage a fake speed or quality advantage.",
     "Model routing requires separately measured model profiles and quality requirements; example roles are not real routing decisions.",
-    "Preserve page one's device visual. Keep qairt results pending until actual device measurements and task checks arrive."
+    "Preserve page one’s existing visual. Arduino UNO Q is part of the user’s demo hardware; its current control role still needs confirmation."
   ]
 }
