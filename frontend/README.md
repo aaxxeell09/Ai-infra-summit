@@ -20,6 +20,7 @@ npm test
 
 - Three responsive screens: machine identity, recorded configuration comparison, prompt/answer finale.
 - All ten recorded screening configurations and provisional configuration/evidence export.
+- The Compare screen now adds a compact latest-device study sourced from the published QAIRT full runs and the 4B/8B model milestones. It keeps the original same-model tuning chart intact, labels the study experimental and does not name a qualified winner.
 - The final screen compares **Default setup** with **Local Turbo**, using one shared prompt and launch button.
 - **Speed** carries the recorded default and the selected settings for the same model. **Model routing** illustrates candidate roles for a quick explanation or reasoning question; no calibrated model choice is claimed.
 - Two sequential scripted answers, equal animation pacing, stop/reset and stale-result protection. Per-answer clocks measure browser animation only; inference timings and answer quality remain unavailable, with no fabricated winner.
@@ -32,7 +33,7 @@ The earlier `public/demo.mjs`, its tests and `task-contract.md` preserve the pre
 
 ## Backend boundary
 
-Implemented server endpoints remain read-only: `GET /api/health` reports recorded mode; `GET /api/recorded` reads sanitized `screen-01` records. No live execution endpoint is claimed. `public/data.mjs` normalizes recorded evidence and `public/comparison.mjs` owns the new prompt comparison preview.
+Implemented server endpoints remain read-only: `GET /api/health` reports recorded mode; `GET /api/recorded` reads sanitized `screen-01` records; `GET /api/latest-results` summarizes the published QAIRT, 4B and 8B evaluation artifacts without exposing task contents. No live execution endpoint is claimed. `public/data.mjs` normalizes recorded tuning evidence, `public/latest.mjs` validates the latest study, and `public/comparison.mjs` owns the prompt comparison preview.
 
 ### Recorded response
 

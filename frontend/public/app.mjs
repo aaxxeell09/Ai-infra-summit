@@ -1,4 +1,5 @@
 import { createRecordedProvider, METRICS, rankRows, exportConfiguration } from './data.mjs';
+import { createLatestResultsProvider } from './latest.mjs';
 import { PROMPTS, createComparisonRequest, comparisonLanes, createPreviewComparisonProvider } from './comparison.mjs';
 
 const $ = selector => document.querySelector(selector);
@@ -6,9 +7,10 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&a
 const number = (value, digits = 2) => value === null || value === undefined ? 'Unavailable' : value.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: digits });
 const arrow = '<span aria-hidden="true">↗</span>';
 const provider = createRecordedProvider();
+const latestProvider = createLatestResultsProvider();
 // Replace this provider with a device comparison provider at integration.
 const taskProvider = createPreviewComparisonProvider();
-const state = { snapshot: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
+const state = { snapshot: null, latest: null, latestError: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
 let demoGeneration = 0;
 let taskAbort;
 let toastTimer;
@@ -36,6 +38,27 @@ function notify(message) {
 function currentRow() {
   const ranked = rankRows(state.snapshot, state.metric);
   return state.snapshot.rows.find(row => row.id === state.selected) ?? ranked.rows.find(ranked.eligible);
+}
+
+function latestEvidence() {
+  if (!state.latest) return state.latestError ? `<p class="latest-unavailable">Latest model study unavailable. The configuration comparison above is unchanged.</p>` : '';
+  const q = state.latest.qairt;
+  const models = state.latest.candidates.map(candidate => `<article class="frontier-model">
+    <div class="frontier-title"><div><strong>${esc(candidate.label)}</strong><span>${esc(candidate.runtime)}</span></div><span>${number(candidate.accuracy_pct, 0)}%</span></div>
+    <span class="frontier-track"><span style="--accuracy:${candidate.accuracy_pct}%"></span></span>
+    <div class="frontier-meta"><span>${candidate.correct}/${candidate.total} tasks</span><span>${number(candidate.median_inference_ms / 1000, 2)} s median</span></div>
+  </article>`).join('');
+  return `<section class="latest-evidence" aria-labelledby="latest-evidence-title">
+    <div class="latest-head"><div><span class="eyebrow">LATEST DEVICE FINDING · QAIRT / NPU</span><h2 id="latest-evidence-title">Stop when the work is done.</h2><p>On the same 0.6B QAIRT bundle, ending generation after the first complete tool call removed trailing output and improved the full 50-task run.</p></div><span class="gate-status"><span></span>Experimental · below quality gate</span></div>
+    <div class="latest-body">
+      <article class="optimization-result">
+        <div class="optimization-number"><strong>+${number(q.accuracyGainPoints, 0)}</strong><span>points</span></div>
+        <div class="optimization-copy"><span>Task success</span><strong>${number(q.control.accuracy_pct, 0)}% <i>→</i> ${number(q.optimized.accuracy_pct, 0)}%</strong><small>${q.control.correct}/${q.control.total} → ${q.optimized.correct}/${q.optimized.total} correct actions</small></div>
+        <dl class="optimization-metrics"><div><dt>Mean inference</dt><dd>−${number(q.latencyReductionPct, 0)}%</dd><small>${number(q.control.average_inference_ms, 0)} → ${number(q.optimized.average_inference_ms, 0)} ms</small></div><div><dt>Invalid output</dt><dd>−${number(q.invalidReductionPoints, 0)} points</dd><small>${number(q.control.invalid_rate * 100, 0)}% → ${number(q.optimized.invalid_rate * 100, 0)}%</small></div></dl>
+      </article>
+      <div class="frontier-panel"><div class="frontier-head"><div><span class="eyebrow">MODEL TRADE-OFF</span><h3>More accuracy costs time.</h3></div><span>No qualified winner</span></div>${models}<p class="frontier-note">Separate model runs. Useful direction, not a native speedup comparison.</p></div>
+    </div>
+  </section>`;
 }
 
 function deviceScreen() {
@@ -96,7 +119,7 @@ function calibrationScreen() {
       <div class="evidence-note"><span class="note-dot"></span><p>Preliminary measurements.<br>Repeat comparison and task checks pending.${chosen && ['npu', 'hybrid'].includes(chosen.device) ? '<br>NPU execution is not yet verified.' : ''}</p></div>
       <button class="button primary" data-action="try" ${!isEligible ? 'disabled' : ''}>Continue to demo ${arrow}</button>
       <button class="button ghost" data-action="export" ${!isEligible ? 'disabled' : ''}>Export configuration <span aria-hidden="true">↓</span></button>
-    </aside></div>
+    </aside></div>${latestEvidence()}
   </section>`;
 }
 
@@ -216,9 +239,11 @@ function download(data, filename) {
 function showEvidence() {
   if (!state.snapshot) return;
   const s = state.snapshot; const row = currentRow();
+  const latest = state.latest;
+  const latestDetails = latest ? `<details><summary>Latest QAIRT and model study</summary><dl class="evidence-list"><div><dt>QAIRT optimization</dt><dd>${number(latest.qairt.control.accuracy_pct, 0)}% → ${number(latest.qairt.optimized.accuracy_pct, 0)}% task success; mean inference ${number(latest.qairt.control.average_inference_ms, 0)} → ${number(latest.qairt.optimized.average_inference_ms, 0)} ms.</dd></div><div><dt>Quality status</dt><dd>No candidate passed the frozen quality gate. Model runs remain separate experiments.</dd></div><div><dt>QAIRT sources</dt><dd class="mono hash">${esc(latest.sources.qairtControl)}<br>${esc(latest.sources.qairtOptimized)}</dd></div><div><dt>Larger-model sources</dt><dd class="mono hash">${esc(latest.sources.qwen4b)}<br>${esc(latest.sources.qwen8b)}</dd></div></dl></details>` : '';
   $('#evidence-content').innerHTML = `<div class="evidence-summary"><span class="mode-tag">Recorded screening</span><p>Measurements from the Dell Latitude, not this browser’s host. These observations do not establish a confirmed speedup or answer quality.</p></div>
     <dl class="evidence-list"><div><dt>Machine</dt><dd>${esc(s.device.name)}</dd></div><div><dt>Recorded</dt><dd>${esc(new Date(s.recordedAt).toUTCString())}</dd></div><div><dt>Timing source</dt><dd>${esc(s.timingSource)}</dd></div><div><dt>Source</dt><dd>${esc(s.source)}</dd></div><div><dt>Model SHA-256</dt><dd class="mono hash">${esc(s.modelHash)}</dd></div><div><dt>Runtime SHA-256</dt><dd class="mono hash">${esc(s.runtimeHash)}</dd></div><div><dt>Workload</dt><dd>${row?.params ? `${row.params.n_prompt} input · ${row.params.n_gen} output · ${row.params.n_ctx} context · ${row.params.warmup} warmup · ${row.params.repetitions} repetitions` : 'Unavailable'}</dd></div><div><dt>Reported device</dt><dd>${esc(row?.resolvedDevice || 'Not reported')} · ${esc(row?.dispatch)}</dd></div><div><dt>Energy scope</dt><dd>SYS channel, full process including initialization and warmup. Energy efficiency unavailable: warmup token counts are missing.</dd></div></dl>
-    <details><summary>Inspect selected raw result</summary><pre>${esc(JSON.stringify(row?.raw ?? {}, null, 2))}</pre></details><button class="button ghost" data-action="download-evidence">Download recorded evidence ↓</button>`;
+    ${latestDetails}<details><summary>Inspect selected raw result</summary><pre>${esc(JSON.stringify(row?.raw ?? {}, null, 2))}</pre></details><button class="button ghost" data-action="download-evidence">Download recorded evidence ↓</button>`;
   $('#evidence-dialog').showModal();
 }
 
@@ -268,7 +293,14 @@ window.addEventListener('hashchange', navigate);
 async function load() {
   $('#main').innerHTML = '<div class="loading-state"><span class="spinner"></span><p>Opening recorded results…</p></div>';
   try {
-    state.snapshot = await provider.load({ signal: AbortSignal.timeout(10000) });
+    const [snapshotResult, latestResult] = await Promise.allSettled([
+      provider.load({ signal: AbortSignal.timeout(10000) }),
+      latestProvider.load({ signal: AbortSignal.timeout(10000) }),
+    ]);
+    if (snapshotResult.status === 'rejected') throw snapshotResult.reason;
+    state.snapshot = snapshotResult.value;
+    state.latest = latestResult.status === 'fulfilled' ? latestResult.value : null;
+    state.latestError = latestResult.status === 'rejected' ? latestResult.reason?.message : null;
     resetDemo();
     state.selected = rankRows(state.snapshot).leaders[0] ?? null;
     navigate();
