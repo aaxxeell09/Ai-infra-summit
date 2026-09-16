@@ -361,7 +361,8 @@ class Engine:
         except (OSError, ValueError):
             recommendation = None
         return {'runtime_available': bool(self.config.get('sdk_dir')) and Path(self.config['sdk_dir']).is_dir(),
-                'models': [{'id': k, 'available': Path(v['path']).is_file(),
+                'models': [{'id': k, 'available': (Path(v['path']).is_file() or
+                            (v.get('plugin') == 'qairt' and Path(v['path']).is_dir())),
                             'device': v.get('device', 'cpu'), 'threads': v.get('threads', 0)}
                            for k, v in self.config['models'].items()],
                 'profiles': self.config.get('profiles', []), 'history': self.history,

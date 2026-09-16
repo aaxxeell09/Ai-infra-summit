@@ -35,6 +35,19 @@ def test_wrong_weights_rejected(tmp_path):
     with pytest.raises(ValueError,match='different model'):e.apply('fast')
 
 
+def test_status_recognizes_qairt_directory_artifacts(tmp_path):
+    e = make_engine(tmp_path)
+    bundle = tmp_path/'bundle'; bundle.mkdir()
+    e.config['results_dir'] = str(tmp_path/'results')
+    e.config['models'].update({
+        'qairt': {'path': str(bundle), 'plugin': 'qairt', 'device': 'npu'},
+        'missing': {'path': str(tmp_path/'missing'), 'plugin': 'qairt'},
+        'not_gguf': {'path': str(bundle), 'plugin': 'llama_cpp'},
+    })
+    available = {m['id']: m['available'] for m in e.status()['models']}
+    assert available == {'small': True, 'qairt': True, 'missing': False, 'not_gguf': False}
+
+
 def test_invoice_verified_by_calls_and_complete_state(tmp_path):
     create_fixture(tmp_path);task=next(t for t in load_tasks() if t['id']=='t13')
     c=task['expected_calls'][0];result=execute_tool(tmp_path,c['name'],c['arguments'])
