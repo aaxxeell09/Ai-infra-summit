@@ -138,15 +138,15 @@ function demoScreen() {
       ? `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`
       : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
     const metrics = evidence?.[key];
-    const hasStarted = lane.status === 'running' || lane.status === 'completed';
-    const evidenceFooter = evidence && hasStarted ? `<div class="lane-evidence">
+    const hasResult = lane.status === 'completed';
+    const evidenceFooter = evidence && hasResult ? `<div class="lane-evidence">
       <div><span>Generation speed</span><strong>${number(metrics.decode_tps, 1)}<small>tok/s</small></strong>${key === 'turbo' && evidence.speed_gain_pct !== null ? `<em>${signed(evidence.speed_gain_pct)}</em>` : ''}</div>
       <div><span>SYS energy<sup>*</sup></span><strong>${number(metrics.energy_j, 0)}<small>J</small></strong>${key === 'turbo' && evidence.energy_change_pct !== null ? `<em class="energy-delta">${signed(evidence.energy_change_pct)}</em>` : ''}</div>
-    </div>` : !evidence && hasStarted ? `<div class="routing-evidence"><span>Quality and energy</span><strong>Pending calibration</strong></div>` : '';
+    </div>` : !evidence && hasResult ? `<div class="routing-evidence"><span>Quality and energy</span><strong>Pending calibration</strong></div>` : '';
     return `<article class="response-column ${key === 'turbo' ? 'response-turbo' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
       <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p></header>
-      ${evidenceFooter}
       <div class="response-text ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${esc(lane.answer)}</div>
+      ${evidenceFooter}
     </article>`;
   }).join('');
   return `<section class="screen comparison-demo">
