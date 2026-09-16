@@ -338,29 +338,35 @@ test race, not a broken Windows mutex.** Windows mutual exclusion is now demonst
 rather than assumed: a second process is refused while the first holds the lock and
 acquires once it is released, on `msvcrt.locking` as well as `flock`.
 
-**A failed follow-up, and what it cost.** Two mistakes were made after that, both recorded
-here because an audit that hides its own errors is worth less than one that does not.
+**Two measurement mistakes of my own, recorded because an audit that hides its own errors
+is worth less than one that does not.** Both were the same mistake, made twice.
 
-1. While the `145032c` CI run (35108129512) was still executing, successive in-progress
-   API polls were misread as elapsed time and this document briefly claimed
-   `windows-latest` had "stalled past twenty minutes". It had not: the test step ran
-   3 minutes 32 seconds, about 45 seconds slower than the 165 second baseline because
-   the new subprocess tests add three child processes. GitHub's job API does not
-   update step timestamps until a step completes, so repeated polls of an
-   in-progress step carry no timing information at all.
-2. Acting on that false premise, commit `aa3e56f` rewrote the lock tests to fail fast:
-   captured holder output, `holder.poll()` checks, shorter deadlines, and a stubbed frozen
-   revalidation in the two tracker-level tests. Ubuntu and macOS stayed green, but
-   `windows-latest` then stalled for real, well past twenty minutes on a step that had
-   taken 210 seconds at `145032c` with the same lock tests and strictly more work.
+1. While the `145032c` run (35108129512) was still executing, successive in-progress API
+   polls were misread as elapsed time and this document briefly claimed `windows-latest`
+   had "stalled past twenty minutes". It had not: the test step ran 210.81 s. GitHub's job
+   API does not update step timestamps until a step completes, so repeated polls of an
+   in-progress step carry no timing information whatsoever.
+2. Acting on that false premise, commit `aa3e56f` rewrote the lock tests to fail fast, and
+   the same misreading was then applied to its run (35108680970), concluding a second time
+   that `windows-latest` had stalled. It had not. That run completed successfully, and its
+   Windows test step was the fastest of the three attempts:
 
-`aa3e56f` was therefore reverted in `c41a7db`, restoring a tree byte-identical to the
-verified-green `145032c`. The cause of the Windows stall it introduced is **not
-established**; it cannot be reproduced on Linux or macOS, and diagnosing a Windows-only
-hang is not worth destabilising a branch that is already proven green on all three
-platforms. The lesson is recorded rather than the fix: prefer the implementation with
-platform evidence over an unverified improvement, and never infer job duration from
-in-progress polls.
+```
+739 passed, 5 skipped, 17 subtests passed in 150.18s (0:02:30)
+step wall clock 14:28:20 to 14:30:51, job conclusion success on all three platforms
+```
+
+   `aa3e56f` was nonetheless reverted in `c41a7db` on that false premise. The revert was
+   itself reverted in `61cbc10` once the completed run was read, restoring the faster
+   tests.
+
+The measured Windows test step across the three attempts: 210.81 s at `145032c`, 150.18 s
+at `aa3e56f`. **No Windows stall ever occurred.** Every claim of one in an earlier draft of
+this section was a reading error on my part, not an observation of CI. The lesson is
+methodological and applies to the rest of this audit: a measurement instrument that reports
+no value must be treated as reporting no value, never as reporting a bad one. That is the
+same discipline this document demands of the tracker under **Unknown > invented** and
+**Null > fake zero**, and it was violated here by the auditor rather than by the code.
 
 **Durability guarantee, stated plainly:** on POSIX, a replaced manifest or ledger survives
 a power loss once `atomic` returns. On Windows the replacement is atomic but the directory
