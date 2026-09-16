@@ -19,6 +19,38 @@ sys.path.insert(0, str(ROOT))
 from turbo.service import Engine, handler
 
 
+def checked_rpc_reply(line, expected_id):
+    """Reject ambiguous protocol replies before treating them as an operation result."""
+    response = json.loads(line)
+    if (not isinstance(response, dict) or response.get('jsonrpc') != '2.0'
+            or type(response.get('id')) is not int
+            or response['id'] != expected_id):
+        raise ValueError('MCP reply identity/protocol mismatch')
+    if (('result' in response) == ('error' in response)
+            or not isinstance(response.get('result', response.get('error')), dict)):
+        raise ValueError('MCP reply must contain exactly one result/error object')
+    return response
+
+
+def capture_feedback(argv, *, wire_path, stderr_path, **kwargs):
+    """Keep partial wire/logs on timeout as well as completed child attempts."""
+    def preserve(stdout, stderr):
+        for path, value in ((wire_path, stdout), (stderr_path, stderr)):
+            # TimeoutExpired may contain bytes even with encoding='utf-8'.
+            path.write_bytes(value if isinstance(value, bytes)
+                             else (value or '').encode('utf-8'))
+    try:
+        child = subprocess.run(argv, **kwargs)
+    except subprocess.TimeoutExpired as exc:
+        preserve(exc.stdout, exc.stderr)
+        raise
+    except OSError as exc:
+        preserve('', 'Failed to launch feedback MCP: ' + str(exc))
+        raise
+    preserve(child.stdout, child.stderr)
+    return child
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--config', required=True)
@@ -65,9 +97,12 @@ def main():
         proc.stdin.flush()
         line = replies.get(timeout=150)
         if line is None: raise RuntimeError('MCP exited before replying')
-        response = json.loads(line)
-        record['calls'].append(dict(method=method,params=params,response=response));save()
-        if response.get('error') or response.get('result',{}).get('isError'):
+        # Preserve even malformed/incorrectly addressed replies for diagnosis.
+        call_record = dict(method=method, params=params, raw_reply=line)
+        record['calls'].append(call_record);save()
+        response = checked_rpc_reply(line, serial)
+        call_record['response'] = response;save()
+        if 'error' in response or response.get('result',{}).get('isError'):
             raise RuntimeError('MCP operation failed; see preserved response')
         return response['result']
     def tool(name, args):
@@ -104,18 +139,23 @@ def main():
                 request=[dict(jsonrpc='2.0',id=1,method='initialize',params={'protocolVersion':'2025-06-18'}),
                          dict(jsonrpc='2.0',id=2,method='tools/call',params={'name':'local_feedback_diagnostic',
                             'arguments':{'task_id':args.task_id,'model_id':alias}})]
-                child=subprocess.run([sys.executable,'-X','utf8','-m','turbo.feedback_mcp','--enable-candidate',
+                child=capture_feedback([sys.executable,'-X','utf8','-m','turbo.feedback_mcp','--enable-candidate',
                     '--model',alias+'='+str(config_path),'--output-root',str(out/f'feedback-{index}')],
+                    wire_path=out/f'feedback-wire-{index}.jsonl',stderr_path=out/f'feedback-stderr-{index}.log',
                     input=''.join(json.dumps(r)+'\n' for r in request),capture_output=True,encoding='utf-8',
                     cwd=ROOT,env=env,timeout=210,creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
-                (out/f'feedback-wire-{index}.jsonl').write_text(child.stdout,encoding='utf-8')
-                (out/f'feedback-stderr-{index}.log').write_text(child.stderr,encoding='utf-8')
-                reply=next(r for r in map(json.loads,child.stdout.splitlines()) if r.get('id')==2)
+                lines = [line for line in child.stdout.splitlines() if line.strip()]
+                if len(lines) != 2:
+                    raise ValueError('Expected exactly initialize and feedback MCP replies; wire preserved')
+                initialized = checked_rpc_reply(lines[0], 1)
+                if 'error' in initialized:
+                    raise RuntimeError('Feedback MCP initialization failed; wire preserved')
+                reply=checked_rpc_reply(lines[1], 2)
                 payload=reply.get('result',{}).get('structuredContent',{})
                 round_record['feedback_mcp']=reply
                 round_record['secretary']=payload.get('existing_demo_verification',{})
                 save()
-                if child.returncode or reply.get('error') or reply.get('result',{}).get('isError'):
+                if child.returncode or 'error' in reply or reply.get('result',{}).get('isError'):
                     raise RuntimeError('Bound MCP diagnostic failed; original reply preserved')
                 report=payload.get('report',{})
                 if report.get('recommendation_binding_verified') is not True:
