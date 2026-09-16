@@ -114,9 +114,10 @@ class Engine:
                 model.close()
             self.loaded.clear()
             self.applied = None
-            if self.runtime:
-                self.runtime.close()
-                self.runtime = None
+            # Release model allocations, but retain the initialized bridge.
+            # On the installed Windows SDK, deinit followed by reinit in one
+            # process aborts in ggml's exception-handler assertion. Child
+            # benchmark processes own separate runtimes; this bridge is idle.
             self.tuning_dir = Path(self.config.get('results_dir', 'local/tuning')) / ('run-' + uuid.uuid4().hex[:10])
             self.tuning_dir.parent.mkdir(parents=True, exist_ok=True)
             def execute(job):

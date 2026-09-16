@@ -56,3 +56,24 @@ def test_search_does_not_follow_outside_symlink(tmp_path):
     assert execute_tool(root,'search_files',{'query':'private-secret'})['result']['matches']==[]
     assert 'leak.txt' not in execute_tool(root,'list_files',{})['result']['files']
     assert not execute_tool(root,'read_file',None)['ok']
+
+
+def test_tune_releases_models_without_reinitializing_windows_sdk(tmp_path, monkeypatch):
+    import turbo.tuning as tuning
+    e = make_engine(tmp_path)
+    e.config['tuner'] = {'exe': 'unused-in-unit-test'}
+    e.config['results_dir'] = str(tmp_path / 'results')
+    class Runtime:
+        def close(self):
+            raise AssertionError('Native SDK must remain initialized between tune cycles')
+    class Model:
+        closed = False
+        def close(self): self.closed = True
+    runtime, model = Runtime(), Model()
+    e.runtime = runtime
+    e.loaded['small'] = model
+    monkeypatch.setattr(tuning, 'run_tuning', lambda *args, **kwargs: {})
+    e.start_tune({'search_space': {'devices':['cpu'], 'threads':[10], 'contexts':[4096]}})
+    e.tuning_process.thread.join(timeout=2)
+    assert not e.tuning_process.thread.is_alive()
+    assert e.runtime is runtime and model.closed and not e.loaded
