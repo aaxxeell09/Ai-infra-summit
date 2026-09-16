@@ -322,6 +322,19 @@ dedicated test proves that atomic replacement is still correct and leaves no deb
 the flush is unsupported. No Windows-specific flush primitive was introduced, because
 TRK-008 is P2 and a fragile implementation would be worse than a documented limitation.
 
+**Second Windows iteration.** The first corrected push went green on Ubuntu (32 s) and
+macOS (101 s) but stalled on `windows-latest`: the test step ran past twenty minutes where
+it had previously taken 165 s. The generous timeouts in the new subprocess handshake
+(90 s waits, 120 s subprocess deadlines) were converting a fast Windows-specific failure
+into a multi-minute crawl with no diagnostic. The holder is now launched with its output
+captured, `_wait_for_holder` polls `holder.poll()` and fails immediately with the holder's
+own traceback if it exits before acquiring, deadlines are cut to 45/60 s, and the two
+tracker-level tests stub the frozen revalidation (already covered elsewhere) so they
+exercise only the mutex. A deliberately broken holder now fails in 0.04 s with
+`ModuleNotFoundError` surfaced, instead of stalling. Windows confirmation of the mutex
+itself is therefore still pending at the time this section was written; the next CI run
+either passes or names the cause.
+
 **Durability guarantee, stated plainly:** on POSIX, a replaced manifest or ledger survives
 a power loss once `atomic` returns. On Windows the replacement is atomic but the directory
 entry may not be durable, so a power loss can revert it to the previous version. It cannot
