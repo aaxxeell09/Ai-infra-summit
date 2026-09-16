@@ -216,7 +216,12 @@ def escalate_to_laptop(client_call, registry, route_result,
                        and is_eligible(d, prompt_tokens, output_tokens)), None)
         if laptop is None:
             raise
-        result = client_call(laptop["device_id"], **call_kwargs)
+        try:
+            result = client_call(laptop["device_id"], **call_kwargs)
+        except EdgeDeviceError as fallback_error:
+            fallback_error.latency_ms = round(
+                (getattr(fallback_error, "latency_ms", 0.0) or 0.0) + failed_latency_ms, 1)
+            raise
         if isinstance(result, dict):
             result["latency_ms"] = round(result.get("latency_ms", 0.0) + failed_latency_ms, 1)
         return result

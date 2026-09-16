@@ -427,6 +427,16 @@ class EscalationTests(unittest.TestCase):
             escalate_to_laptop(call, registry, "uno-q")
         self.assertEqual(caught.exception.latency_ms, 321.0)
 
+    def test_total_failure_preserves_both_attempt_latencies(self):
+        def call(device_id):
+            error = EdgeDeviceError(device_id + ' unavailable')
+            error.latency_ms = 321.0 if device_id == 'uno-q' else 50.0
+            raise error
+
+        with self.assertRaises(EdgeDeviceError) as caught:
+            escalate_to_laptop(call, [board(), laptop()], 'uno-q')
+        self.assertEqual(caught.exception.latency_ms, 371.0)
+
 
 if __name__ == "__main__":
     unittest.main()
