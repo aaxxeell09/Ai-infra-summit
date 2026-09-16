@@ -77,10 +77,10 @@
 /* The example picker and per-answer clocks belong to the comparison surface. */
 .prompt-label{font:600 9px var(--mono);letter-spacing:1.1px;text-transform:uppercase;color:#657084}
 .prompt-picker{position:relative;max-width:100%;margin:0;padding:0;border:0;border-radius:0}
-.prompt-picker summary{display:flex;align-items:center;gap:24px;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);font-size:12px;list-style:none;cursor:pointer}
+.prompt-picker summary{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);font-size:12px;line-height:1.2;list-style:none;cursor:pointer}
 .prompt-picker summary::-webkit-details-marker{display:none}
 .prompt-picker summary:hover,.prompt-picker[open] summary{border-color:#b9cdfa;background:#f8faff}
-.prompt-picker summary>span{font-size:16px;line-height:1}
+.prompt-picker summary>span{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;font-size:0;line-height:0;transform:rotate(45deg);flex:0 0 auto}
 .prompt-picker[inert]{opacity:.45}
 .prompt-options{position:absolute;right:0;top:calc(100% + 7px);z-index:5;width:235px;max-width:calc(100vw - 76px);padding:5px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px #172b4d18}
 .prompt-options button{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:44px;padding:10px 12px;border-radius:6px;background:transparent;text-align:left;font-size:13px}
