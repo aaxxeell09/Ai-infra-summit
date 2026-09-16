@@ -19,6 +19,12 @@ PROMPTS = {
     'quick': 'In two sentences, explain why local AI can work without an internet connection.',
     'reasoning': 'A demo starts at 14:00. Setup takes 25 minutes, testing takes 20 minutes, and we need a 10-minute buffer. Testing must follow setup. What is the latest time we can start? Show the schedule.',
 }
+DEMO_SYSTEM_PROMPT = (
+    'Answer the user directly and concisely. Put the final answer first, then only '
+    'the requested supporting details. Do not restate the question or list the '
+    'given facts. For a schedule, provide the start time and a compact timeline.'
+)
+DEMO_TOKEN_LIMITS = {'quick': 128, 'reasoning': 384}
 CPU_CELLS = tuple(f'cpu-t{n}' for n in (0, 2, 4, 6, 8, 10, 12))
 LIVE_CELLS = (*CPU_CELLS, 'gpu', 'npu')
 BACKENDS = {'cpu': 'llama_cpp_cpu', 'gpu': 'llama_cpp_gpu', 'npu': 'llama_cpp_htp'}
@@ -170,12 +176,18 @@ class LiveComparisons:
         deadline = start + 110
         acquired = False
         lanes = {}
+        max_tokens = DEMO_TOKEN_LIMITS[request['prompt_id']]
+        messages = [{'role': 'system', 'content': DEMO_SYSTEM_PROMPT},
+                    {'role': 'user', 'content': request['prompt']}]
         final_state, final_error = 'failed', None
         result = {'schema_version': 'local-turbo.comparison-result.v1', 'request_id': ident,
                   'mode': 'live', 'comparison': request['comparison'], 'execution': 'sequential', 'lanes': lanes,
                   'winner': None, 'speedup': None, 'quality': 'not_evaluated', 'routing': None,
                   'prompt_sha256': hashlib.sha256(request['prompt'].encode()).hexdigest(),
-                  'generation': {'max_tokens': 128, 'temperature_requested': 0, 'seed': -1,
+                  'generation': {'policy': 'concise-public-demo-v2', 'max_tokens': max_tokens,
+                                 'system_prompt': DEMO_SYSTEM_PROMPT,
+                                 'messages_sha256': hashlib.sha256(json.dumps(messages, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest(),
+                                 'temperature_requested': 0, 'seed': -1,
                                  'plugin_temperature_overrides': {'qairt': -1},
                                  'qairt_temperature_scope': 'Explicit negative greedy/argmax sentinel in GenieX 0.6.1; zero would defer to bundle defaults',
                                  'seed_scope': 'SDK default, not a deterministic seeded trial',
@@ -274,7 +286,7 @@ class LiveComparisons:
                         raise InterruptedError('Comparison cancelled during model loading')
                     # QAIRT's C adapter reserves negative temperature for greedy
                     # generation; zero inherits the bundle sampler instead.
-                    native = model.chat([{'role': 'user', 'content': request['prompt']}], max_tokens=128,
+                    native = model.chat(messages, max_tokens=max_tokens,
                                         temperature=-1 if cfg['plugin'] == 'qairt' else 0, reset=True, on_token=token)
                     # Native text is authoritative, including a truncated/cancelled answer.
                     lane_result['answer'] = native['text']

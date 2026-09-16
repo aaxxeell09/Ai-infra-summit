@@ -9,7 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from turbo.live_comparison import LiveComparisons, ROOT, PROMPTS, _hash, _manifest_hashes
+from turbo.live_comparison import LiveComparisons, ROOT, PROMPTS, DEMO_SYSTEM_PROMPT, _hash, _manifest_hashes
 
 
 class Engine:
@@ -34,6 +34,8 @@ class Model:
                 {'cpu': 'CPU', 'gpu': 'GPUOpenCL', 'npu': 'NPU' if self.config['plugin'] == 'qairt' else 'HTP0'}[self.config['device']],
                 'dispatch_verified': False}
     def chat(self, messages, **kwargs):
+        self.messages = copy.deepcopy(messages)
+        self.max_tokens = kwargs['max_tokens']
         self.temperature = kwargs['temperature']
         if self.block:
             self.block.wait(2)
@@ -104,6 +106,21 @@ class ComparisonTests(unittest.TestCase):
         request=copy.deepcopy(self.request);request['comparison']='routing'
         with self.assertRaises(ValueError): self.manager.start(request)
         self.assertEqual(Model.instances, [])
+    def test_reasoning_budget_and_full_prompt_are_identical_and_exported_for_both_lanes(self):
+        self.request.update(prompt_id='reasoning', prompt=PROMPTS['reasoning'])
+        self.manager.start(self.request); state = self.finish()
+        self.assertEqual(state['state'], 'completed')
+        first, second = Model.instances
+        self.assertEqual(first.messages, second.messages)
+        self.assertEqual(first.messages, [{'role': 'system', 'content': DEMO_SYSTEM_PROMPT},
+                                         {'role': 'user', 'content': PROMPTS['reasoning']}])
+        self.assertEqual([first.max_tokens, second.max_tokens], [384, 384])
+        generation = state['result']['generation']
+        self.assertEqual(generation['system_prompt'], DEMO_SYSTEM_PROMPT)
+        self.assertEqual(generation['max_tokens'], first.max_tokens)
+        import hashlib
+        self.assertEqual(generation['messages_sha256'], hashlib.sha256(
+            json.dumps(first.messages, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest())
     def test_gpu_uses_recorded_same_weights_settings_and_acknowledges_native_device(self):
         cfg = self.request['selected']
         cfg.update(cell_id='gpu', requested_device='gpu', params=json.loads((self.manager.source/'gpu.json').read_text())['params'])

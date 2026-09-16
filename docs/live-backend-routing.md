@@ -58,6 +58,13 @@ identity checks and any prior resident-model unload. Energy and memory remain
 null when this adapter does not measure them. Different answer lengths can
 change timing; one pair establishes neither a speed nor a quality winner.
 
+Generation policy `concise-public-demo-v2` sends the same answer-first system
+instruction to both lanes. Quick explanations allow 128 output tokens; the
+schedule allows 384, after the original 128-token rehearsal truncated both
+answers. The full instruction, message hash and token budget are exported.
+This presentation-only policy does not change the frozen Secretary prompts or
+evaluation. Original failed and truncated rehearsals remain in the evidence.
+
 The policy is scoped to two public demo prompts. It is separate from
 `turbo.router.plan_route`, which requires measured profiles and explicit quality
 evidence for calibrated general routing. Extending the demo policy to arbitrary
