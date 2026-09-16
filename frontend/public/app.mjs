@@ -105,7 +105,7 @@ function calibrationScreen() {
       <div class="chart" aria-label="${esc(metric.label)} comparison">${chartRows}</div>
       <div class="chart-foot"><span>${baseline?.params ? `Median of ${baseline.params.repetitions} repetitions · ${baseline.params.n_prompt} input / ${baseline.params.n_gen} output tokens` : 'No comparable workload available'}</span></div>
     </div><aside class="selection-panel">
-      <div class="selection-top"><span class="eyebrow">SELECTED CONFIGURATION</span><span class="selection-icon" aria-hidden="true">${isLeader ? '↗' : '◇'}</span></div>
+      <div class="selection-top"><span class="eyebrow">SELECTED CONFIGURATION</span><span class="selection-status">${isLeader ? 'Current leader' : 'Measured'}</span></div>
       <h2>${chosen ? esc(chosen.label.replace(' · ', '<|>').split('<|>')[0]) : 'No result'}<span>${chosen?.device === 'cpu' ? esc(chosen.threads === 0 ? 'Automatic threads' : `${chosen.threads} threads`) : 'Recorded configuration'}</span></h2>
       <p class="selection-caption">${isEligible ? (isLeader ? `${leaders.length > 1 ? 'Tied for fastest' : 'Fastest'} ${{ decode: 'answer generation', prefill: 'prompt processing', ttft: 'first response' }[state.metric]} in this run.` : 'Selected for the answer comparison. Other settings may be faster.') : esc(chosen?.reason || 'No comparable result available.')}</p>
       <p class="ranking-scope">No overall winner yet.</p>
