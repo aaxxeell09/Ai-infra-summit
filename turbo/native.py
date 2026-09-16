@@ -558,6 +558,39 @@ def _detect_plugin(path: str) -> str:
     return 'llama_cpp'
 
 
+def _qairt_bundle_input(path: str) -> tuple[str, int]:
+    """Resolve the C ABI's shard-file input from a compiled bundle directory.
+
+    GenieX 0.6.1 QAIRT takes model_path.parent_path(), then reads ctx-bins
+    from genie_config.json. Passing the directory itself selects its parent.
+    The compiled context belongs to the artifact; n_ctx must remain zero.
+    """
+    supplied = Path(path)
+    root = (supplied if supplied.is_dir() else supplied.parent).resolve()
+    try:
+        config = json.loads((root / 'genie_config.json').read_text(encoding='utf-8'))
+        dialog = config['dialog']
+        context = dialog['context']['size']
+        shards = dialog['engine']['model']['binary']['ctx-bins']
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise ValueError('QAIRT requires a readable compiled genie_config.json') from exc
+    if type(context) is not int or context <= 0:
+        raise ValueError('QAIRT compiled context must be a positive integer')
+    if not isinstance(shards, list) or not shards:
+        raise ValueError('QAIRT bundle has no declared context shards')
+    paths = []
+    for name in shards:
+        if not isinstance(name, str) or not name:
+            raise ValueError('QAIRT context shard names must be nonempty strings')
+        candidate = (root / name).resolve()
+        if not candidate.is_relative_to(root) or not candidate.is_file():
+            raise ValueError('QAIRT context shard is missing or outside the bundle')
+        paths.append(candidate)
+    if not supplied.is_dir() and supplied.resolve() not in paths:
+        raise ValueError('QAIRT model file is not a declared context shard')
+    return str(paths[0]), context
+
+
 # ---------------------------------------------------------------------------
 # Model
 # ---------------------------------------------------------------------------
@@ -572,7 +605,7 @@ class NativeModel:
         path: str | os.PathLike[str],
         device: str | None = None,
         threads: int = 0,
-        context: int = 4096,
+        context: int | None = None,
         spec_type: str = 'none',
         draft_tokens: int = 8,
         threads_batch: int = 0,
@@ -589,6 +622,19 @@ class NativeModel:
         self.model_path = os.fspath(path)
         self.device_alias = device
         self.plugin_id = plugin or _detect_plugin(self.model_path)
+        self.compiled_context = None
+        native_model_path = self.model_path
+        if self.plugin_id == 'qairt':
+            native_model_path, self.compiled_context = _qairt_bundle_input(self.model_path)
+            if context not in (None, 0, self.compiled_context):
+                raise ValueError('QAIRT context must match the compiled artifact; it is not a runtime knob')
+            if any((threads, threads_batch, ubatch, n_batch)) or spec_type not in ('', 'none'):
+                raise ValueError('QAIRT does not support llama.cpp thread/batch/speculation settings')
+            context = self.compiled_context
+            native_context = 0
+        else:
+            context = 4096 if context is None else context
+            native_context = context
         self.config: dict[str, Any] = {
             'threads': threads,
             'context': context,
@@ -619,7 +665,7 @@ class NativeModel:
 
         spec_type_b = None if spec_type in ('', 'none') else spec_type.encode('utf-8')
         mc = geniex_ModelConfig(
-            n_ctx=int(context),
+            n_ctx=int(native_context),
             n_threads=int(threads),
             n_threads_batch=int(threads_batch),
             n_batch=int(n_batch),
@@ -629,7 +675,7 @@ class NativeModel:
             spec_type=spec_type_b,
             spec_n_max=int(draft_tokens),
         )
-        model_path_b = self.model_path.encode('utf-8')
+        model_path_b = native_model_path.encode('utf-8')
         device_id_b = device_id.encode('utf-8') if device_id else None
         plugin_b = self.plugin_id.encode('utf-8')
         cin = geniex_LlmCreateInput(
@@ -669,7 +715,7 @@ class NativeModel:
             'geniex_version': PINNED_VERSION, 'qairt_version': None,
             'dispatch_verified': False,
             'context_source': 'compiled_artifact' if self.plugin_id == 'qairt' else 'model_config',
-            'effective_compiled_context': None,
+            'effective_compiled_context': self.compiled_context,
         }
 
     # -- chat ---------------------------------------------------------------

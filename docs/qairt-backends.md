@@ -16,6 +16,12 @@ Missing pieces were explicit named identities, additive native result provenance
 
 `backend` is optional on NativeModel. Old plugin/device calls retain their defaults. Contradictory explicit settings are rejected, as is a known CPU/GPU resolution for an explicitly requested NPU backend. Bundle shape is not proof of compatibility or completed download; the SDK must successfully load it.
 
+### Native ABI correction from the first Latitude smoke
+
+The initial Python smoke on `9288aeb` failed with `GENIEX_ERROR_COMMON_PARAM_NOT_SUPPORTED`: the shared wrapper supplied `n_ctx=4096`, which the QAIRT plugin rejects. The tagged [QAIRT create implementation](https://github.com/qualcomm/GenieX/blob/v0.6.1/sdk/plugins/qairt/src/llm.cpp) also takes the parent of its model input path, so a bundle directory is not itself a valid C ABI model input.
+
+The adapter now reads the ordered `ctx-bins` and context size from `genie_config.json`, checks every declared shard is inside the bundle and present, passes a shard filename to the C ABI, and sets native `n_ctx=0`. An explicit context is accepted only as an assertion matching the compiled artifact; it does not recompile or resize it. Llama.cpp thread/batch/speculation knobs are rejected for QAIRT. GGUF defaults remain unchanged. The recorded effective compiled context now comes from the artifact, not an assumed 4096. This corrects model loading; it does not itself establish NPU utilization, quality or speed.
+
 Copy `configs/qairt-secretary.example.json` to an ignored private file, e.g. `local/qairt-secretary.json`. Fill `sdk_dir` with the existing native SDK directory and `model_path` with the actual downloaded bundle directory containing `geniex.json`. No machine path is embedded in source. The native binding expects a resolved local artifact, not a model-hub name or archive. Empty paths fail with `QAIRT model not configured` before loading the SDK.
 
 QAIRT compiled context comes from the artifact. A requested generic `context` value does not select another compiled graph or prove its effective context. Do not alter sampling, prompts or context as part of this backend comparison.
