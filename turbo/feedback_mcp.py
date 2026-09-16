@@ -29,9 +29,14 @@ TIMEOUT_S = 180
 STDERR_TAIL_CHARS = 4000
 SERVER_INFO = {"name": "turbo-feedback-mcp", "version": "0.1.0"}
 PROTOCOL_VERSION = "2025-06-18"
+TOOL_NAME = "local_feedback_diagnostic"
+# Keep the diagnostic child windowless on Windows so headless launches do
+# not flash consoles or block on a hidden window.
+SUBPROCESS_FLAGS = (
+    subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0)
 
 TOOLS = [{
-    "name": "local_feedback_diagnostic",
+    "name": TOOL_NAME,
     "description": (
         "Run one opt-in fixture-only feedback diagnostic against the local "
         "model via scripts/run_secretary_feedback.py. task_id selects a "
@@ -56,7 +61,9 @@ TOOLS = [{
 class FeedbackMCPServer:
     def __init__(self, models, output_root, stdin=None, stdout=None, runner=None):
         self.models = dict(models)
-        self.output_root = Path(output_root)
+        # Resolve at startup so a child process changing its own cwd can
+        # never relocate where diagnostics are written.
+        self.output_root = Path(output_root).resolve()
         self.stdin = stdin or sys.stdin
         self.stdout = stdout or sys.stdout
         self.runner = runner or subprocess.run
@@ -119,6 +126,9 @@ class FeedbackMCPServer:
         if not self.initialized:
             return self.respond_error(id, -32002, "server not initialized")
         params = params if isinstance(params, dict) else {}
+        name = params.get("name")
+        if name != TOOL_NAME:
+            return self.respond_error(id, -32602, "unknown tool: %r" % (name,))
         args = params.get("arguments") or {}
         if not isinstance(args, dict):
             return self.respond_error(id, -32602, "params.arguments must be an object")
@@ -138,6 +148,8 @@ class FeedbackMCPServer:
             raise ValueError("unexpected arguments: %s" % ", ".join(unexpected))
         task_id = args.get("task_id")
         model_id = args.get("model_id")
+        if not isinstance(model_id, str):
+            raise ValueError("model_id must be a string")
         config = self.models.get(model_id)
         if config is None:
             raise ValueError(
@@ -151,10 +163,12 @@ class FeedbackMCPServer:
         from turbo.secretary import load_tasks
         if task_id not in {t["id"] for t in load_tasks()}:
             raise ValueError("unknown demo task_id %r" % task_id)
-        if self._lock.locked():
+        if not self._lock.acquire(blocking=False):
             raise ValueError("another diagnostic is already running; one at a time")
-        with self._lock:
+        try:
             return self._run_diagnostic(model_id, config, task_id)
+        finally:
+            self._lock.release()
 
     def _run_diagnostic(self, model_id, config, task_id):
         self.output_root.mkdir(parents=True, exist_ok=True)
@@ -168,11 +182,19 @@ class FeedbackMCPServer:
         result = {"task_id": task_id, "model_id": model_id, "output_dir": str(out_dir)}
         try:
             proc = self.runner(argv, cwd=str(ROOT), timeout=TIMEOUT_S,
-                               capture_output=True, text=True)
+                               capture_output=True, encoding="utf-8",
+                               errors="replace", creationflags=SUBPROCESS_FLAGS)
+        except OSError as exc:
+            result.update({"error": "failed to launch diagnostic: %s" % exc,
+                           "isError": True})
+            return result
         except subprocess.TimeoutExpired as exc:
+            stderr_tail = exc.stderr or ""
+            if isinstance(stderr_tail, bytes):
+                stderr_tail = stderr_tail.decode("utf-8", errors="replace")
             result.update({"timed_out": True, "timeout_s": TIMEOUT_S,
                            "error": "diagnostic exceeded %ds; partial artifacts preserved" % TIMEOUT_S,
-                           "stderr_tail": (exc.stderr or "")[-STDERR_TAIL_CHARS:],
+                           "stderr_tail": stderr_tail[-STDERR_TAIL_CHARS:],
                            "isError": True})
             return result
         result["returncode"] = proc.returncode
@@ -213,6 +235,8 @@ def parse_args(argv=None):
         name, sep, path = entry.partition("=")
         if not sep or not name or not path:
             p.error("--model must be NAME=PATH")
+        if name in models:
+            p.error("duplicate model id: %s" % name)
         if not Path(path).is_file():
             p.error("config path does not exist: %s" % path)
         models[name] = path
