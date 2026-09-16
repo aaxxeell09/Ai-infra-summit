@@ -38,7 +38,7 @@ def load_development_cases():
 
 def run_canary(config, *, size, seed_label, max_seconds=None):
     """Execute the chosen subset and return the labelled record plus raw rows."""
-    from eval.run_secretary_eval import execute
+    from eval.run_secretary_eval import execute, PROTOCOL
     from eval.secretary_adapter import SecretaryAdapter, TOOLS
     from eval.validate_dataset import validate
     from turbo.native import NativeModel, NativeRuntime
@@ -84,6 +84,7 @@ def run_canary(config, *, size, seed_label, max_seconds=None):
         invalid=sum(1 for row in rows if row.get('invalid_output') is True),
         median_latency_ms=median)
     record.update(
+        protocol_version=PROTOCOL,
         latency_boundary=boundary,
         median_task_latency_ms=median,
         invalid_rate=(sum(1 for row in rows if row.get('invalid_output') is True) / len(rows)
@@ -91,6 +92,7 @@ def run_canary(config, *, size, seed_label, max_seconds=None):
         hardware_seconds=elapsed,
         seed_label=seed_label,
         rows=[{'case_id': row.get('case_sha256') or row.get('id'),
+               'case_sha256':row.get('case_sha256'),
                'task_success': bool(row['task_success']),
                'invalid_output': row.get('invalid_output'),
                'expected_tool': row.get('expected_tool'),

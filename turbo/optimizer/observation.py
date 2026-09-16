@@ -66,6 +66,7 @@ def normalise_rows(report):
                      'invalid_output': row.get('invalid_output'),
                      'expected_tool': row.get('expected_tool'),
                      'failure_reasons': list(row.get('failure_reasons') or [])})
+        if row.get('case_sha256'):rows[-1]['case_sha256']=row['case_sha256']
     return rows
 
 
@@ -126,6 +127,7 @@ def from_archive(path, *, stage, hardware_seconds=None, verify_archive=True):
               else kpis(report, telemetry))
 
     record.update(
+        protocol_version=report.get('protocol_version'),
         rows=rows,
         attempted=metric.get('total_tasks'),
         correct=metric.get('correct_tasks'),
