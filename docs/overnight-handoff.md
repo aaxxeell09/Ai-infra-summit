@@ -5,6 +5,39 @@ Save results and a morning handoff at the cutoff. Scheduled hourly continuation
 is installed in the current task, ending at the cutoff. Pause that automation
 when producing the final morning handoff.
 
+## 12:00 UTC checkpoint — larger models measured, milestone queued
+
+- Both development archives completed and passed integrity verification at source
+  `31bb6a1`. Results/configs/telemetry: `eval/results/large-model-dev-1100/`.
+  8B:27/35 (77.14%), moves6/6, clarify1/9, invalid1/35, median recorded task9377.869ms.
+  20B:0/35, all35 parse failures from Harmony-formatted outputs. Native generation
+  works but the frozen Secretary protocol does not accept those outputs. Keep0/35;
+  no post-hoc re-scoring. Neither has a quality PASS; NOT_COMPARABLE preserved.
+  Full-process SYS energy is diagnostic/uncommissioned, not an efficiency claim.
+- Original sealed archives are on Mac under main checkout's ignored
+  `local/overnight-results-1200/experiments/`, and Latitude `grammar-1000/local/experiments/`.
+  EXP-001 is8B development; EXP-002 is20B development. Reports include all failures.
+- Service restoration was verified by actual native arithmetic returning5. It is
+  paused again for task `Qualcomm-Milestone-1200`, which runs sequentially: unchanged
+  full50 8B through the tracker (1200s child /1320s watchdog), two repeated4B
+  grammar invoice diagnostics, then one20B grammar invoice diagnostic (180s each).
+  Supervisor `overnight_milestone_1200.py`; state `grammar-1000/local/milestone-1200/status.json`.
+  Task cap35min. All diagnostics use fresh public fixtures, never golden cases.
+  Supervisor restores and smoke-tests the gateway. No overlapping hardware jobs.
+- A second bounded Flash worker is coding an opt-in fixture-only MCP wrapper in
+  `/Users/user/Documents/Qualcomm/worktrees/feedback-mcp-diagnostic`, branch
+  `feat/feedback-mcp-diagnostic`, based on1512ef1. AgentID
+  `01a0aa1b-1b8b-7c30-aeae-ded08df90fb2` (Gibbs). It owns only new
+  `turbo/feedback_mcp.py`, `tests/test_feedback_mcp.py`, and
+  `docs/feedback-mcp-diagnostic.md`; no hardware access, no default MCP/service or
+  frozen semantics changes. It will commit locally, not push. Review before
+  cherry-picking; do not assume completion, source cleanliness or real integration.
+- Next: collect full50 aggregate/failure IDs without using held-out answers for
+  tuning, keep original raw archives private and publish a clearly marked
+  redacted handoff if necessary to avoid new held-out exposure. Inspect repeated
+  public-fixture diagnostics. Review MCP wrapper and test it on actual hardware
+  only after all queued jobs release the device. Stop by16:00UTC.
+
 ## 11:00 UTC checkpoint — actual move and larger-model queue
 
 - The constrained 4B feedback diagnostic completed at clean source `31bb6a1`.

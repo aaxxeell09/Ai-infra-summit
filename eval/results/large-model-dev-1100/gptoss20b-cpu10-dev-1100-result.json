@@ -1,0 +1,3027 @@
+{
+  "schema_version": 2,
+  "benchmark_version": "secretary-eval-v2",
+  "protocol_version": "secretary-single-action-v2",
+  "scope": "single_action_with_fixture_execution",
+  "type": "candidate",
+  "status": "measured",
+  "candidate_name": "EXP-002",
+  "git_commit": "31bb6a178638eda96c33fe3b9f0bbd4ec97c3ebe",
+  "branch": "grammar-1000",
+  "dirty": false,
+  "application_sources_sha256": {
+    "turbo/secretary.py": "b8d60b9646a607cf7c2a46390e83bddd55c73db46a619a88379aa10d24567d87",
+    "turbo/service.py": "58ff093eaa9879364168f8e0e21222f638d76afb92a4c6d8230de0e7fca64922",
+    "turbo/native.py": "71ada699c2b3f72d952a1892f7dc5de8e8820224ebfcc925f8a0329f4219e782",
+    "turbo/policy.py": "3b103d7321b06f1a0ad64653025d0d5beb80746819c103039084ea6c583c71c3",
+    "turbo/tuning.py": "0aed57a4ba431130127dd2ae0d339021f0c172e4ecbb77b0ced9f0c813591359"
+  },
+  "timestamp": "2026-09-16T11:15:38.754008+00:00",
+  "dataset_sha256": "e79716ae764dd94e433190ae948813b71794b2b1555c07065738ce2208437ddc",
+  "fixture_sha256": "69ec2946e157195b6aedecec6129b26897a06865c7dc20d8c99a6f7f1dc0e7df",
+  "inventory_sha256": "423d6cc7f3b12498e83293bcb7245b5e9a0aa088de72dc024bfba1605bbdf986",
+  "action_schema_sha256": "3a1c425ebed06cef92eafda44142bf5eae65d3c47fd82b8730ca3683eb248a22",
+  "system_prompt_sha256": "e977a9fe92d57c6b8a2af61f3cd6e3621f3fc2caf8300145abf7896f57c45eaf",
+  "baseline_approval": null,
+  "config_sha256": "53a5ca83913337051439f69c1d25a54027d9a8a74bd8f12d4afed1a5e9699d50",
+  "environment": {
+    "system": "Windows",
+    "machine": "ARM64",
+    "python": "3.14.6",
+    "hardware_note": "Dell Latitude 7455 Snapdragon X Elite 32GB; isolated CPU10 larger-model development trial; pinned model download checksum verified before execution"
+  },
+  "config": {
+    "backend": "llama_cpp_cpu",
+    "plugin": "llama_cpp",
+    "device": "cpu",
+    "threads": 10,
+    "threads_batch": 0,
+    "ubatch": 0,
+    "n_batch": 0,
+    "context": 4096,
+    "max_tokens": 128,
+    "grammar": false,
+    "spec_type": "none",
+    "draft_tokens": 8,
+    "hardware_note": "Dell Latitude 7455 Snapdragon X Elite 32GB; isolated CPU10 larger-model development trial; pinned model download checksum verified before execution"
+  },
+  "evaluator_sha256": {
+    "eval/scoring.py": "961e76c3dfeca12f642ad63431b60c8fba0d89581a0c6554189b5e3e65d7578b",
+    "eval/run_secretary_eval.py": "ac5ca45abaef011ea67fb570ce41ef157fd701fcec5932e1276d4965a87318cf",
+    "eval/validate_dataset.py": "f68a622095c5b86ec218f90597e00c9d5814b7a54d5a637c83c21b035a53e1ef",
+    "eval/secretary_adapter.py": "9497301ca77d1264cbc39a7e216a9adda597f8f83f5cf052418100be58317cd9"
+  },
+  "generation_protocol": {
+    "max_tokens": 128,
+    "temperature": 0,
+    "reset": true
+  },
+  "model_label": "gpt-oss-20b-MXFP4.gguf",
+  "model_sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+  "run_command": "python eval/run_secretary_eval.py --dataset development --candidate-name EXP-002 --config PRIVATE_CONFIG.json --baseline BASELINE.json --output-dir OUTPUT_DIRECTORY",
+  "warmup": "one untimed first-development prompt; reset context each case; temperature 0",
+  "secretary_module_present": true,
+  "runtime_version": "0.6.1",
+  "source_hashes": {
+    "turbo/secretary.py": "b8d60b9646a607cf7c2a46390e83bddd55c73db46a619a88379aa10d24567d87",
+    "turbo/service.py": "58ff093eaa9879364168f8e0e21222f638d76afb92a4c6d8230de0e7fca64922",
+    "turbo/native.py": "71ada699c2b3f72d952a1892f7dc5de8e8820224ebfcc925f8a0329f4219e782",
+    "turbo/policy.py": "3b103d7321b06f1a0ad64653025d0d5beb80746819c103039084ea6c583c71c3",
+    "turbo/tuning.py": "0aed57a4ba431130127dd2ae0d339021f0c172e4ecbb77b0ced9f0c813591359",
+    "eval/scoring.py": "961e76c3dfeca12f642ad63431b60c8fba0d89581a0c6554189b5e3e65d7578b",
+    "eval/run_secretary_eval.py": "ac5ca45abaef011ea67fb570ce41ef157fd701fcec5932e1276d4965a87318cf",
+    "eval/validate_dataset.py": "f68a622095c5b86ec218f90597e00c9d5814b7a54d5a637c83c21b035a53e1ef",
+    "eval/secretary_adapter.py": "9497301ca77d1264cbc39a7e216a9adda597f8f83f5cf052418100be58317cd9",
+    "eval/benchmark_manifest.json": "677f7b0f43928dc9a986e1838dd5e7bcd5d038795dc0a10b818bbdee96bea441",
+    "eval/fixtures/files.json": "0e144438a32cd7baf5953c149c62273b42716947beb4d4c52d0e0f19696a88c1",
+    "eval/datasets/secretary_dev.json": "5f50aac84b55c53e7a8603531d96ea7512b8b5df9d868c73019f344112807162"
+  },
+  "inference_backend": {
+    "backend_id": "llama_cpp_cpu",
+    "runtime": "llama_cpp",
+    "requested_device": "cpu",
+    "resolved_device": null,
+    "device_resolution_warning": null,
+    "model_artifact_type": "GGUF",
+    "model_path_or_id": "gpt-oss-20b-MXFP4.gguf",
+    "geniex_version": "0.6.1",
+    "qairt_version": null,
+    "dispatch_verified": false,
+    "context_source": "model_config",
+    "effective_compiled_context": null
+  },
+  "results": [
+    {
+      "id": "dev_001",
+      "difficulty": "easy",
+      "prompt": "Read the contents of docs/README.md.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "docs/README.md"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "read",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 4242.353,
+      "expected_tool": "read_file",
+      "case_sha256": "4e8cfcbd06cd4164baf92ff695678e1f40f130f8efcb7ec650156af70a7fd903",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>User wants to read file. Use read_file.<|end|><|start|>assistant<|channel|>commentary to=functions.read_file <|constrain|>json<|message|>{\"path\":\"docs/README.md\"}",
+      "profile": {
+        "ttft": 3080503,
+        "media_time": 0,
+        "prompt_time": 3079901,
+        "decode_time": 1151099,
+        "prompt_tokens": 511,
+        "generated_tokens": 36,
+        "prefill_speed": 165.9144238727154,
+        "decoding_speed": 31.2744603200941,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.080503,
+        "total": 4.233847199939191
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 4242.563
+    },
+    {
+      "id": "dev_002",
+      "difficulty": "easy",
+      "prompt": "Open reports/baseline.json and show its contents.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "reports/baseline.json"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "read",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 4707.736,
+      "expected_tool": "read_file",
+      "case_sha256": "b668a75503d4d89c9a36ab73b052505ba4690f23652acf1154513001672fb295",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>User wants to open the file and show its contents. We should read file. Use read_file.<|end|><|start|>assistant<|channel|>commentary to=functions.read_file <|constrain|>json<|message|>{\"path\":\"reports/baseline.json\"}",
+      "profile": {
+        "ttft": 3207053,
+        "media_time": 0,
+        "prompt_time": 3206467,
+        "decode_time": 1489922,
+        "prompt_tokens": 513,
+        "generated_tokens": 47,
+        "prefill_speed": 159.9891718829478,
+        "decoding_speed": 31.545275524490545,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.207053,
+        "total": 4.6994059002026916
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 4707.867
+    },
+    {
+      "id": "dev_003",
+      "difficulty": "medium",
+      "prompt": "Read the ideas text file from the supplied file inventory. I only need its contents, not a directory listing.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "notes/ideas.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "read_paraphrase",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 4756.359,
+      "expected_tool": "read_file",
+      "case_sha256": "ba188a6106daae1ff43b2cedca17ec91328c389ab8f05d67a155c3b31d08cc7b",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to read file \"notes/ideas.txt\". Use read_file.<|end|><|start|>assistant<|channel|>commentary to=functions.read_file <|constrain|>json<|message|>{\"path\":\"notes/ideas.txt\"}",
+      "profile": {
+        "ttft": 3397658,
+        "media_time": 0,
+        "prompt_time": 3397043,
+        "decode_time": 1347450,
+        "prompt_tokens": 524,
+        "generated_tokens": 41,
+        "prefill_speed": 154.2518007573057,
+        "decoding_speed": 30.427845189060818,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.397658,
+        "total": 4.747436000034213
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 4756.502
+    },
+    {
+      "id": "dev_004",
+      "difficulty": "medium",
+      "prompt": "Read inbox/Read Me.txt, preserving the spaces and capitalization in its path.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "inbox/Read Me.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "read_exact_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 5470.075,
+      "expected_tool": "read_file",
+      "case_sha256": "4f9d6cca733fd2a6823144b5e4214a06b56fe334481bec29af1fe957ac1ddd15",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user asks: \"Read inbox/Read Me.txt, preserving the spaces and capitalization in its path.\" We just need to read that file. Use read_file.<|end|><|start|>assistant<|channel|>commentary to=functions.read_file <|constrain|>json<|message|>{\"path\":\"inbox/Read Me.txt\"}",
+      "profile": {
+        "ttft": 3553317,
+        "media_time": 0,
+        "prompt_time": 3552701,
+        "decode_time": 1905918,
+        "prompt_tokens": 518,
+        "generated_tokens": 61,
+        "prefill_speed": 145.80455827833526,
+        "decoding_speed": 32.00557421672916,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.553317,
+        "total": 5.46157700009644
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 5470.194
+    },
+    {
+      "id": "dev_005",
+      "difficulty": "hard",
+      "prompt": "I need the plan for beta. The alpha plan is a distractor; read only the beta one from the inventory.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "projects/beta/plan.md"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "read_exact_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 7053.831,
+      "expected_tool": "read_file",
+      "case_sha256": "f7595f6eaa8f53448eb589ce15035866a87d0a72952c428c78864534d4c0b9f1",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user wants the plan for beta. They say: \"I need the plan for beta. The alpha plan is a distractor; read only the beta one from the inventory.\" They likely want the content of the beta plan file. We need to read the file. The file is at projects/beta/plan.md. We should use read_file. No other action.<|end|><|start|>assistant<|channel|>commentary to=functions.read_file <|constrain|>json<|message|>{\"path\":\"projects/beta/plan.md\"}",
+      "profile": {
+        "ttft": 3702153,
+        "media_time": 0,
+        "prompt_time": 3701529,
+        "decode_time": 3340593,
+        "prompt_tokens": 526,
+        "generated_tokens": 103,
+        "prefill_speed": 142.10343887620493,
+        "decoding_speed": 30.83284913786265,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.702153,
+        "total": 7.045128799974918
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 7053.967
+    },
+    {
+      "id": "dev_006",
+      "difficulty": "medium",
+      "prompt": "Read the JSON file in config whose name refers to runtime, rather than settings.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "config/runtime.json"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "read",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 8955.961,
+      "expected_tool": "read_file",
+      "case_sha256": "de976dc7ba83ccec0969c27d8f435c01d50f9bdfa4a1d3176026c0e260dd2aa3",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to read the JSON file in config whose name refers to runtime, rather than settings. The files: config/runtime.json and config/settings.json. The runtime one is config/runtime.json. So we should read that file.<|end|><|start|>assistant<|channel|>commentary to=functions.read_file <|constrain|>json<|message|>{\"path\":\"config/runtime.json\"}",
+      "profile": {
+        "ttft": 4414207,
+        "media_time": 0,
+        "prompt_time": 4413288,
+        "decode_time": 4528863,
+        "prompt_tokens": 518,
+        "generated_tokens": 70,
+        "prefill_speed": 117.37280685058397,
+        "decoding_speed": 15.456418089926764,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 4.414207,
+        "total": 8.945760500151664
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 8956.147
+    },
+    {
+      "id": "dev_007",
+      "difficulty": "easy",
+      "prompt": "Show a recursive inventory of the entire workspace.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "list",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 9799.199,
+      "expected_tool": "list_files",
+      "case_sha256": "fd7187ddffbd85e45af249d0244e3ba0c7af75f86e8d0f50eb514a6010f91f5e",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user wants a recursive inventory of the entire workspace. That means we need to list every file in the workspace, sorted. We have to use the tool list_files.<|end|><|start|>assistant<|channel|>commentary to=functions.list_files <|constrain|>json<|message|>{\"path\":\"?\"}",
+      "profile": {
+        "ttft": 5952143,
+        "media_time": 0,
+        "prompt_time": 5951114,
+        "decode_time": 3826399,
+        "prompt_tokens": 511,
+        "generated_tokens": 57,
+        "prefill_speed": 85.86627646521308,
+        "decoding_speed": 14.89651236057714,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 5.952143,
+        "total": 9.78324589971453
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 9799.501
+    },
+    {
+      "id": "dev_008",
+      "difficulty": "easy",
+      "prompt": "List all workspace file paths, including files in nested folders.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "list",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 33889.445,
+      "expected_tool": "list_files",
+      "case_sha256": "256e86603ce31148c696d4f38c33f089e0dfadaac9f4359add56457ec355af44",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>User wants list of all file paths. We can call list_files.<|end|><|start|>assistant<|channel|>commentary to=functions.list_files <|constrain|>json<|message|>{}",
+      "profile": {
+        "ttft": 32781954,
+        "media_time": 0,
+        "prompt_time": 32781270,
+        "decode_time": 1082552,
+        "prompt_tokens": 514,
+        "generated_tokens": 33,
+        "prefill_speed": 15.679685381316832,
+        "decoding_speed": 30.483524117086294,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 32.781954,
+        "total": 33.870287199970335
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 33889.563
+    },
+    {
+      "id": "dev_009",
+      "difficulty": "medium",
+      "prompt": "I do not need the contents of summary.txt. Show the complete workspace file inventory instead.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "list_paraphrase",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 5227.433,
+      "expected_tool": "list_files",
+      "case_sha256": "c2a337fe4c9f41b617b8eb4ca911d633ad4e895aa0a8fc9f26988281b0db2183",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user wants \"Show the complete workspace file inventory instead.\" That means we need to list all files in the workspace. We should call list_files.<|end|><|start|>assistant<|channel|>commentary to=functions.list_files <|constrain|>json<|message|>{}",
+      "profile": {
+        "ttft": 3637598,
+        "media_time": 0,
+        "prompt_time": 3636882,
+        "decode_time": 1577665,
+        "prompt_tokens": 520,
+        "generated_tokens": 49,
+        "prefill_speed": 142.9796182554177,
+        "decoding_speed": 31.058558058903504,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.637598,
+        "total": 5.217808700166643
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 5227.553
+    },
+    {
+      "id": "dev_010",
+      "difficulty": "medium",
+      "prompt": "Which files are available anywhere in this workspace? Give me the full listing.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "list_paraphrase",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 7548.055,
+      "expected_tool": "list_files",
+      "case_sha256": "43769ccf782e05eb5e5d972b9e876aa49640002fb9253ecc854993eeb3bcc4b2",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user asks: \"Which files are available anywhere in this workspace? Give me the full listing.\" They want a full listing of files in the workspace. The instruction: \"Emit the required tool calls only, at most four, and preserve exact paths and constraints. Both source and destination are full workspace-relative filenames. Preserve the basename when moving into a folder. Copy source paths exactly from the inventory, including parent folders. Use clarify when essential information is missing. Never invent file contents.\"\n\nBut the user wants a listing. There's no file creation/moving request. We can use list_files tool to get the listing. The instruction",
+      "profile": {
+        "ttft": 3435496,
+        "media_time": 0,
+        "prompt_time": 3434870,
+        "decode_time": 4100395,
+        "prompt_tokens": 517,
+        "generated_tokens": 128,
+        "prefill_speed": 150.51515777889702,
+        "decoding_speed": 31.216504751371517,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 3.435496,
+        "total": 7.538687400054187
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 7548.173
+    },
+    {
+      "id": "dev_011",
+      "difficulty": "medium",
+      "prompt": "The projects folder is relevant later. For now, list all files across the whole workspace, not just project files.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "list_exact_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 5301.63,
+      "expected_tool": "list_files",
+      "case_sha256": "dc215167572a3ac6c3bb977772fd01406f45824de3cfecb2b5242f2778af074d",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user wants to list all files across the whole workspace, not just project files. So we need to call list_files.<|end|><|start|>assistant<|channel|>commentary to=functions.list_files <|constrain|>json<|message|>{\"path\":\"\"}",
+      "profile": {
+        "ttft": 3715587,
+        "media_time": 0,
+        "prompt_time": 3714927,
+        "decode_time": 1573963,
+        "prompt_tokens": 525,
+        "generated_tokens": 48,
+        "prefill_speed": 141.32175410176296,
+        "decoding_speed": 30.496269607354176,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.715587,
+        "total": 5.292198900133371
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 5301.756
+    },
+    {
+      "id": "dev_012",
+      "difficulty": "easy",
+      "prompt": "Search file contents for the substring \"latency\".",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "latency"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "search",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 6502.677,
+      "expected_tool": "search_files",
+      "case_sha256": "f9f604670b96ae8af742f8405e647bf7c0d0bcbd3b3c34de0409f5bf78fd3ce6",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to search files for substring \"latency\". Use search_files.<|end|><|start|>assistant<|channel|>commentary to=functions.search_files <|constrain|>json<|message|>{\"query\":\"latency\"}",
+      "profile": {
+        "ttft": 4080818,
+        "media_time": 0,
+        "prompt_time": 4079936,
+        "decode_time": 2408964,
+        "prompt_tokens": 512,
+        "generated_tokens": 39,
+        "prefill_speed": 125.49216458297386,
+        "decoding_speed": 16.189532097615405,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 4.080818,
+        "total": 6.492475799750537
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 6502.916
+    },
+    {
+      "id": "dev_013",
+      "difficulty": "easy",
+      "prompt": "Search inside file contents for the literal substring \"baseline.json\"; this is not a filename lookup.",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "baseline.json"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "search",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 8508.566,
+      "expected_tool": "search_files",
+      "case_sha256": "731c9431835439995546c653e1ed264dd255b505f972635fc5d65a6dd5a84675",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to search inside file contents for substring \"baseline.json\". We need to call search_files with query \"baseline.json\".<|end|><|start|>assistant<|channel|>commentary to=functions.search_files <|constrain|>json<|message|>{\"query\":\"baseline.json\"}",
+      "profile": {
+        "ttft": 5294466,
+        "media_time": 0,
+        "prompt_time": 5293278,
+        "decode_time": 3196507,
+        "prompt_tokens": 521,
+        "generated_tokens": 49,
+        "prefill_speed": 98.42672158915515,
+        "decoding_speed": 15.329232815695383,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 5.294466,
+        "total": 8.495184100233018
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 8508.832
+    },
+    {
+      "id": "dev_014",
+      "difficulty": "medium",
+      "prompt": "Find occurrences of the complete phrase \"meeting notes\" inside file contents.",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "meeting notes"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "search_paraphrase",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 35220.242,
+      "expected_tool": "search_files",
+      "case_sha256": "6ed85dd53e05b24cd094d4eb2d6f4fa63f8192e1a8ea64aa19a6697ba418023b",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to search for occurrences of the phrase \"meeting notes\" inside file contents. That is case-insensitive? The user says \"complete phrase\". Likely we should do a case-insensitive substring search across text files. We can use search_files query \"meeting notes\". That will search across all text files. The function will return matches. So we need to call search_files.<|end|><|start|>assistant<|channel|>commentary to=functions.search_files <|constrain|>json<|message|>{\"query\":\"meeting notes\"}",
+      "profile": {
+        "ttft": 31834685,
+        "media_time": 0,
+        "prompt_time": 31834068,
+        "decode_time": 3344321,
+        "prompt_tokens": 516,
+        "generated_tokens": 101,
+        "prefill_speed": 16.20905000265753,
+        "decoding_speed": 30.200450255821735,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 31.834685,
+        "total": 35.18400939973071
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 35220.358
+    },
+    {
+      "id": "dev_015",
+      "difficulty": "hard",
+      "prompt": "The words CPU and GPU occur in our discussion. Search file contents for the literal substring \"CPU OR GPU\", including the spaces and OR; do not treat OR as an operator or perform two searches.",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "CPU OR GPU"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "search_exact_query",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 5107.774,
+      "expected_tool": "search_files",
+      "case_sha256": "dc167b3dfb19f5e51ce51fe15bdd8fad2ba1bd0d6f63537e4c3dcd49cea675d8",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to search for literal substring \"CPU OR GPU\" with spaces. So use search_files with query \"CPU OR GPU\".<|end|><|start|>assistant<|channel|>commentary to=functions.search_files <|constrain|>json<|message|>{\"query\":\"CPU OR GPU\"}",
+      "profile": {
+        "ttft": 3463941,
+        "media_time": 0,
+        "prompt_time": 3463335,
+        "decode_time": 1632504,
+        "prompt_tokens": 542,
+        "generated_tokens": 51,
+        "prefill_speed": 156.49655606517996,
+        "decoding_speed": 31.240352244159894,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.463941,
+        "total": 5.099033399950713
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 5107.921
+    },
+    {
+      "id": "dev_016",
+      "difficulty": "easy",
+      "prompt": "Search text contents for the substring \"2025-summary\"; do not open the similarly named file.",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "2025-summary"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "search_exact_query",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 7685.451,
+      "expected_tool": "search_files",
+      "case_sha256": "1aa3cf35c7ee487b39d0d166f66af891c97c41ec5e94504afaa5d4b9c948179b",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to search text contents for substring \"2025-summary\" but do not open the similarly named file. The instruction says to search across text files. The substring is \"2025-summary\". There is a file named archive/2025-summary.txt. We should search the content of all text files except that file? Or we should not open that file. So we should run search_files with query \"2025-summary\". That will search across text files. It will likely match archive/2025-summary.txt content. But maybe we need to exclude that file? The instruction says \"do not open the similarly named file.\"",
+      "profile": {
+        "ttft": 3468780,
+        "media_time": 0,
+        "prompt_time": 3468148,
+        "decode_time": 4204599,
+        "prompt_tokens": 521,
+        "generated_tokens": 128,
+        "prefill_speed": 150.22426955251046,
+        "decoding_speed": 30.442855549363923,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 3.46878,
+        "total": 7.676103000063449
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 7685.603
+    },
+    {
+      "id": "dev_017",
+      "difficulty": "easy",
+      "prompt": "Move notes/draft.txt to archive/draft.txt.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "notes/draft.txt",
+          "destination": "archive/draft.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "move",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 12326.394,
+      "expected_tool": "move_file",
+      "case_sha256": "75538dbfd06ef1b0aff7e4a3b3fefee9d3c632eb8f80c9f4a54a98060cd726ab",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to move the file notes/draft.txt to archive/draft.txt. There's no folder archive/draft.txt currently? There's archive folder with 2025-summary.txt and old-results.csv. We need to preserve basename when moving into a folder. But the user says move to archive/draft.txt, which is a file path, not just a folder. The instruction: \"Both source and destination are full workspace-relative filenames. Preserve the basename when moving into a folder.\" But destination is full path including file extension. So it's fine. So we can call move_file with path \"notes/draft.txt\" destination \"archive",
+      "profile": {
+        "ttft": 4177144,
+        "media_time": 0,
+        "prompt_time": 4176216,
+        "decode_time": 8135685,
+        "prompt_tokens": 513,
+        "generated_tokens": 128,
+        "prefill_speed": 122.83847387204109,
+        "decoding_speed": 15.733155843668971,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 4.177144,
+        "total": 12.315570699982345
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 12326.587
+    },
+    {
+      "id": "dev_018",
+      "difficulty": "easy",
+      "prompt": "Move inbox/receipt.txt to archive/receipt.txt.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "inbox/receipt.txt",
+          "destination": "archive/receipt.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "move",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 12758.23,
+      "expected_tool": "move_file",
+      "case_sha256": "c6aa92e93fca0a0d2af1f5af7c31824de60903e6961b0584f899637a890ca7c7",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to move file. The source path is inbox/receipt.txt. Destination must be full workspace-relative filename including parent folders and file extension. archive/receipt.txt. Check if destination already exists? There's archive/old-results.csv, 2025-summary.txt. No receipt.txt. So safe.\n\nWe just call move_file.\n\n<|end|><|start|>assistant<|channel|>commentary to=functions.move_file <|constrain|>json<|message|>{\"path\":\"inbox/receipt.txt\",\"destination\":\"archive/receipt.txt\"}",
+      "profile": {
+        "ttft": 6048350,
+        "media_time": 0,
+        "prompt_time": 6047276,
+        "decode_time": 6688580,
+        "prompt_tokens": 513,
+        "generated_tokens": 100,
+        "prefill_speed": 84.83158367502988,
+        "decoding_speed": 14.950856534570866,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 6.04835,
+        "total": 12.741573400329798
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 12758.548
+    },
+    {
+      "id": "dev_019",
+      "difficulty": "hard",
+      "prompt": "The old-results CSV in archive must stay where it is. Relocate the results CSV currently under reports to archive/results.csv.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "reports/results.csv",
+          "destination": "archive/results.csv"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "move_paraphrase",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 30774.921,
+      "expected_tool": "move_file",
+      "case_sha256": "f8951a0a82807cb9cba4f9e4586f02252c3195c46cce1e5325168ffea6022486",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to move file \"reports/results.csv\" to \"archive/results.csv\". Ensure destination path includes file name. Confirm old-results.csv stays. The request: \"The old-results CSV in archive must stay where it is.\" That's fine. So perform move_file.<|end|><|start|>assistant<|channel|>commentary to=functions.move_file <|constrain|>json<|message|>{\"path\":\"reports/results.csv\",\"destination\":\"archive/results.csv\"}",
+      "profile": {
+        "ttft": 27814624,
+        "media_time": 0,
+        "prompt_time": 27813904,
+        "decode_time": 2935882,
+        "prompt_tokens": 527,
+        "generated_tokens": 84,
+        "prefill_speed": 18.947358127071986,
+        "decoding_speed": 28.611504140834,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 27.814624,
+        "total": 30.75645999982953
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 30775.125
+    },
+    {
+      "id": "dev_020",
+      "difficulty": "medium",
+      "prompt": "Move inbox/Read Me.txt to archive/Read Me.txt. Keep its capitalization and spaces.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "inbox/Read Me.txt",
+          "destination": "archive/Read Me.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "move_exact_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 7668.202,
+      "expected_tool": "move_file",
+      "case_sha256": "9d6a06b8925a3e9cc310436fd56dfc8914141162a02fc4360882ca4b843143d8",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to move inbox/Read Me.txt to archive/Read Me.txt. Check inventory: we have inbox/Read Me.txt. We also have archive/2025-summary.txt etc. No archive/Read Me.txt currently. So move_file with path and destination. Ensure we preserve capitalization and spaces. Destination must be a full filename. So we call move_file with path \"inbox/Read Me.txt\" and destination \"archive/Read Me.txt\". That is fine.<|end|><|start|>assistant<|channel|>commentary to=functions.move_file <|constrain|>json<|message|>{\"path\":\"inbox/Read Me.txt\",\"destination\":\"archive/",
+      "profile": {
+        "ttft": 3537198,
+        "media_time": 0,
+        "prompt_time": 3536505,
+        "decode_time": 4117336,
+        "prompt_tokens": 521,
+        "generated_tokens": 128,
+        "prefill_speed": 147.32058911269743,
+        "decoding_speed": 31.08806276679873,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 3.537198,
+        "total": 7.658567999955267
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 7668.412
+    },
+    {
+      "id": "dev_021",
+      "difficulty": "medium",
+      "prompt": "Rename notes/todo.txt to notes/tasks.txt. Keep the same directory and do not alter its contents.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "notes/todo.txt",
+          "destination": "notes/tasks.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "move_rename",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 5170.675,
+      "expected_tool": "move_file",
+      "case_sha256": "7cfc53b25ea707aa0c95559946833ba51e181d4d362420c1402e0d926864a57f",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to move notes/todo.txt to notes/tasks.txt. No ambiguity. Use move_file.<|end|><|start|>assistant<|channel|>commentary to=functions.move_file <|constrain|>json<|message|>{\"path\":\"notes/todo.txt\",\"destination\":\"notes/tasks.txt\"}",
+      "profile": {
+        "ttft": 3480657,
+        "media_time": 0,
+        "prompt_time": 3480015,
+        "decode_time": 1665259,
+        "prompt_tokens": 523,
+        "generated_tokens": 52,
+        "prefill_speed": 150.2867085343023,
+        "decoding_speed": 31.226373795307516,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.480657,
+        "total": 5.149245100095868
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 5170.874
+    },
+    {
+      "id": "dev_022",
+      "difficulty": "easy",
+      "prompt": "Read the file for me.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_missing_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 8299.243,
+      "expected_tool": "clarify",
+      "case_sha256": "763983accd18af7220a6f38b6efe086a5ddc82e2fd496d5c3d0ce6befb15b7d8",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user says \"Read the file for me.\" It's ambiguous: which file? We have many files. According to instructions, we should ask a clarifying question if essential info missing. So we should clarify.<|end|><|start|>assistant<|channel|>commentary to=functions.clarify <|constrain|>json<|message|>{\"question\":\"Which file would you like me to read?\"}",
+      "profile": {
+        "ttft": 3734388,
+        "media_time": 0,
+        "prompt_time": 3733571,
+        "decode_time": 4551993,
+        "prompt_tokens": 508,
+        "generated_tokens": 74,
+        "prefill_speed": 136.06276671851157,
+        "decoding_speed": 16.25661550885513,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.734388,
+        "total": 8.28917030012235
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 8299.422
+    },
+    {
+      "id": "dev_023",
+      "difficulty": "hard",
+      "prompt": "Read meeting-notes.txt.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_ambiguous_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 11476.254,
+      "expected_tool": "clarify",
+      "case_sha256": "0c4cefb51e3dab2a9febec10b9463fb97e8cdd05f320a6b598f92db2e1fc07f5",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>User wants to read meeting-notes.txt. Which file? There are multiple: docs/meeting-notes.txt, notes/meeting-notes.txt. Likely they refer to notes/meeting-notes.txt? The path ambiguous. Clarify.<|end|><|start|>assistant<|channel|>commentary to=functions.clarify <|constrain|>json<|message|>{\"question\":\"Which \\\"meeting-notes.txt\\\" would you like me to read? The one in docs/ or the one in notes/?\"}",
+      "profile": {
+        "ttft": 5100160,
+        "media_time": 0,
+        "prompt_time": 5099241,
+        "decode_time": 6359941,
+        "prompt_tokens": 508,
+        "generated_tokens": 98,
+        "prefill_speed": 99.62266933451468,
+        "decoding_speed": 15.408947976089715,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 5.10016,
+        "total": 11.463865499943495
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 11476.443
+    },
+    {
+      "id": "dev_024",
+      "difficulty": "medium",
+      "prompt": "Move inbox/transfer.txt.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_missing_destination",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 34818.622,
+      "expected_tool": "clarify",
+      "case_sha256": "74b1fed175a3716ffafc896880bc8ea4dedd0611bd2c78d8ed4378c6bec8d73e",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>User: \"Move inbox/transfer.txt.\"\n\nWe need to move inbox/transfer.txt to somewhere. But destination not specified. According to instructions: \"Both source and destination are full workspace-relative filenames. Preserve the basename when moving into a folder.\" The user only gave source. Need clarify destination. So call clarify.<|end|><|start|>assistant<|channel|>commentary to=functions.clarify <|constrain|>json<|message|>{\"question\":\"Where should I move \\\"inbox/transfer.txt\\\" to?\"}",
+      "profile": {
+        "ttft": 31627660,
+        "media_time": 0,
+        "prompt_time": 31627013,
+        "decode_time": 3170287,
+        "prompt_tokens": 508,
+        "generated_tokens": 99,
+        "prefill_speed": 16.062218711580506,
+        "decoding_speed": 31.227456693983857,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 31.62766,
+        "total": 34.80279819993302
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 34818.739
+    },
+    {
+      "id": "dev_025",
+      "difficulty": "medium",
+      "prompt": "Search the workspace files.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_missing_query",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 6220.521,
+      "expected_tool": "clarify",
+      "case_sha256": "e9c04c25fe39630966aa87a0ac746d517b8409e062f630a601556d4bcbd08cfc",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user says \"Search the workspace files.\" That is ambiguous: maybe they want to search for a specific query? The instruction says we must preserve exact paths, etc. But the request is ambiguous: \"Search the workspace files.\" They didn't specify what to search for. So we should clarify.<|end|><|start|>assistant<|channel|>commentary to=functions.clarify <|constrain|>json<|message|>{\"question\":\"What would you like to search for in the workspace files?\"}",
+      "profile": {
+        "ttft": 3188794,
+        "media_time": 0,
+        "prompt_time": 3188161,
+        "decode_time": 3020546,
+        "prompt_tokens": 507,
+        "generated_tokens": 94,
+        "prefill_speed": 159.02584593438036,
+        "decoding_speed": 31.120201447023156,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.188794,
+        "total": 6.211778299883008
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 6220.753
+    },
+    {
+      "id": "dev_026",
+      "difficulty": "medium",
+      "prompt": "Delete notes/draft.txt permanently.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_unsupported",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 7576.62,
+      "expected_tool": "clarify",
+      "case_sha256": "316b08d4d20b716d20609cf642927e14fbc5205ac3d2b635dff20945de0be25b",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user wants to delete notes/draft.txt permanently. The instructions say we can only use the provided tool calls. There's no delete tool. The instructions say we can only use the available tools: list_files, read_file, search_files, move_file, clarify. There's no delete. So we cannot delete a file. We need to clarify. The user wants to delete notes/draft.txt permanently. We can't do that with current tools. We could clarify that we cannot delete files, or maybe move to trash? But no delete tool. So we should ask a clarifying question: we can ask \"I don't have a",
+      "profile": {
+        "ttft": 3374506,
+        "media_time": 0,
+        "prompt_time": 3373868,
+        "decode_time": 4189197,
+        "prompt_tokens": 509,
+        "generated_tokens": 128,
+        "prefill_speed": 150.86541619292754,
+        "decoding_speed": 30.554781739794045,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 3.374506,
+        "total": 7.5668179001659155
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 7576.811
+    },
+    {
+      "id": "dev_027",
+      "difficulty": "medium",
+      "prompt": "Create notes/new.txt containing hello.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_unsupported",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 12656.794,
+      "expected_tool": "clarify",
+      "case_sha256": "ce3829b674886c938cc1cc501129a0c1be62b1b15c78a13d4796200c3fb28c1a",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user wants to create a file notes/new.txt with content hello. The instruction: \"You are a local file secretary. Emit the required tool calls only, at most four, and preserve exact paths and constraints. Both source and destination are full workspace-relative filenames. Preserve the basename when moving into a folder. Copy source paths exactly from the inventory, including parent folders. Use clarify when essential information is missing. Never invent file contents.\" We cannot create new files directly; we only have move_file, read_file, search_files, list_files, clarify. We can't create a file with content. So we need to clarify:",
+      "profile": {
+        "ttft": 4309397,
+        "media_time": 0,
+        "prompt_time": 4308499,
+        "decode_time": 8333804,
+        "prompt_tokens": 509,
+        "generated_tokens": 128,
+        "prefill_speed": 118.13859072498333,
+        "decoding_speed": 15.359132516195483,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 4.309397,
+        "total": 12.646683699917048
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 12656.986
+    },
+    {
+      "id": "dev_028",
+      "difficulty": "hard",
+      "prompt": "Move budget.csv to archive/budget.csv.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_ambiguous_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 12057.3,
+      "expected_tool": "clarify",
+      "case_sha256": "c6708ab3cffcccb976712da54744f2eceb220222237a121518a831aa5c67c5c9",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user wants to move budget.csv to archive/budget.csv. But there are multiple budget.csv files: projects/alpha/budget.csv, projects/beta/budget.csv. The user didn't specify which one. We need to clarify.<|end|><|start|>assistant<|channel|>commentary to=functions.clarify <|constrain|>json<|message|>{\"question\":\"Which budget.csv would you like to move? The one in projects/alpha or projects/beta?\"}",
+      "profile": {
+        "ttft": 5987765,
+        "media_time": 0,
+        "prompt_time": 5986667,
+        "decode_time": 6049288,
+        "prompt_tokens": 511,
+        "generated_tokens": 90,
+        "prefill_speed": 85.35634268617245,
+        "decoding_speed": 14.877783963997086,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 5.987765,
+        "total": 12.041548900306225
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 12057.588
+    },
+    {
+      "id": "dev_029",
+      "difficulty": "hard",
+      "prompt": "Eventually I want a complete workspace inventory. Before that, read the setup Markdown document under docs. Return only the first action.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "docs/setup.md"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "multistep_first_action",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 30303.547,
+      "expected_tool": "read_file",
+      "case_sha256": "080b2932056375175808c9d0f722d73bb1495653c1cf64114ae25b7d8dead1bc",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user wants the first action: read the setup.md file under docs. So I should call read_file with path \"docs/setup.md\".<|end|><|start|>assistant<|channel|>commentary to=functions.read_file <|constrain|>json<|message|>{\"path\":\"docs/setup.md\"}",
+      "profile": {
+        "ttft": 28455043,
+        "media_time": 0,
+        "prompt_time": 28454306,
+        "decode_time": 1820785,
+        "prompt_tokens": 527,
+        "generated_tokens": 53,
+        "prefill_speed": 18.520922632939985,
+        "decoding_speed": 29.108324156888372,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 28.455043,
+        "total": 30.28512140037492
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 30303.835
+    },
+    {
+      "id": "dev_030",
+      "difficulty": "hard",
+      "prompt": "Read reports/summary.txt after first listing all files in the workspace. Return only the first action.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "multistep_first_action",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 6967.171,
+      "expected_tool": "list_files",
+      "case_sha256": "a480b155216075304ef384e09a7af7e857ba6bd364a167637803edeaf4a5d04e",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user wants to read reports/summary.txt after first listing all files. We should perform two actions: list_files and read_file. But the instruction: \"Return only the first action.\" So we only output the first action. The user wants to read after listing, but we only return the first. So we should produce a single tool call: list_files. Then presumably next step user will ask to read. So we output list_files.<|end|><|start|>assistant<|channel|>commentary to=functions.list_files <|constrain|>json<|message|>{}",
+      "profile": {
+        "ttft": 3458835,
+        "media_time": 0,
+        "prompt_time": 3458166,
+        "decode_time": 3483845,
+        "prompt_tokens": 522,
+        "generated_tokens": 108,
+        "prefill_speed": 150.94706269161168,
+        "decoding_speed": 31.000231066537115,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.458835,
+        "total": 6.946161400061101
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 6967.303
+    },
+    {
+      "id": "dev_031",
+      "difficulty": "hard",
+      "prompt": "Before choosing any file to read, search file contents for the literal substring \"throughput\". Do not substitute \"latency\". Return only the first action.",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "throughput"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "multistep_first_action",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 7744.678,
+      "expected_tool": "search_files",
+      "case_sha256": "9d6e93437c7674a793111c225ef2ad6f0e746d163f8717cbf3b16973aa28cb52",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user says: \"Before choosing any file to read, search file contents for the literal substring 'throughput'. Do not substitute 'latency'. Return only the first action.\" They want us to search the workspace files for the substring \"throughput\". And we need to return only the first action. They didn't specify which file to read or move etc. They just want to search for the substring \"throughput\". So the first action is to perform a search_files. We should call the search_files tool with query \"throughput\". We need to return only the first action. So we just call search_files.<|end|>",
+      "profile": {
+        "ttft": 3525980,
+        "media_time": 0,
+        "prompt_time": 3525337,
+        "decode_time": 4205521,
+        "prompt_tokens": 533,
+        "generated_tokens": 128,
+        "prefill_speed": 151.19121944937464,
+        "decoding_speed": 30.436181391080915,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 3.52598,
+        "total": 7.73528609983623
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 7744.813
+    },
+    {
+      "id": "dev_032",
+      "difficulty": "hard",
+      "prompt": "The receipt must stay in inbox. Move the transfer text file from inbox to archive/transfer.txt, then list all workspace files. Return only the first action.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "inbox/transfer.txt",
+          "destination": "archive/transfer.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "multistep_first_action",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 12411.621,
+      "expected_tool": "move_file",
+      "case_sha256": "53ff07e526fab2f295f300fbf23ff86f24eb0a418e3e8d529f576ef78c4710e3",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We must only emit the first action. The request: \"Move the transfer text file from inbox to archive/transfer.txt, then list all workspace files. Return only the first action.\" So we only need to perform the move_file action. The path: source \"inbox/transfer.txt\". Destination: \"archive/transfer.txt\". We must preserve exact paths. Confirm destination file exists? There's archive/transfer.txt? Not listed. archive/ has 2025-summary.txt and old-results.csv. So archive/transfer.txt does not exist. So moving to a new file is allowed. Good.\n\nWe must call move_file",
+      "profile": {
+        "ttft": 4308953,
+        "media_time": 0,
+        "prompt_time": 4308019,
+        "decode_time": 8089097,
+        "prompt_tokens": 534,
+        "generated_tokens": 128,
+        "prefill_speed": 123.95488506434164,
+        "decoding_speed": 15.823768709906679,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 4.308953,
+        "total": 12.401157600339502
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 12411.811
+    },
+    {
+      "id": "dev_033",
+      "difficulty": "hard",
+      "prompt": "Move notes/draft.txt to archive/draft.txt, but keep notes/draft.txt in its original location too. Do not change either requirement.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_conflicting_constraints",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 14815.315,
+      "expected_tool": "clarify",
+      "case_sha256": "a553f05ebac9c42b8db80043c21fd06a8e99c11589d588b69475606ecf0e7cb0",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to move notes/draft.txt to archive/draft.txt, but also keep notes/draft.txt in original location. That means we need to copy rather than move. The instruction says \"Move ... but keep notes/draft.txt in its original location too.\" So essentially copy. But tool move_file only moves. There's no copy function. So we need to clarify or find a way? According to tool list, no copy_file function. We can only move_file. But requirement says keep original file. So impossible with available tool? We might need to clarify. So we should ask clarifying question.<|end|><|start|>assistant",
+      "profile": {
+        "ttft": 6247718,
+        "media_time": 0,
+        "prompt_time": 6246630,
+        "decode_time": 8545526,
+        "prompt_tokens": 531,
+        "generated_tokens": 128,
+        "prefill_speed": 85.0058351463109,
+        "decoding_speed": 14.978598157679233,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 6.247718,
+        "total": 14.799640399869531
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 14815.53
+    },
+    {
+      "id": "dev_034",
+      "difficulty": "hard",
+      "prompt": "Move inbox/summary.txt to reports/summary.txt without replacing any existing file.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_overwrite",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 32132.667,
+      "expected_tool": "clarify",
+      "case_sha256": "66b8cf0a13cceb9e3df040247a56801557e5c03305c6e95336e7ab80f879512e",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>We need to move file but reports/summary.txt already exists. The instruction says \"without replacing any existing file.\" So we can't overwrite. The move would fail because destination file exists. We could rename to a new name or ask user. According to developer instructions: \"Preserve the basename when moving into a folder.\" But cannot replace. So we need to clarify: Do we want to keep both files? Or rename? The user specifically says \"Move inbox/summary.txt to reports/summary.txt without replacing any existing file.\" This is ambiguous: if destination exists, cannot replace. So we should ask clarifying question:",
+      "profile": {
+        "ttft": 27926203,
+        "media_time": 0,
+        "prompt_time": 27925559,
+        "decode_time": 4180539,
+        "prompt_tokens": 518,
+        "generated_tokens": 128,
+        "prefill_speed": 18.54931534226405,
+        "decoding_speed": 30.618061450927744,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 27.926203,
+        "total": 32.11388219986111
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 32132.794
+    },
+    {
+      "id": "dev_035",
+      "difficulty": "medium",
+      "prompt": "Read the CSV sample under data; the JSON sample is not the one I want.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "data/sample.csv"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "read_exact_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 5617.507,
+      "expected_tool": "read_file",
+      "case_sha256": "46448ce12743d1b2b866ecf45fda4a7ed506494387b8918568f3478ca8fc16cf",
+      "execution_error": null,
+      "output_text": "<|channel|>analysis<|message|>The user wants to read CSV sample under data. That is data/sample.csv. They also say the JSON sample is not the one they want. So we need to read data/sample.csv. Use read_file.<|end|><|start|>assistant<|channel|>commentary to=functions.read_file <|constrain|>json<|message|>{\"path\":\"data/sample.csv\"}",
+      "profile": {
+        "ttft": 3455067,
+        "media_time": 0,
+        "prompt_time": 3454413,
+        "decode_time": 2150021,
+        "prompt_tokens": 519,
+        "generated_tokens": 67,
+        "prefill_speed": 150.24260272295177,
+        "decoding_speed": 31.16248631990106,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 3.455067,
+        "total": 5.6080636996775866
+      },
+      "selected_device": "cpu",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "llama_cpp_cpu",
+      "runtime": "llama_cpp",
+      "requested_device": "cpu",
+      "resolved_device": null,
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "sampling": {
+        "requested_temperature": 0.0,
+        "sdk_top_k": 0,
+        "greedy_via_top_k": false,
+        "sdk_zero_temperature_uses_default": true,
+        "zero_temperature_default_source": "plugin"
+      },
+      "task_latency_ms": 5617.682
+    }
+  ],
+  "metrics": {
+    "total_prompts": 35,
+    "task_success": 0,
+    "task_accuracy": 0.0,
+    "tool_accuracy": 0.0,
+    "action_accuracy": 0.0,
+    "argument_accuracy": 0.0,
+    "clarification_no_action_accuracy": 0.0,
+    "argument_applicable_prompts": 26,
+    "argument_accuracy_applicable": 0.0,
+    "avg_task_latency_ms": 12336.556342857142,
+    "median_task_latency_ms": 7744.813,
+    "avg_latency_ms": 12336.3734,
+    "median_latency_ms": 7744.678,
+    "p95_latency_ms": 34818.622,
+    "latency_samples": 35,
+    "errors": 0,
+    "categories": {
+      "clarify_ambiguous_path": {
+        "total": 2,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_023",
+          "dev_028"
+        ]
+      },
+      "clarify_conflicting_constraints": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_033"
+        ]
+      },
+      "clarify_missing_destination": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_024"
+        ]
+      },
+      "clarify_missing_path": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_022"
+        ]
+      },
+      "clarify_missing_query": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_025"
+        ]
+      },
+      "clarify_overwrite": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_034"
+        ]
+      },
+      "clarify_unsupported": {
+        "total": 2,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_026",
+          "dev_027"
+        ]
+      },
+      "list": {
+        "total": 2,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_007",
+          "dev_008"
+        ]
+      },
+      "list_exact_path": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_011"
+        ]
+      },
+      "list_paraphrase": {
+        "total": 2,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_009",
+          "dev_010"
+        ]
+      },
+      "move": {
+        "total": 2,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_017",
+          "dev_018"
+        ]
+      },
+      "move_exact_path": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_020"
+        ]
+      },
+      "move_paraphrase": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_019"
+        ]
+      },
+      "move_rename": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_021"
+        ]
+      },
+      "multistep_first_action": {
+        "total": 4,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_029",
+          "dev_030",
+          "dev_031",
+          "dev_032"
+        ]
+      },
+      "read": {
+        "total": 3,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_001",
+          "dev_002",
+          "dev_006"
+        ]
+      },
+      "read_exact_path": {
+        "total": 3,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_004",
+          "dev_005",
+          "dev_035"
+        ]
+      },
+      "read_paraphrase": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_003"
+        ]
+      },
+      "search": {
+        "total": 2,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_012",
+          "dev_013"
+        ]
+      },
+      "search_exact_query": {
+        "total": 2,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_015",
+          "dev_016"
+        ]
+      },
+      "search_paraphrase": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_014"
+        ]
+      }
+    },
+    "failed_tasks": 35,
+    "invalid_output_rate": 1.0,
+    "parse_failure_rate": 1.0,
+    "clarification_prompts": 9,
+    "clarification_accuracy": 0.0,
+    "difficulties": {
+      "easy": {
+        "total": 10,
+        "task_success": 0,
+        "task_accuracy": 0.0
+      },
+      "hard": {
+        "total": 11,
+        "task_success": 0,
+        "task_accuracy": 0.0
+      },
+      "medium": {
+        "total": 14,
+        "task_success": 0,
+        "task_accuracy": 0.0
+      }
+    },
+    "actions": {
+      "clarify": {
+        "total": 9,
+        "task_success": 0,
+        "task_accuracy": 0.0
+      },
+      "list_files": {
+        "total": 6,
+        "task_success": 0,
+        "task_accuracy": 0.0
+      },
+      "move_file": {
+        "total": 6,
+        "task_success": 0,
+        "task_accuracy": 0.0
+      },
+      "read_file": {
+        "total": 8,
+        "task_success": 0,
+        "task_accuracy": 0.0
+      },
+      "search_files": {
+        "total": 6,
+        "task_success": 0,
+        "task_accuracy": 0.0
+      }
+    }
+  },
+  "comparison": {
+    "status": "NOT_COMPARABLE",
+    "reasons": [
+      "Incompatible evaluator_sha256"
+    ]
+  },
+  "publication": {
+    "private_original_sha256": "90f0e21545339b2376de5d7cc4ca8e068a762caf73e1eb28c8af438c86c897d9",
+    "redaction": "Private Windows tools root replaced with ${QUALCOMM_TOOLS}; original sealed archive retained privately and verified before publication."
+  }
+}

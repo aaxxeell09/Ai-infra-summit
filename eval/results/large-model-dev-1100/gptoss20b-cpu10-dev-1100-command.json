@@ -1,0 +1,14 @@
+[
+  "${QUALCOMM_TOOLS}\\Python314\\python.exe",
+  "-X",
+  "utf8",
+  "${QUALCOMM_TOOLS}\\grammar-1000\\eval\\run_secretary_eval.py",
+  "--dataset",
+  "dev",
+  "--candidate-name",
+  "EXP-002",
+  "--config",
+  "${QUALCOMM_TOOLS}\\grammar-1000\\local\\experiments\\EXP-002_gptoss20b-cpu10-dev-1100\\config.json",
+  "--output-dir",
+  "${QUALCOMM_TOOLS}\\grammar-1000\\local\\experiments\\EXP-002_gptoss20b-cpu10-dev-1100\\runner-output"
+]
