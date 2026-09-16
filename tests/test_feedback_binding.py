@@ -19,7 +19,7 @@ def test_exact_binding_preserved():
     assert config['recommendation_binding']['quality_qualified'] is False
 
 
-@pytest.mark.parametrize('field,value',[('device','npu'),('threads',10),('context',1024),('plugin','qairt'),('ubatch',32),('spec_type','ngram')])
+@pytest.mark.parametrize('field,value',[('device','npu'),('threads',10),('context',1024),('plugin','qairt'),('ubatch',32),('spec_type','ngram'),('backend','qairt_npu'),('stop_after_tool_call',True)])
 def test_drift_rejected(field,value):
     s,r,a=fixture();c=bound_config(s,r,a);c[field]=value
     with pytest.raises(ValueError):verify_bound_config(c,'weights',r['runtime_binding'])

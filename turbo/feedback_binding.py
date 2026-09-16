@@ -39,6 +39,8 @@ def verify_bound_config(config, model_sha256, runtime_binding):
         raise ValueError('Incomplete bound native configuration')
     if {k:config.get(k) for k in expected} != expected:
         raise ValueError('Bound recommendation native configuration changed')
-    if any(config.get(k,0) != 0 for k in ('threads_batch','ubatch','n_batch')) or config.get('spec_type','none') != 'none':
+    if (any(config.get(k,0) != 0 for k in ('threads_batch','ubatch','n_batch'))
+            or config.get('spec_type','none') != 'none' or config.get('backend') is not None
+            or config.get('stop_after_tool_call',False) is not False):
         raise ValueError('Unbound inference override')
     return True
