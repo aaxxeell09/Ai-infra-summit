@@ -22,6 +22,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from turbo.optimizer import guard, search_space as space
+from turbo.optimizer.api_status import classify_exception
 from turbo.optimizer.llm import (LLMClient, LLMProtocolError, LLMUnavailable, STATUS_AVAILABLE,
                                  STATUS_UNAVAILABLE, call_json, credential_status, require,
                                  require_keys, require_text, response_meta)
@@ -30,6 +31,7 @@ SCHEMA = 'local-turbo.autotune-proposal.v1'
 
 ANTHROPIC_KEY_VAR = 'ANTHROPIC_API_KEY'
 ANTHROPIC_MODEL_VAR = 'ANTHROPIC_MODEL'
+ANTHROPIC_WORKSPACE_VAR = 'ANTHROPIC_WORKSPACE_ID'
 
 DEFAULT_RECENT_OUTCOMES = 8
 DEFAULT_MAX_HYPOTHESES = 5
@@ -71,23 +73,33 @@ class AnthropicClient(LLMClient):
         self.status = credential_status(ANTHROPIC_KEY_VAR, env)
         declared = model if model is not None else env.get(ANTHROPIC_MODEL_VAR)
         self.model = declared if isinstance(declared, str) and declared.strip() else None
+        workspace = env.get(ANTHROPIC_WORKSPACE_VAR)
+        self.workspace_id = workspace.strip() if isinstance(workspace, str) and workspace.strip() else None
         self.max_output_tokens = max_output_tokens
         self._sdk_client = None
 
     def complete(self, system, user, *, timeout_s):
         if self.status != STATUS_AVAILABLE:
-            raise LLMUnavailable(ANTHROPIC_KEY_VAR + ' is not set, so no Anthropic call is possible')
+            raise LLMUnavailable(ANTHROPIC_KEY_VAR + ' is not set, so no Anthropic call is possible', category='key_unavailable')
         if not self.model:
-            raise LLMUnavailable(ANTHROPIC_MODEL_VAR + ' is not set; TurboLab never assumes a model version')
+            raise LLMUnavailable(ANTHROPIC_MODEL_VAR + ' is not set; TurboLab never assumes a model version', category='model_error')
         try:
             import anthropic
         except ImportError as exc:
-            raise LLMUnavailable('The anthropic SDK is not installed in this environment') from exc
-        if self._sdk_client is None:
-            self._sdk_client = anthropic.Anthropic()
-        message = self._sdk_client.messages.create(
-            model=self.model, max_tokens=self.max_output_tokens, system=system,
-            messages=[{'role': 'user', 'content': user}], timeout=timeout_s)
+            raise LLMUnavailable('The anthropic SDK is not installed in this environment', category='sdk_unavailable') from None
+        try:
+            if self._sdk_client is None:
+                options = {'max_retries': 0}
+                if self.workspace_id:
+                    options['default_headers'] = {'anthropic-workspace-id': self.workspace_id}
+                self._sdk_client = anthropic.Anthropic(**options)
+            message = self._sdk_client.messages.create(
+                model=self.model, max_tokens=self.max_output_tokens, system=system,
+                messages=[{'role': 'user', 'content': user}], timeout=timeout_s)
+        except Exception as exc:
+            category = classify_exception(exc)
+            raise LLMUnavailable('Anthropic API request failed: ' + category, category=category) from None
+
         blocks = [b.text for b in getattr(message, 'content', []) if getattr(b, 'type', None) == 'text']
         if not blocks:
             raise LLMProtocolError('Anthropic response carried no text block')

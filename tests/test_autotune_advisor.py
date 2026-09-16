@@ -172,3 +172,83 @@ def test_the_counters_are_distinct_quantities():
     assert counters['LLM_ADMISSIBLE_HYPOTHESES'] == 1
     assert counters['LLM_REJECTED_HYPOTHESES'] == 1
     assert set(counters) == set(advisor_module.COUNTERS)
+
+
+@pytest.mark.parametrize('failure', [
+    llm.LLMUnavailable('api_key=synthetic-secret private-endpoint?token=synthetic-secret'),
+    llm.LLMProtocolError('raw provider response: synthetic-secret'),
+    OSError('private cache path /synthetic-secret/entry.json'),
+    RuntimeError('SDK setup synthetic-secret'),
+])
+def test_optional_proposal_boundary_is_fail_open_without_persisting_exception_text(monkeypatch, failure):
+    record = session()
+    advisor = advisor_module.Advisor(record, proposer_client=client_for({'hypotheses': []}, 'fake'))
+
+    def fail(*args, **kwargs):
+        raise failure
+
+    monkeypatch.setattr(advisor_module.proposer, 'propose', fail)
+    assert advisor.propose(backend='qairt_npu', remaining_minutes=10, phase='explore') == []
+    assert record['llm']['failures'][0]['where'] == 'proposer'
+    assert 'synthetic-secret' not in json.dumps(record, allow_nan=False)
+    assert advisor.families_to_explore([], backend='qairt_npu', fallback=('output_budget',)) == ('output_budget',)
+
+
+@pytest.mark.parametrize('operation', ['get', 'put'])
+def test_real_proposal_cache_io_failure_does_not_escape_advisor(operation):
+    class BrokenCache:
+        def get(self, key):
+            if operation == 'get':
+                raise OSError('cache credential synthetic-secret')
+            return None
+
+        def put(self, key, response):
+            raise OSError('cache credential synthetic-secret')
+
+    record = session()
+    advisor = advisor_module.Advisor(
+        record, proposer_client=client_for({'hypotheses': [ADMISSIBLE]}, 'fake'), cache=BrokenCache())
+    proposals = advisor.propose(backend='qairt_npu', remaining_minutes=10, phase='explore')
+    # A provider layer may itself recover from an unwritable optional cache;
+    # otherwise the advisor safely falls back. Neither path can stop search.
+    assert isinstance(proposals, list)
+    assert 'synthetic-secret' not in json.dumps(record, allow_nan=False)
+
+
+def test_failed_and_cancelled_critic_futures_are_removed_without_stalling():
+    from concurrent.futures import Future
+    record = session()
+    advisor = advisor_module.Advisor(record)
+    failed, cancelled, successful = Future(), Future(), Future()
+    failed.set_exception(OSError('private cache synthetic-secret'))
+    cancelled.cancel()
+    successful.set_result({'findings': [], 'source': {'_elapsed_s': .25}})
+    advisor._pending = [failed, cancelled, successful]
+    assert advisor.collect_critiques() == []
+    assert advisor._pending == []
+    assert len(record['llm']['failures']) == 2
+    assert record['llm']['LLM_API_WAIT_SECONDS'] == .25
+    assert 'synthetic-secret' not in json.dumps(record, allow_nan=False)
+
+
+def test_critic_submit_failure_is_optional_and_has_no_pending_handle(monkeypatch):
+    record, advisor, _, _ = build(critique={'findings': []})
+
+    def fail(*args, **kwargs):
+        raise OSError('threadpool cache synthetic-secret')
+
+    monkeypatch.setattr(advisor_module.critic_module, 'submit', fail)
+    assert advisor.submit_critique([{'candidate_id': 'C-1'}], phase='explore') is None
+    assert advisor._pending == []
+    assert 'synthetic-secret' not in json.dumps(record, allow_nan=False)
+
+
+@pytest.mark.parametrize('elapsed', [float('inf'), float('nan'), -1, 'synthetic-secret', None, True])
+def test_untrusted_failure_elapsed_cannot_poison_json_state(elapsed):
+    record = session()
+    advisor = advisor_module.Advisor(record)
+    failure = llm.LLMUnavailable('synthetic-secret')
+    failure.elapsed_s = elapsed
+    advisor._record_failure('proposer', failure)
+    assert record['llm']['LLM_API_WAIT_SECONDS'] == 0
+    assert 'synthetic-secret' not in json.dumps(record, allow_nan=False)

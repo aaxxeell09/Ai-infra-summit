@@ -16,6 +16,7 @@ the single authority on measured evidence.
 from __future__ import annotations
 
 import signal
+import threading
 import sys
 import time
 from pathlib import Path
@@ -69,6 +70,7 @@ class Scheduler:
         session.setdefault('cost_model', {})['default_hardware_seconds'] = {
             'value': self.default_hardware_seconds, 'source': 'declared default, not measured'}
         self._active = None
+        self._hardware_mutex = threading.Lock()
         self._interrupted = False
         self._last_mark = _now(clock)
 
@@ -146,6 +148,15 @@ class Scheduler:
         return self.default_hardware_seconds, 'declared session default, not measured'
 
     def run_candidate(self, candidate, stage, *, estimated_seconds=None):
+        """Nonblocking hardware exclusion; optional API work never owns this lock."""
+        if not self._hardware_mutex.acquire(blocking=False):
+            raise HardwareBusy('A hardware evaluation is already active')
+        try:
+            return self._run_candidate(candidate, stage, estimated_seconds=estimated_seconds)
+        finally:
+            self._hardware_mutex.release()
+
+    def _run_candidate(self, candidate, stage, *, estimated_seconds=None):
         """Run exactly one candidate on hardware, or refuse to start.
 
         A candidate is never started when the remaining budget cannot cover its
@@ -164,14 +175,20 @@ class Scheduler:
                               + ': estimated cost does not fit the remaining budget')
             return None
         self._mark('hardware_idle_s')
-        self._active = candidate['candidate_id']
+        # Do not mark this scheduler active until it owns the queue claim.
+        # A rejected external claim must not strand the scheduler or be released
+        # as though it belonged to this candidate.
+        candidate_id = candidate['candidate_id']
         self.queue.claim(candidate)
+        self._active = candidate_id
         try:
             observation = self.executor(candidate, stage=stage)
         finally:
-            self.queue.release(candidate)
-            self._active = None
-            spent = self._mark('hardware_busy_s')
+            try:
+                self.queue.release(candidate)
+            finally:
+                self._active = None
+                spent = self._mark('hardware_busy_s')
         outcome = observation.get('outcome', 'unknown') if isinstance(observation, dict) else 'unknown'
         S.record_outcome(self.state, candidate, stage, outcome,
                          hardware_seconds=observation.get('hardware_seconds', spent)

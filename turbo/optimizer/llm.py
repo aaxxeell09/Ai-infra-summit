@@ -42,6 +42,10 @@ RESERVED_KEYS = ('_elapsed_s', '_api_calls', 'cached')
 class LLMUnavailable(RuntimeError):
     """No usable client: credentials, SDK, transport or time ran out."""
 
+    def __init__(self, message, *, category='api_error'):
+        super().__init__(message)
+        self.category = category
+
 
 class LLMProtocolError(ValueError):
     """The answer was not the strict JSON object the caller declared."""

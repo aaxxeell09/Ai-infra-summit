@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from turbo.optimizer.api_status import classify_exception
 from turbo.optimizer.llm import (LLMClient, LLMProtocolError, LLMUnavailable, STATUS_AVAILABLE,
                                  call_json, credential_status, require, require_keys, require_text,
                                  response_meta)
@@ -73,18 +74,23 @@ class OpenAIClient(LLMClient):
 
     def complete(self, system, user, *, timeout_s):
         if self.status != STATUS_AVAILABLE:
-            raise LLMUnavailable(OPENAI_KEY_VAR + ' is not set, so no OpenAI call is possible')
+            raise LLMUnavailable(OPENAI_KEY_VAR + ' is not set, so no OpenAI call is possible', category='key_unavailable')
         if not self.model:
-            raise LLMUnavailable(OPENAI_MODEL_VAR + ' is not set; TurboLab never assumes a model version')
+            raise LLMUnavailable(OPENAI_MODEL_VAR + ' is not set; TurboLab never assumes a model version', category='model_error')
         try:
             import openai
         except ImportError as exc:
-            raise LLMUnavailable('The openai SDK is not installed in this environment') from exc
-        if self._sdk_client is None:
-            self._sdk_client = openai.OpenAI()
-        completion = self._sdk_client.chat.completions.create(
-            model=self.model, max_completion_tokens=self.max_output_tokens, timeout=timeout_s,
-            messages=[{'role': 'system', 'content': system}, {'role': 'user', 'content': user}])
+            raise LLMUnavailable('The openai SDK is not installed in this environment', category='sdk_unavailable') from None
+        try:
+            if self._sdk_client is None:
+                self._sdk_client = openai.OpenAI(max_retries=0)
+            completion = self._sdk_client.chat.completions.create(
+                model=self.model, max_completion_tokens=self.max_output_tokens, timeout=timeout_s,
+                messages=[{'role': 'system', 'content': system}, {'role': 'user', 'content': user}])
+        except Exception as exc:
+            category = classify_exception(exc)
+            raise LLMUnavailable('OpenAI API request failed: ' + category, category=category) from None
+
         choices = getattr(completion, 'choices', None) or []
         if not choices:
             raise LLMProtocolError('OpenAI response carried no choice')

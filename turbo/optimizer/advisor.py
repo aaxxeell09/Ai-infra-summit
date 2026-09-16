@@ -14,6 +14,7 @@ single cost a bounded session cannot recover.
 from __future__ import annotations
 
 import sys
+import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -21,6 +22,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from turbo.optimizer import critic as critic_module, guard, llm, mutation, proposer
+from turbo.optimizer.api_status import classify_exception
 
 SCHEMA = 'local-turbo.autotune-advisor.v1'
 
@@ -65,19 +67,30 @@ class Advisor:
                 'critic': self.critic_client is not None}
 
     def _charge(self, seconds):
+        # Provider metadata is diagnostic only; invalid elapsed values must not
+        # poison persisted JSON or end deterministic scheduling.
+        if type(seconds) not in (int, float) or not math.isfinite(seconds) or seconds < 0:
+            return
         record = counters(self.state)
-        record['LLM_API_WAIT_SECONDS'] = round(record['LLM_API_WAIT_SECONDS']
-                                               + float(seconds or 0.0), 3)
+        total = record['LLM_API_WAIT_SECONDS'] + seconds
+        if math.isfinite(total):
+            record['LLM_API_WAIT_SECONDS'] = round(total, 3)
 
     def _note(self, message):
         if self.console is not None:
             self.console.warn(message)
 
     def _record_failure(self, where, exc):
-        counters(self.state)['failures'].append({'where': where, 'error': type(exc).__name__,
-                                                 'detail': str(exc)[:500]})
+        category = classify_exception(exc)
+        # Never persist SDK exception messages: they may contain credentials,
+        # request payloads, endpoint query strings or private local paths.
+        counters(self.state)['failures'].append({
+            'where': where, 'error': 'LLMProtocolError' if isinstance(exc, llm.LLMProtocolError)
+            else 'LLMUnavailable' if isinstance(exc, llm.LLMUnavailable) else 'AdvisoryFailure',
+            'category': category,
+            'detail': 'Optional advisor unavailable; deterministic search remains enabled.'})
         self._charge(getattr(exc, 'elapsed_s', 0.0))
-        self._note(where + ' unavailable: ' + type(exc).__name__)
+        self._note(where + ' unavailable: ' + category)
 
     # -------------------------------------------------------------- proposer
 
@@ -97,7 +110,7 @@ class Advisor:
                 self.proposer_client, self.state, backend=backend,
                 remaining_minutes=remaining_minutes, phase=phase, cache=self.cache,
                 timeout_s=self.timeout_s, max_hypotheses=self.max_hypotheses)
-        except (llm.LLMUnavailable, llm.LLMProtocolError) as exc:
+        except Exception as exc:
             self._record_failure('proposer', exc)
             return []
         for hypothesis in hypotheses:
@@ -186,7 +199,7 @@ class Advisor:
         try:
             handle = critic_module.submit(self.critic_client, payload, cache=self.cache,
                                           timeout_s=self.timeout_s)
-        except (llm.LLMUnavailable, llm.LLMProtocolError, RuntimeError) as exc:
+        except Exception as exc:
             self._record_failure('critic', exc)
             return None
         self._pending.append(handle)
@@ -198,7 +211,7 @@ class Advisor:
         for handle in self._pending:
             try:
                 result = critic_module.result(handle, wait_s=wait_s)
-            except (llm.LLMUnavailable, llm.LLMProtocolError) as exc:
+            except Exception as exc:
                 self._record_failure('critic', exc)
                 continue
             if result is None:

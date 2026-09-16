@@ -195,3 +195,105 @@ def test_a_different_config_never_overwrites_a_candidate_file():
         clashing = dict(candidate, config=dict(candidate['config'], max_tokens=256))
         with pytest.raises(ValueError):
             executor(clashing, stage='S4')
+
+
+def test_rejected_queue_claim_does_not_strand_scheduler_or_release_other_owner():
+    engine, _clock, _session = build()
+    candidates = engine.admit(engine.generate())
+    engine.queue.claim(candidates[1])
+    with pytest.raises(RuntimeError, match='already claimed'):
+        engine.run_candidate(candidates[0], 'S1')
+    assert engine._active is None
+    assert engine.queue.active is candidates[1]
+    engine.queue.release(candidates[1])
+    assert engine.run_candidate(candidates[0], 'S1')['outcome'] == 'survive'
+    assert engine.queue.active is None and not engine._hardware_mutex.locked()
+
+
+def test_executor_failure_releases_hardware_for_next_deterministic_candidate():
+    engine, _clock, _session = build()
+    candidates = engine.admit(engine.generate())
+    original = engine.executor
+
+    def fail(candidate, *, stage):
+        raise RuntimeError('synthetic fake runner failed')
+
+    engine.executor = fail
+    with pytest.raises(RuntimeError, match='fake runner'):
+        engine.run_candidate(candidates[0], 'S1')
+    assert engine.queue.active is None and engine._active is None
+    assert not engine._hardware_mutex.locked()
+    engine.executor = original
+    assert engine.run_candidate(candidates[1], 'S1')['outcome'] == 'survive'
+
+
+def test_threaded_second_hardware_call_is_refused_without_waiting():
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    started, finish = Event(), Event()
+    engine, _clock, _session = build()
+    candidates = engine.admit(engine.generate())
+
+    def blocked_fake_runner(candidate, *, stage):
+        started.set()
+        assert finish.wait(5), 'test failed to release fake runner'
+        return {'outcome': 'survive', 'hardware_seconds': 0, 'stage': stage}
+
+    engine.executor = blocked_fake_runner
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(engine.run_candidate, candidates[0], 'S1')
+        try:
+            assert started.wait(5)
+            with pytest.raises(scheduler_module.HardwareBusy):
+                engine.run_candidate(candidates[1], 'S1')
+            assert engine.queue.active is candidates[0]
+        finally:
+            finish.set()
+        assert future.result(timeout=5)['outcome'] == 'survive'
+    assert engine.queue.active is None and not engine._hardware_mutex.locked()
+
+
+def test_pending_then_failed_api_critic_never_holds_hardware_mutex():
+    from threading import Event
+    from turbo.optimizer import advisor as advisor_module, critic, llm
+    started, release = Event(), Event()
+    engine, _clock, record = build()
+    candidates = engine.admit(engine.generate())
+
+    class SlowFailedProvider(llm.MockClient):
+        def complete(self, system, user, *, timeout_s):
+            started.set()
+            assert release.wait(5), 'test failed to release fake provider'
+            raise RuntimeError('synthetic-secret provider error')
+
+    advisor = advisor_module.Advisor(record, critic_client=SlowFailedProvider({}, model='fake'))
+    try:
+        handle = advisor.submit_critique(candidates[:2], phase='explore')
+        assert started.wait(5)
+        assert advisor.collect_critiques() == []
+        assert not engine._hardware_mutex.locked() and engine.queue.active is None
+        # Deterministic work completes while the advisory API is still blocked.
+        assert engine.run_candidate(candidates[0], 'S1')['outcome'] == 'survive'
+        assert not handle.done()
+        release.set()
+        assert advisor.collect_critiques(wait_s=5) == []
+        assert advisor._pending == []
+        assert engine.run_candidate(candidates[1], 'S1')['outcome'] == 'survive'
+        assert 'synthetic-secret' not in json.dumps(record, allow_nan=False)
+    finally:
+        release.set()
+        critic.shutdown(wait=True)
+    assert engine.queue.active is None and not engine._hardware_mutex.locked()
+
+
+def test_optional_proposer_failure_leaves_deterministic_search_runnable():
+    from turbo.optimizer import advisor as advisor_module, llm
+    engine, _clock, record = build()
+    client = llm.MockClient({}, model='fake', default=llm.LLMUnavailable('synthetic-secret'))
+    advisor = advisor_module.Advisor(record, proposer_client=client)
+    assert advisor.propose(backend='qairt_npu', remaining_minutes=10, phase='explore') == []
+    assert engine.queue.active is None and not engine._hardware_mutex.locked()
+    candidates = engine.admit(engine.generate())
+    engine.enqueue(candidates[:1])
+    assert engine.drain('S1', limit=1)[0][1]['outcome'] == 'survive'
+    assert 'synthetic-secret' not in json.dumps(record, allow_nan=False)
