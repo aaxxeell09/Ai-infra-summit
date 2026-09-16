@@ -46,7 +46,7 @@ data.update(plugin=arg("--plugin"), device=arg("--device"),
             model_path=arg("-m"), cell_id=arg("--cell-id"))
 data["params"].update(warmup=int(arg("--warmup")), repetitions=r, n_prompt=p,
     n_gen=n, temperature=float(arg("--temperature")), seed=int(arg("--seed")),
-    n_ctx=0 if arg("--plugin") == "qairt" else int(arg("-c")), n_threads=int(arg("-t")))
+    n_ctx=int(arg("-c")), n_threads=int(arg("-t")))
 data["runs"] = [dict(data["runs"][i % 3], gen_tokens=n, prompt_tokens=p) for i in range(r)]
 mode = Path(arg("-m")).name
 if mode.startswith("partial"):
@@ -95,11 +95,12 @@ def test_plan_rejects_coercion_and_unselectable_compiled_context(setup):
     _, v, _ = setup
     q = replace(v, plugin="qairt", compiled_contexts=(4096,))
     cells = t.plan_cells([q], t.SearchSpace(devices=("cpu", "gpu", "npu", "hybrid"),
-                                           contexts=(2048, 4096)))
+                                           threads=(0,), contexts=(2048, 4096)))
     valid = [c for c in cells if c.unsupported_reason is None]
     assert [(c.device, c.context) for c in valid] == [("npu", 4096)]
     multi = replace(q, compiled_contexts=(2048, 4096))
-    assert all(c.unsupported_reason for c in t.plan_cells([multi], t.SearchSpace(devices=("npu",))))
+    assert all(c.unsupported_reason for c in t.plan_cells([multi], t.SearchSpace(devices=("npu",), threads=(0,))))
+    assert "thread axis" in t.plan_cells([q], t.SearchSpace(devices=("npu",), threads=(4,)))[0].unsupported_reason
 
 
 def test_bounded_validated_search_and_batch_capability(setup):
@@ -144,21 +145,29 @@ def test_qairt_bundle_without_projector_wires_shared_options_and_tokenizer(setup
     bundle = root / "bundle"
     bundle.mkdir()
     (bundle / "context.bin").write_bytes(b"compiled context fixture")
+    config = {"dialog": {"context": {"size": 4096}, "engine": {
+        "model": {"binary": {"ctx-bins": ["context.bin"]}}}}}
+    (bundle / "genie_config.json").write_text(json.dumps(config))
     image, prompt, tokenizer = [root / x for x in ("image.png", "prompt.txt", "tokenizer.json")]
     for p in (image, prompt, tokenizer):
         p.write_bytes(b"fixture")
     q = replace(v, path=str(bundle), plugin="qairt", kind="vlm",
                 compiled_contexts=(4096,), tokenizer_path=str(tokenizer))
-    space = t.SearchSpace(devices=("npu",), warmup=2, repeats=3, temperature=0.2, seed=17)
+    space = t.SearchSpace(devices=("npu",), threads=(0,), warmup=2, repeats=3, temperature=0.2, seed=17)
     cmd = t.build_command(exe, q, t.plan_cells([q], space)[0], space, image, prompt)
     assert "--vlm" in cmd and "--mmproj-path" not in cmd
     for flag, val in (("--tokenizer-path", str(tokenizer)), ("--warmup", "2"),
-                      ("-r", "3"), ("--temperature", "0.2"), ("--seed", "17")):
+                      ("-r", "3"), ("--temperature", "0.2"), ("--seed", "17"),
+                      ("-m", str(bundle / "context.bin")), ("-c", "0")):
         assert cmd[cmd.index(flag) + 1] == val
     record = t.run_tuning(exe, [q], space, root / "qairt-run", image_path=image, prompt_file=prompt)
     assert record["results"][0]["status"] == "completed"
     assert record["results"][0]["reported_params"]["n_ctx"] == 0
     assert record["recommended"]["context"] == 4096
+    config["dialog"]["context"]["size"] = 2048
+    (bundle / "genie_config.json").write_text(json.dumps(config))
+    with pytest.raises(t.TuningError, match="differs from QAIRT compiled"):
+        t.build_command(exe, q, t.plan_cells([q], space)[0], space, image, prompt)
 
 
 def test_fake_external_command_full_pipeline_incremental_record_and_export(setup):

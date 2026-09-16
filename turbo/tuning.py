@@ -121,6 +121,8 @@ def plan_cells(variants, space, max_cells=256):
             reason = "unsupported device; automatic coercion is not tuning"
         elif v.plugin == "qairt" and device != "npu":
             reason = "qairt requires npu; device coercion rejected"
+        elif v.plugin == "qairt" and threads != 0:
+            reason = "qairt does not expose the llama.cpp thread axis"
         elif v.plugin == "qairt" and len(v.compiled_contexts or ()) != 1:
             reason = "qairt needs one compiled context per bundle; -c cannot select it"
         elif v.compiled_contexts is not None and str(context) not in map(str, v.compiled_contexts):
@@ -153,8 +155,20 @@ def build_command(bench_exe, variant, cell, space, image_path=None, prompt_file=
     for path in filter(None, paths):
         if not Path(path).exists():
             raise TuningError(f"missing local artifact: {path}")
+    model_path, native_context = str(Path(variant.path).resolve()), cell.context
+    if variant.plugin == "qairt":
+        from .native import _qairt_bundle_input
+        try:
+            model_path, compiled_context = _qairt_bundle_input(variant.path)
+        except ValueError as exc:
+            raise TuningError(str(exc)) from exc
+        if cell.context != compiled_context:
+            raise TuningError("registered context differs from QAIRT compiled artifact")
+        # Both the benchmark and ctypes bridge use the same C ABI: select the
+        # bundle via a declared shard, leaving compiled graph contexts intact.
+        native_context = 0
     cmd = [str(Path(bench_exe).resolve()), "--plugin", variant.plugin, "--device", cell.device,
-           "-m", str(Path(variant.path).resolve()), "-c", str(cell.context),
+           "-m", model_path, "-c", str(native_context),
            "-p", str(space.prompt_tokens), "-n", str(space.gen_tokens), "-t", str(cell.threads),
            "-r", str(space.repeats), "--warmup", str(space.warmup),
            "--temperature", str(space.temperature), "--seed", str(space.seed)]
