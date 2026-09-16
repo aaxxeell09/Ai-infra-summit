@@ -43,16 +43,15 @@ function currentRow() {
 function latestEvidence() {
   if (!state.latest) return state.latestError ? `<p class="latest-unavailable">Latest model study unavailable. The configuration comparison above is unchanged.</p>` : '';
   const q = state.latest.qairt;
-  return `<section class="latest-evidence" aria-labelledby="latest-evidence-title">
-    <div class="latest-label"><span>NPU OPTIMIZATION · 50 TASKS</span><span><i></i>Experimental</span></div>
-    <div class="latest-body">
-      <div class="latest-message"><h2 id="latest-evidence-title">Stop after the tool call.</h2><p>The model ends generation as soon as the action is complete.</p></div>
-      <div class="latest-outcomes">
-        <div class="latest-outcome"><span>Task success</span><div><s>${number(q.control.accuracy_pct, 0)}%</s><i>→</i><strong>${number(q.optimized.accuracy_pct, 0)}%</strong></div><small>${q.control.correct} → ${q.optimized.correct} correct tasks</small></div>
-        <div class="latest-outcome"><span>Mean inference</span><div><s>${number(q.control.average_inference_ms, 0)}</s><i>→</i><strong>${number(q.optimized.average_inference_ms, 0)}</strong><em>ms</em></div><small>${number(q.latencyReductionPct, 0)}% less time</small></div>
-      </div>
+  const stateBlock = (name, result, tuned = false) => `<article class="behavior-state ${tuned ? 'tuned' : ''}"><span class="behavior-name">${name}</span><div class="behavior-metrics"><div><span>Task success</span><strong>${number(result.accuracy_pct, 0)}<small>%</small></strong></div><div><span>Mean inference</span><strong>${number(result.average_inference_ms, 0)}<small>ms</small></strong></div></div></article>`;
+  return `<section class="behavior-study" aria-labelledby="latest-evidence-title">
+    <header class="behavior-head"><div><span class="eyebrow">BEYOND HARDWARE</span><h2 id="latest-evidence-title">And when it stops.</h2></div><p>Same model. Same 50 tasks.</p></header>
+    <div class="behavior-flow">
+      ${stateBlock('Standard', q.control)}
+      <div class="behavior-transition"><span class="transition-line"></span><div><small>TUNING STEP</small><strong>Stop after tool call</strong></div><span class="transition-arrow" aria-hidden="true">→</span></div>
+      ${stateBlock('Tuned', q.optimized, true)}
     </div>
-    <div class="latest-foot"><span>Qwen3 0.6B · QAIRT · NPU</span><span>Quality gate not passed</span></div>
+    <footer class="behavior-foot"><span>Qwen3 0.6B · QAIRT · NPU</span><span><i></i>Experimental · quality gate not passed</span></footer>
   </section>`;
 }
 
