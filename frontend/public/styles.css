@@ -93,11 +93,12 @@
 @media(max-width:600px){.response-timing{margin:0 18px}.prompt-controls{gap:8px}}
 
 /* Recorded evidence gives the scripted preview a truthful, visible contrast. */
-.lane-evidence{display:grid;grid-template-columns:1.15fr .9fr .9fr;margin:17px 24px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.lane-evidence{display:grid;grid-template-columns:1fr 1fr;margin:17px 24px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);animation:evidence-in .35s ease both}
 .lane-evidence>div{position:relative;min-width:0;padding:15px 11px 17px 0}.lane-evidence>div+div{padding-left:13px;border-left:1px solid var(--line)}
 .lane-evidence span{display:block;color:var(--muted);font-size:9px;line-height:1.35}.lane-evidence strong{display:block;margin-top:7px;font:500 19px/1 var(--mono);letter-spacing:-.6px;white-space:nowrap}.lane-evidence strong small{margin-left:4px;color:var(--muted);font:8px var(--mono);letter-spacing:0}.lane-evidence em{display:inline-block;margin-top:7px;padding:3px 5px;border-radius:999px;background:#edf4ff;color:var(--blue);font:600 8px var(--mono);font-style:normal}.lane-evidence em.energy-delta{background:#eef7f1;color:#297846}.lane-evidence sup,.demo-evidence-note sup{font-size:7px}
-.lane-evidence:not(.revealed)>div:nth-child(2) strong{color:#a2aab5}.demo-evidence-note{margin:12px 4px 0;color:#7d8796;font-size:9px;line-height:1.6}.routing-evidence{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:17px 24px 0;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.routing-evidence span{color:var(--muted);font-size:11px}.routing-evidence strong{font-size:11px;font-weight:550}
-@media(max-width:850px){.lane-evidence,.routing-evidence{margin-left:20px;margin-right:20px}.lane-evidence{grid-template-columns:1fr 1fr 1fr}.lane-evidence strong{font-size:17px}}
+.demo-evidence-note{margin:12px 4px 0;color:#7d8796;font-size:9px;line-height:1.6}.routing-evidence{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:17px 24px 0;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.routing-evidence span{color:var(--muted);font-size:11px}.routing-evidence strong{font-size:11px;font-weight:550}
+@keyframes evidence-in{from{opacity:0;transform:translateY(5px)}}
+@media(max-width:850px){.lane-evidence,.routing-evidence{margin-left:20px;margin-right:20px}.lane-evidence strong{font-size:17px}}
 @media(max-width:600px){.lane-evidence,.routing-evidence{margin-left:18px;margin-right:18px}.lane-evidence>div{padding-top:14px;padding-bottom:15px}.lane-evidence>div+div{padding-left:10px}.lane-evidence strong{font-size:16px}.demo-evidence-note{margin:10px 2px 0}}
 
 /* Unit definitions are available on request; the metric explanation stays visible. */

@@ -79,17 +79,26 @@ export function createPreviewComparisonProvider({ delay = 65 } = {}) {
   return { mode: 'simulated', async execute(request, { signal, onEvent = () => {} } = {}) {
     const scenario = PROMPTS.find(item => item.id === request.prompt_id);
     if (!scenario || scenario.prompt !== request.prompt) throw new Error('This preview requires one of the example prompts.');
+    const defaultRate = measured(request.baseline?.measured?.decode);
+    const turboRate = measured(request.selected?.measured?.decode);
+    const fastestRate = Math.max(defaultRate ?? 0, turboRate ?? 0);
+    const pace = lane => {
+      const rate = lane === 'default' ? defaultRate : turboRate;
+      return fastestRate > 0 && rate > 0 ? delay * fastestRate / rate : delay;
+    };
     const lanes = {};
     for (const lane of ['default', 'turbo']) {
-      signal?.throwIfAborted(); onEvent({ type: 'start', lane });
+      const animationPaceMs = pace(lane);
+      signal?.throwIfAborted(); onEvent({ type: 'start', lane, animation_pace_ms: animationPaceMs });
       const chunks = scenario.answer.match(/[\s\S]{1,14}/g) || [];
       let answer = '';
       for (const chunk of chunks) {
-        await pause(delay, signal); answer += chunk;
+        await pause(animationPaceMs, signal); answer += chunk;
         onEvent({ type: 'text', lane, answer });
       }
       lanes[lane] = { status: 'completed', answer, ttft_ms: null, total_time_s: null,
-        output_tokens: null, quality: 'not_evaluated', configuration_applied: false };
+        output_tokens: null, quality: 'not_evaluated', configuration_applied: false,
+        animation_pace_ms: animationPaceMs };
       onEvent({ type: 'complete', lane, result: lanes[lane] });
     }
     return { schema_version: 'local-turbo.comparison-result.v1', request_id: request.request_id,

@@ -36,11 +36,12 @@ test('scripted preview exposes recorded speed and diagnostic energy without inve
   assert.equal(evidence.accuracy_pct, null);
 });
 test('preview executes sequentially with equal scripted answers and no measured winner', async () => {
-  const events=[]; const r=request(); const result=await createPreviewComparisonProvider({delay:0}).execute(r,{onEvent:e=>events.push(e)});
+  const events=[]; const r=request(); const result=await createPreviewComparisonProvider({delay:1}).execute(r,{onEvent:e=>events.push(e)});
   assert.ok(events.findIndex(e=>e.type==='complete'&&e.lane==='default') < events.findIndex(e=>e.type==='start'&&e.lane==='turbo'));
   assert.equal(result.lanes.default.answer, PROMPTS[0].answer); assert.equal(result.lanes.turbo.answer, result.lanes.default.answer);
   assert.equal(result.winner,null); assert.equal(result.speedup,null);
   for(const lane of Object.values(result.lanes)){assert.equal(lane.total_time_s,null);assert.equal(lane.output_tokens,null);assert.equal(lane.quality,'not_evaluated');assert.equal(lane.configuration_applied,false);}
+  assert.ok(result.lanes.turbo.animation_pace_ms < result.lanes.default.animation_pace_ms);
 });
 test('aborting preview stops both remaining text and the second lane', async () => {
   const controller=new AbortController();const events=[];

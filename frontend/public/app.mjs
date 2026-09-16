@@ -138,11 +138,11 @@ function demoScreen() {
       ? `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`
       : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
     const metrics = evidence?.[key];
-    const evidenceFooter = evidence ? `<div class="lane-evidence ${state.result ? 'revealed' : ''}">
+    const hasStarted = lane.status === 'running' || lane.status === 'completed';
+    const evidenceFooter = evidence && hasStarted ? `<div class="lane-evidence">
       <div><span>Generation speed</span><strong>${number(metrics.decode_tps, 1)}<small>tok/s</small></strong>${key === 'turbo' && evidence.speed_gain_pct !== null ? `<em>${signed(evidence.speed_gain_pct)}</em>` : ''}</div>
-      <div><span>Answer check</span><strong>${state.result ? 'Same' : '—'}</strong><small>${state.result ? 'scripted output' : 'after preview'}</small></div>
       <div><span>SYS energy<sup>*</sup></span><strong>${number(metrics.energy_j, 0)}<small>J</small></strong>${key === 'turbo' && evidence.energy_change_pct !== null ? `<em class="energy-delta">${signed(evidence.energy_change_pct)}</em>` : ''}</div>
-    </div>` : `<div class="routing-evidence"><span>Quality and energy</span><strong>Pending calibration</strong></div>`;
+    </div>` : !evidence && hasStarted ? `<div class="routing-evidence"><span>Quality and energy</span><strong>Pending calibration</strong></div>` : '';
     return `<article class="response-column ${key === 'turbo' ? 'response-turbo' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
       <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p></header>
       ${evidenceFooter}
@@ -159,8 +159,8 @@ function demoScreen() {
       <div class="response-grid">${lanes}</div>
     </div>
     ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
-    ${evidence ? `<p class="demo-evidence-note"><sup>*</sup> Speed and SYS energy come from the recorded screening run. Energy covers one full process interval and is diagnostic, not a confirmed efficiency gain. “Same” means the scripted preview text matches; it is not an accuracy score.</p>` : ''}
-    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'The scripted answer makes the presentation repeatable. The speed and energy figures are read from the benchmark evidence for the default and selected configurations.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>No accuracy percentage is inferred from a scripted answer. Live task quality remains a separate validation step.</p></div></details></div>
+    ${evidence && state.result ? `<p class="demo-evidence-note"><sup>*</sup> Speed and SYS energy come from the recorded screening run. Energy covers one full process interval and is diagnostic, not a confirmed efficiency gain. The scripted answer is presentation copy, not an accuracy score.</p>` : ''}
+    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'The scripted answer makes the presentation repeatable. Its visual pace follows the recorded decode-rate ratio; the speed and energy figures come from the default and selected benchmark rows.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>The animation is normalized, not a live timer. No accuracy percentage is inferred from scripted text.</p></div></details></div>
     <span class="sr-only" role="status" aria-live="polite">${state.result ? 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
   </section>`;
 }
