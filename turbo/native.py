@@ -20,6 +20,7 @@ Memory contract, mirroring the header and run.c:
 from __future__ import annotations
 
 import ctypes
+from contextlib import nullcontext
 import json
 import os
 import sys
@@ -519,6 +520,35 @@ class NativeRuntime:
         return (dev.decode() if dev else None, out.ngl, warn.decode() if warn else None)
 
 
+BACKEND_CONFIGS = {
+    'llama_cpp_cpu': ('llama_cpp', 'cpu'),
+    'llama_cpp_htp': ('llama_cpp', 'npu'),
+    'qairt_npu': ('qairt', 'npu'),
+}
+
+
+def backend_options(backend=None, plugin=None, device=None, model_path=None):
+    """Resolve explicit identities without replacing the SDK device resolver."""
+    if backend is None:
+        return plugin, device or 'cpu'
+    if backend not in BACKEND_CONFIGS:
+        raise ValueError(f'Unknown inference backend: {backend}')
+    wanted_plugin, wanted_device = BACKEND_CONFIGS[backend]
+    allowed_devices = {wanted_device}
+    if backend == 'llama_cpp_htp':
+        allowed_devices.add('HTP0')
+    if plugin is not None and plugin != wanted_plugin:
+        raise ValueError(f'{backend} conflicts with plugin {plugin}')
+    if device is not None and device not in allowed_devices:
+        raise ValueError(f'{backend} conflicts with device {device}')
+    if backend == 'qairt_npu':
+        if not model_path or not os.path.isfile(os.path.join(os.fspath(model_path), 'geniex.json')):
+            raise ValueError('QAIRT model not configured: model_path must be a local bundle containing geniex.json')
+    elif model_path and not os.fspath(model_path).lower().endswith('.gguf'):
+        raise ValueError(f'{backend} requires a GGUF artifact')
+    return wanted_plugin, device or wanted_device
+
+
 def _detect_plugin(path: str) -> str:
     lower = path.lower()
     if lower.endswith('.gguf'):
@@ -528,9 +558,63 @@ def _detect_plugin(path: str) -> str:
     return 'llama_cpp'
 
 
+def _qairt_bundle_input(path: str) -> tuple[str, int]:
+    """Resolve the C ABI's shard-file input from a compiled bundle directory.
+
+    GenieX 0.6.1 QAIRT takes model_path.parent_path(), then reads ctx-bins
+    from genie_config.json. Passing the directory itself selects its parent.
+    The compiled context belongs to the artifact; n_ctx must remain zero.
+    """
+    supplied = Path(path)
+    root = (supplied if supplied.is_dir() else supplied.parent).resolve()
+    try:
+        config = json.loads((root / 'genie_config.json').read_text(encoding='utf-8'))
+        dialog = config['dialog']
+        context = dialog['context']['size']
+        shards = dialog['engine']['model']['binary']['ctx-bins']
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise ValueError('QAIRT requires a readable compiled genie_config.json') from exc
+    if type(context) is not int or context <= 0:
+        raise ValueError('QAIRT compiled context must be a positive integer')
+    if not isinstance(shards, list) or not shards:
+        raise ValueError('QAIRT bundle has no declared context shards')
+    paths = []
+    for name in shards:
+        if not isinstance(name, str) or not name:
+            raise ValueError('QAIRT context shard names must be nonempty strings')
+        candidate = (root / name).resolve()
+        if not candidate.is_relative_to(root) or not candidate.is_file():
+            raise ValueError('QAIRT context shard is missing or outside the bundle')
+        paths.append(candidate)
+    if not supplied.is_dir() and supplied.resolve() not in paths:
+        raise ValueError('QAIRT model file is not a declared context shard')
+    if paths[0].parent != root:
+        raise ValueError('QAIRT first context shard must be directly inside the bundle root')
+    return str(paths[0]), context
+
+
 # ---------------------------------------------------------------------------
 # Model
 # ---------------------------------------------------------------------------
+
+
+class _ToolCallStop:
+    """Streaming byte matcher only; never edits the model's native output."""
+    marker = b'</tool_call>'
+
+    def __init__(self):
+        self.tail = b''
+        self.hit = False
+        self.callbacks_after_stop = 0
+
+    def feed(self, piece):
+        if self.hit:
+            self.callbacks_after_stop += 1
+            return False
+        combined = self.tail + (piece or b'')
+        self.hit = self.marker in combined
+        self.tail = combined[-(len(self.marker)-1):]
+        return not self.hit
 
 
 class NativeModel:
@@ -540,20 +624,44 @@ class NativeModel:
         self,
         runtime: NativeRuntime,
         path: str | os.PathLike[str],
-        device: str = 'cpu',
+        device: str | None = None,
         threads: int = 0,
-        context: int = 4096,
+        context: int | None = None,
         spec_type: str = 'none',
         draft_tokens: int = 8,
         threads_batch: int = 0,
         ubatch: int = 0,
         n_batch: int = 0,
         plugin: str | None = None,
+        backend: str | None = None,
+        generation_observer=None,
+        stop_after_tool_call: bool = False,
     ):
+        plugin, device = backend_options(backend, plugin, device, path)
+        self.backend_id = backend
+        self.generation_observer = generation_observer
         self.runtime = runtime
         self.model_path = os.fspath(path)
         self.device_alias = device
         self.plugin_id = plugin or _detect_plugin(self.model_path)
+        if type(stop_after_tool_call) is not bool:
+            raise ValueError('stop_after_tool_call must be boolean')
+        if stop_after_tool_call and self.plugin_id != 'qairt':
+            raise ValueError('stop_after_tool_call is an opt-in QAIRT candidate only')
+        self.stop_after_tool_call = stop_after_tool_call
+        self.compiled_context = None
+        native_model_path = self.model_path
+        if self.plugin_id == 'qairt':
+            native_model_path, self.compiled_context = _qairt_bundle_input(self.model_path)
+            if context not in (None, 0, self.compiled_context):
+                raise ValueError('QAIRT context must match the compiled artifact; it is not a runtime knob')
+            if any((threads, threads_batch, ubatch, n_batch)) or spec_type not in ('', 'none'):
+                raise ValueError('QAIRT does not support llama.cpp thread/batch/speculation settings')
+            context = self.compiled_context
+            native_context = 0
+        else:
+            context = 4096 if context is None else context
+            native_context = context
         self.config: dict[str, Any] = {
             'threads': threads,
             'context': context,
@@ -563,6 +671,7 @@ class NativeModel:
             'ubatch': ubatch,
             'n_batch': n_batch,
             'plugin': self.plugin_id,
+            'stop_after_tool_call': self.stop_after_tool_call,
         }
         self._lock = threading.Lock()
         self._handle: int | None = None
@@ -576,10 +685,15 @@ class NativeModel:
         device_id, ngl, warning = runtime.resolve_device(self.plugin_id, device)
         if warning:
             print(f'geniex: {warning}', file=sys.stderr)
+        if backend is not None and device_id:
+            resolved = device_id.upper()
+            if ((backend == 'llama_cpp_cpu' and resolved.startswith(('HTP', 'GPU')))
+                    or (backend in ('llama_cpp_htp', 'qairt_npu') and resolved.startswith(('CPU', 'GPU')))):
+                raise ValueError(f'{backend} resolved to incompatible device {device_id}; refusing fallback')
 
         spec_type_b = None if spec_type in ('', 'none') else spec_type.encode('utf-8')
         mc = geniex_ModelConfig(
-            n_ctx=int(context),
+            n_ctx=int(native_context),
             n_threads=int(threads),
             n_threads_batch=int(threads_batch),
             n_batch=int(n_batch),
@@ -589,7 +703,7 @@ class NativeModel:
             spec_type=spec_type_b,
             spec_n_max=int(draft_tokens),
         )
-        model_path_b = self.model_path.encode('utf-8')
+        model_path_b = native_model_path.encode('utf-8')
         device_id_b = device_id.encode('utf-8') if device_id else None
         plugin_b = self.plugin_id.encode('utf-8')
         cin = geniex_LlmCreateInput(
@@ -604,8 +718,33 @@ class NativeModel:
         self._handle = handle.value
         self._device_id = device_id
         self._ngl = ngl
+        self.resolution_warning = warning
 
         runtime._register(self)
+
+    def provenance(self):
+        """Resolver evidence, not a hardware-utilization assertion. Keep legacy fields."""
+        identity = self.backend_id
+        if identity is None:
+            if self.plugin_id == 'qairt':
+                identity = 'qairt_npu'
+            elif self.plugin_id == 'llama_cpp':
+                resolved = (self._device_id or '').upper()
+                if resolved.startswith('HTP'):
+                    identity = 'llama_cpp_htp'
+                elif resolved == 'CPU' or (not resolved and self.device_alias == 'cpu'):
+                    identity = 'llama_cpp_cpu'
+        return {
+            'backend_id': identity, 'runtime': self.plugin_id,
+            'requested_device': self.device_alias, 'resolved_device': self._device_id,
+            'device_resolution_warning': self.resolution_warning,
+            'model_artifact_type': 'QAIRT' if self.plugin_id == 'qairt' else 'GGUF',
+            'model_path_or_id': self.model_path,
+            'geniex_version': PINNED_VERSION, 'qairt_version': None,
+            'dispatch_verified': False,
+            'context_source': 'compiled_artifact' if self.plugin_id == 'qairt' else 'model_config',
+            'effective_compiled_context': self.compiled_context,
+        }
 
     # -- chat ---------------------------------------------------------------
 
@@ -683,17 +822,21 @@ class NativeModel:
         # gets an empty instance, which ctypes marshals as a NULL pointer.
         cb_ref = geniex_token_callback()
         state = {'alive': True}
+        stopper = _ToolCallStop() if self.stop_after_tool_call else None
 
         def _tramp(token: bytes | None, _user: int | None) -> bool:
-            if not state['alive'] or on_token is None:
-                return True
+            if not state['alive']:
+                return False
+            keep_generating = stopper.feed(token) if stopper else True
             try:
-                cont = on_token(token.decode('utf-8', errors='replace') if token else '')
-                return cont is not False
+                if on_token is not None:
+                    cont = on_token(token.decode('utf-8', errors='replace') if token else '')
+                    keep_generating = keep_generating and cont is not False
+                return keep_generating
             except Exception:
-                return False  # stop generation rather than crash inside C
+                return False  # preserve existing external-callback cancellation behavior
 
-        if on_token is not None:
+        if on_token is not None or stopper is not None:
             cb_ref = geniex_token_callback(_tramp)
         keepalive.append(cb_ref)
 
@@ -707,17 +850,29 @@ class NativeModel:
         gout = geniex_LlmGenerateOutput()
         keepalive.extend([gin, prompt_b, gout])
 
-        t0 = time.perf_counter()
-        code = lib.geniex_llm_generate(c_void_p(self._handle), byref(gin), byref(gout))
-        state['alive'] = False
-        self.runtime._check(code)
-        total_s = time.perf_counter() - t0
-
-        text = ''
-        if gout.full_text:
-            raw = ctypes.cast(gout.full_text, c_char_p).value
-            text = raw.decode('utf-8', errors='replace') if raw else ''
-            self.runtime._free(gout.full_text)  # original void*
+        # The SDK can populate full_text and still return an error. Release it
+        # on every exit without replacing the original generation exception.
+        try:
+            with self.generation_observer.measure('inference') if self.generation_observer else nullcontext():
+                t0 = time.perf_counter()
+                code = lib.geniex_llm_generate(c_void_p(self._handle), byref(gin), byref(gout))
+                total_s = time.perf_counter() - t0
+            self.runtime._check(code)
+            text = ''
+            if gout.full_text:
+                raw = ctypes.cast(gout.full_text, c_char_p).value
+                text = raw.decode('utf-8', errors='replace') if raw else ''
+        finally:
+            state['alive'] = False
+            if gout.full_text:
+                original_error = sys.exc_info()[0] is not None
+                pointer = gout.full_text
+                gout.full_text = None
+                try:
+                    self.runtime._free(pointer)
+                except Exception:
+                    if not original_error:
+                        raise
 
         p = gout.profile_data
         profile = {
@@ -736,12 +891,22 @@ class NativeModel:
         ttft_s = profile['ttft'] / 1e6
         return {
             'text': text,
+            'generation_control': {
+                'stop_after_tool_call':self.stop_after_tool_call,
+                'mechanism':'qairt_token_callback' if stopper else None,
+                'delimiter':'</tool_call>' if stopper else None,
+                'delimiter_seen':stopper.hit if stopper else False,
+                'callbacks_after_stop_request':stopper.callbacks_after_stop if stopper else 0,
+                'native_text_modified':False,
+            },
             'sampling': {'requested_temperature': float(temperature),
                          'sdk_top_k': sampler.top_k,
                          'greedy_via_top_k': greedy_top_k,
-                         'sdk_zero_temperature_uses_default': self.plugin_id == 'llama_cpp'},
+                         'sdk_zero_temperature_uses_default': self.plugin_id in ('llama_cpp', 'qairt'),
+                         'zero_temperature_default_source': 'bundle_then_plugin' if self.plugin_id == 'qairt' else 'plugin'},
             'profile': profile,
             'timings': {'ttft': ttft_s, 'total': total_s},
+            **self.provenance(),
             'backend': 'geniex',
             'device': self._device_id or self.device_alias,
             'version': PINNED_VERSION,

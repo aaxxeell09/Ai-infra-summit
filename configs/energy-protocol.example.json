@@ -1,0 +1,14 @@
+{
+  "channel": "SYS",
+  "warmup_count": 3,
+  "counter_resolution_s": null,
+  "counter_resolution_evidence": null,
+  "idle_window_s": null,
+  "idle_repeats": 3,
+  "idle_max_cv": null,
+  "power_source": "ac",
+  "power_mode": null,
+  "hardware_note": null,
+  "display_network_conditions": null,
+  "background_contamination": null
+}

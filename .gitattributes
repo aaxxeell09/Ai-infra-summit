@@ -1,0 +1,2 @@
+# The frozen evaluator hashes fixture bytes. Preserve them on Windows too.
+eval/fixtures/secretary_workspace/** -text

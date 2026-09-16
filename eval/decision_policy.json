@@ -1,0 +1,5 @@
+{
+  "min_accuracy_pct": null,
+  "max_e2e_latency_ms": null,
+  "latency_stat": "p95"
+}

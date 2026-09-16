@@ -1,0 +1,14 @@
+[
+  "${QUALCOMM_TOOLS}\\Python314\\python.exe",
+  "-X",
+  "utf8",
+  "${QUALCOMM_TOOLS}\\grammar-1000\\eval\\run_secretary_eval.py",
+  "--dataset",
+  "all",
+  "--candidate-name",
+  "EXP-003",
+  "--config",
+  "${QUALCOMM_TOOLS}\\grammar-1000\\local\\experiments\\EXP-003_qwen8b-cpu10-full-1200\\config.json",
+  "--output-dir",
+  "${QUALCOMM_TOOLS}\\grammar-1000\\local\\experiments\\EXP-003_qwen8b-cpu10-full-1200\\runner-output"
+]

@@ -2,6 +2,23 @@
 
 Last updated: September 15, 2026. Check this file, `AGENTS.md`, open PRs and remote changes before starting a workstream. Commit and push small working milestones often.
 
+## Current execution order — Qualcomm feedback
+
+The native QAIRT comparison now leads engineering work; see [the gated roadmap](docs/qairt-roadmap.md). Earlier queues below remain backlog, not simultaneous priorities.
+
+- [x] Verify Tailscale unattended connection and fresh SSH through the private overlay.
+- [x] Verify fresh Tailscale SSH after Mac changes networks and supervised tunnel recovery.
+- [ ] Finish graphical desktop authentication (Microsoft-backed Windows account).
+- [x] Confirm installed GenieX catalog lists Qwen3-0.6B QAIRT for X Elite and QAIRT 2.45 is installed.
+- [x] Finish official QAIRT artifact download/import; record local ZIP hash, W4A16 precision and compiled contexts.
+- [x] Prove prompt-dependent QAIRT inference with loaded HTP v73 runtime and two compiled shards.
+- [ ] Capture per-graph execution selection; keep this distinct from generic dispatch/utilization claims.
+- [x] Register distinct QAIRT, llama.cpp CPU and llama.cpp HTP identities; native QAIRT load/generation and full evaluation now recorded.
+- [x] Run clean QAIRT development (14/35) and unchanged full 50-case candidate (23/50); publish failures, runtime hashes and full-process telemetry. No grammar/context/router changes. Historical comparison is NOT_COMPARABLE because evaluator provenance changed.
+- [ ] Publish three-path correctness/latency/energy comparison and choose modes only from evidence.
+- [ ] Finish exact hash-bound tune/apply/task/MCP and real frontend/controller demonstration.
+- [ ] Pick one supported QAIRT tuning experiment after its baseline works; then return to reliability, larger models and context/prefix work.
+
 ## P0 — prove the central benefit on the Latitude
 
 Owner: main integration agent. Independent review: `review/benchmark-energy` worktree.
@@ -119,7 +136,7 @@ These are retained requirements; a new tuner direction does not silently remove 
 | Demo deck and actual E2E demonstration | Teammate frontend/design; agent data/API/deck support; actual laptop execution and reproducible charts | Humans + integrator |
 | Frequent GitHub commits and PR awareness | Inspect open PRs/remotes before pushes, small working commits, isolated worker branches | Everyone |
 
-Superseded: workshop safety camera and inspection-station UI. The user subsequently reintroduced UNO Q as a functional physical mode controller and a separate optional local inference device. Its adapters are under review; board inference is not yet verified.
+Superseded: workshop safety camera and inspection-station UI. The user subsequently reintroduced UNO Q as a functional physical mode controller and a separate optional local inference device. Its adapters are integrated; real SmolLM2-360M CPU inference is recorded in `benchmarks/results/uno-q-smoke-01/`. Exact-output failures prevent Secretary admission. Physical controller acknowledgement remains unverified.
 
 ## High-value additions under consideration
 
@@ -163,4 +180,16 @@ Separate CLI Codex processes using GLM-5.3-Flash successfully run in isolated wo
 - [x] Apply both configurations through actual stdio MCP and execute invoice requests; preserve both failures.
 - [ ] Correct the failed invoice behavior and pass the unchanged quality gate.
 - [ ] Complete pinned Qwen3-8B Q4_K_M and gpt-oss-20b MXFP4 downloads queued on the Latitude; checksum, memory, runtime and tool-parser checks precede admission.
-- [ ] Finish Qwen3-4B-Instruct-2507 download and prioritize its secretary evaluation.
+- [x] Finish and checksum Qwen3-4B-Instruct-2507 Q4_0 download on Mac.
+- [ ] Transfer the verified 4B model to Latitude, then prioritize its secretary evaluation.
+
+
+## Latest checkpoint: QAIRT loop and SDK binding
+
+- [x] Publish full native QAIRT 50-case result and runtime components (`8192409`).
+- [x] Fix compiled-shard/context tuner ABI and run a real two-repeat Latitude cell (`718140c`).
+- [x] Implement SDK-library-bound recommendations, QAIRT mode apply, and repeated MCP/HTTP/native-loop smoke harness (`efd5100`).
+- [x] Run the two-round QAIRT integration harness after access returned, on clean `16d1313`; tune/apply/inference/MCP succeeds, both invoice checks fail.
+- [ ] Restore normal service after isolated tests; it is currently intentionally stopped.
+- [ ] Coordinate evaluator hash migration and archived-report leakage scan with Axel. No golden benchmark changes made.
+- [ ] Qualify a reliable Secretary model before enabling accepted product modes. Current speed/efficiency recommendations remain provisional, quality uncalibrated.

@@ -1,0 +1,8 @@
+<|im_start|>user
+Explain how a computer schedules tasks. Write a detailed explanation.
+<|im_end|>
+<|im_start|>assistant
+<think>
+
+</think>
+

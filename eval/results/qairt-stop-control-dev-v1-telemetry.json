@@ -1,0 +1,97 @@
+{
+  "candidate_name": "qairt-stop-control-dev-v1",
+  "exit_code": 2,
+  "timed_out": false,
+  "energy": {
+    "duration_s": 45.50414280034602,
+    "channels": {
+      "SYS": {
+        "energy_j": 724.7275856891999,
+        "average_power_w": 15.926628677942903,
+        "tokens_per_joule": null
+      },
+      "GPU": {
+        "energy_j": 0.0905546808,
+        "average_power_w": 0.0019900315713520353,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_0": {
+        "energy_j": 181.3695174072,
+        "average_power_w": 3.9857803321991345,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_1": {
+        "energy_j": 27.8550032292,
+        "average_power_w": 0.6121421372866338,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_2": {
+        "energy_j": 8.594038548,
+        "average_power_w": 0.188862772027312,
+        "tokens_per_joule": null
+      }
+    },
+    "unit": "picowatt-hours",
+    "scope": "full process trial including model initialization and any warmup",
+    "error": null
+  },
+  "raw_before": {
+    "monotonic_s": 2445013.6323394,
+    "channels_pwh": {
+      "SYS": 97787880366790,
+      "GPU": 153989444008,
+      "CPU_CLUSTER_0": 17553700646750,
+      "CPU_CLUSTER_1": 6586423902847,
+      "CPU_CLUSTER_2": 5299203453423
+    },
+    "error": null
+  },
+  "raw_after": {
+    "monotonic_s": 2445059.1364822,
+    "channels_pwh": {
+      "SYS": 97989193585037,
+      "GPU": 154014598086,
+      "CPU_CLUSTER_0": 17604081068252,
+      "CPU_CLUSTER_1": 6594161403744,
+      "CPU_CLUSTER_2": 5301590686353
+    },
+    "error": null
+  },
+  "power_before": {
+    "ac_line_status": "ac",
+    "battery_percent": 100,
+    "battery_flag": 1,
+    "battery_saver": false,
+    "active_scheme_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "power_mode": null
+  },
+  "power_after": {
+    "ac_line_status": "ac",
+    "battery_percent": 100,
+    "battery_flag": 1,
+    "battery_saver": false,
+    "active_scheme_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "power_mode": null
+  },
+  "peak_working_set_mib": 2675.9140625,
+  "sampled_peak_private_mib": 748.078125,
+  "memory_samples": 902,
+  "scope": "Complete evaluator child process: validation, hashes, model load, one uncounted warmup, cases, fixture execution and scoring, output serialization. Not inference-only or warm-task energy.",
+  "tokens_per_joule": null,
+  "tokens_per_joule_unavailable_reason": "Untimed warmup token counts are not in the runner report.",
+  "command": [
+    "pythonw.exe",
+    "-X",
+    "utf8",
+    "eval/run_secretary_eval.py",
+    "--dataset",
+    "dev",
+    "--candidate-name",
+    "qairt-stop-control-dev-v1",
+    "--config",
+    "local/qairt-stop-control.json",
+    "--output-dir",
+    "local/qairt-stop-recovery-0600"
+  ],
+  "supervisor_source": "observe_secretary_eval.py"
+}

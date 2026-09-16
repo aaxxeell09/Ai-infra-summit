@@ -1,0 +1,239 @@
+{
+  "kind": "diagnostic_prompt_parity",
+  "application_commit": "14b009a8dd1a2785e9a596168adbe90524a09dd7",
+  "backends": {
+    "llama_cpp_cpu": {
+      "model_load_s": 1.001345300115645,
+      "prompt_sha256": "50bf2ebac5ebc83b4391678f80960f8e5ed91df6048a07b54b686df20bf1a9e1",
+      "prompt_length_chars": 2924,
+      "checks": {
+        "system_present": true,
+        "user_present": true,
+        "all_tool_names": true,
+        "all_tool_descriptions": true,
+        "closed_thinking_prefix": true
+      },
+      "task_response": {
+        "text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+        "sampling": {
+          "requested_temperature": 0.0,
+          "sdk_top_k": 0,
+          "greedy_via_top_k": false,
+          "sdk_zero_temperature_uses_default": true
+        },
+        "profile": {
+          "ttft": 588176,
+          "media_time": 0,
+          "prompt_time": 587686,
+          "decode_time": 253308,
+          "prompt_tokens": 683,
+          "generated_tokens": 20,
+          "prefill_speed": 1162.1852485851286,
+          "decoding_speed": 78.95526394744738,
+          "draft_n_total": 0,
+          "draft_n_accepted": 0,
+          "stop_reason": "eos"
+        },
+        "timings": {
+          "ttft": 0.588176,
+          "total": 0.8455192004330456
+        },
+        "backend_id": "llama_cpp_cpu",
+        "runtime": "llama_cpp",
+        "requested_device": "cpu",
+        "resolved_device": null,
+        "device_resolution_warning": null,
+        "model_artifact_type": "GGUF",
+        "model_path_or_id": "Qwen3-0.6B-Q4_0.gguf",
+        "geniex_version": "0.6.1",
+        "qairt_version": null,
+        "dispatch_verified": false,
+        "context_source": "model_config",
+        "effective_compiled_context": null,
+        "backend": "geniex",
+        "device": "cpu",
+        "version": "0.6.1",
+        "config": {
+          "threads": 10,
+          "context": 4096,
+          "spec_type": "none",
+          "draft_tokens": 8,
+          "threads_batch": 0,
+          "ubatch": 0,
+          "n_batch": 0,
+          "plugin": "llama_cpp"
+        }
+      },
+      "second_response": {
+        "text": "pineapple",
+        "sampling": {
+          "requested_temperature": 0.0,
+          "sdk_top_k": 0,
+          "greedy_via_top_k": false,
+          "sdk_zero_temperature_uses_default": true
+        },
+        "profile": {
+          "ttft": 11718,
+          "media_time": 0,
+          "prompt_time": 11505,
+          "decode_time": 13519,
+          "prompt_tokens": 19,
+          "generated_tokens": 2,
+          "prefill_speed": 1651.4558887440244,
+          "decoding_speed": 147.93993638582737,
+          "draft_n_total": 0,
+          "draft_n_accepted": 0,
+          "stop_reason": "eos"
+        },
+        "timings": {
+          "ttft": 0.011718,
+          "total": 0.0279597002081573
+        },
+        "backend_id": "llama_cpp_cpu",
+        "runtime": "llama_cpp",
+        "requested_device": "cpu",
+        "resolved_device": null,
+        "device_resolution_warning": null,
+        "model_artifact_type": "GGUF",
+        "model_path_or_id": "Qwen3-0.6B-Q4_0.gguf",
+        "geniex_version": "0.6.1",
+        "qairt_version": null,
+        "dispatch_verified": false,
+        "context_source": "model_config",
+        "effective_compiled_context": null,
+        "backend": "geniex",
+        "device": "cpu",
+        "version": "0.6.1",
+        "config": {
+          "threads": 10,
+          "context": 4096,
+          "spec_type": "none",
+          "draft_tokens": 8,
+          "threads_batch": 0,
+          "ubatch": 0,
+          "n_batch": 0,
+          "plugin": "llama_cpp"
+        }
+      }
+    },
+    "qairt_npu": {
+      "model_load_s": 3.6055768001824617,
+      "prompt_sha256": "50bf2ebac5ebc83b4391678f80960f8e5ed91df6048a07b54b686df20bf1a9e1",
+      "prompt_length_chars": 2924,
+      "checks": {
+        "system_present": true,
+        "user_present": true,
+        "all_tool_names": true,
+        "all_tool_descriptions": true,
+        "closed_thinking_prefix": true
+      },
+      "task_response": {
+        "text": "<tool_call>\n{\"name\": \"list_files\"}\n</tool_call>",
+        "sampling": {
+          "requested_temperature": 0.0,
+          "sdk_top_k": 0,
+          "greedy_via_top_k": false,
+          "sdk_zero_temperature_uses_default": false
+        },
+        "profile": {
+          "ttft": 338385,
+          "media_time": 0,
+          "prompt_time": 338385,
+          "decode_time": 306688,
+          "prompt_tokens": 684,
+          "generated_tokens": 11,
+          "prefill_speed": 2021.366195310076,
+          "decoding_speed": 35.867070116861434,
+          "draft_n_total": 0,
+          "draft_n_accepted": 0,
+          "stop_reason": "eos"
+        },
+        "timings": {
+          "ttft": 0.338385,
+          "total": 0.6491212998516858
+        },
+        "backend_id": "qairt_npu",
+        "runtime": "qairt",
+        "requested_device": "npu",
+        "resolved_device": "NPU",
+        "device_resolution_warning": null,
+        "model_artifact_type": "QAIRT",
+        "model_path_or_id": "qwen3-06-qairt-x-elite",
+        "geniex_version": "0.6.1",
+        "qairt_version": null,
+        "dispatch_verified": false,
+        "context_source": "compiled_artifact",
+        "effective_compiled_context": 4096,
+        "backend": "geniex",
+        "device": "NPU",
+        "version": "0.6.1",
+        "config": {
+          "threads": 0,
+          "context": 4096,
+          "spec_type": "none",
+          "draft_tokens": 8,
+          "threads_batch": 0,
+          "ubatch": 0,
+          "n_batch": 0,
+          "plugin": "qairt"
+        }
+      },
+      "second_response": {
+        "text": "Pineapple",
+        "sampling": {
+          "requested_temperature": 0.0,
+          "sdk_top_k": 0,
+          "greedy_via_top_k": false,
+          "sdk_zero_temperature_uses_default": false
+        },
+        "profile": {
+          "ttft": 40366,
+          "media_time": 0,
+          "prompt_time": 40366,
+          "decode_time": 90477,
+          "prompt_tokens": 32,
+          "generated_tokens": 4,
+          "prefill_speed": 792.7463707080216,
+          "decoding_speed": 44.2101307514617,
+          "draft_n_total": 0,
+          "draft_n_accepted": 0,
+          "stop_reason": "eos"
+        },
+        "timings": {
+          "ttft": 0.040366,
+          "total": 0.13252019975334406
+        },
+        "backend_id": "qairt_npu",
+        "runtime": "qairt",
+        "requested_device": "npu",
+        "resolved_device": "NPU",
+        "device_resolution_warning": null,
+        "model_artifact_type": "QAIRT",
+        "model_path_or_id": "qwen3-06-qairt-x-elite",
+        "geniex_version": "0.6.1",
+        "qairt_version": null,
+        "dispatch_verified": false,
+        "context_source": "compiled_artifact",
+        "effective_compiled_context": 4096,
+        "backend": "geniex",
+        "device": "NPU",
+        "version": "0.6.1",
+        "config": {
+          "threads": 0,
+          "context": 4096,
+          "spec_type": "none",
+          "draft_tokens": 8,
+          "threads_batch": 0,
+          "ubatch": 0,
+          "n_batch": 0,
+          "plugin": "qairt"
+        }
+      }
+    }
+  },
+  "byte_identical_rendered_prompts": true,
+  "scope": "Diagnostic prompt parity and prompt-dependent generation, not isolated performance.",
+  "background_contamination": true,
+  "contamination_note": "Another Secretary development evaluation ran during this diagnostic. Do not compare these timings as benchmark evidence.",
+  "dispatch_evidence": "QAIRT plugin successfully loaded two compiled shards and HTP v73 runtime; see initialization excerpt. No per-graph execution trace or hardware utilization counters captured."
+}

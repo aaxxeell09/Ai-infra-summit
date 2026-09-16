@@ -31,6 +31,7 @@ def setup(tmp_path, monkeypatch, native):
     model = tmp_path / "weights.gguf"
     model.write_bytes(b"test weights only")
     exe = tmp_path / "fake-bench.py"
+    (tmp_path / "geniex.dll").write_bytes(b"packaged native bridge fixture")
     exe.write_text(f"""
 import json, sys, time
 from pathlib import Path
@@ -46,7 +47,7 @@ data.update(plugin=arg("--plugin"), device=arg("--device"),
             model_path=arg("-m"), cell_id=arg("--cell-id"))
 data["params"].update(warmup=int(arg("--warmup")), repetitions=r, n_prompt=p,
     n_gen=n, temperature=float(arg("--temperature")), seed=int(arg("--seed")),
-    n_ctx=0 if arg("--plugin") == "qairt" else int(arg("-c")), n_threads=int(arg("-t")))
+    n_ctx=int(arg("-c")), n_threads=int(arg("-t")))
 data["runs"] = [dict(data["runs"][i % 3], gen_tokens=n, prompt_tokens=p) for i in range(r)]
 mode = Path(arg("-m")).name
 if mode.startswith("partial"):
@@ -95,11 +96,12 @@ def test_plan_rejects_coercion_and_unselectable_compiled_context(setup):
     _, v, _ = setup
     q = replace(v, plugin="qairt", compiled_contexts=(4096,))
     cells = t.plan_cells([q], t.SearchSpace(devices=("cpu", "gpu", "npu", "hybrid"),
-                                           contexts=(2048, 4096)))
+                                           threads=(0,), contexts=(2048, 4096)))
     valid = [c for c in cells if c.unsupported_reason is None]
     assert [(c.device, c.context) for c in valid] == [("npu", 4096)]
     multi = replace(q, compiled_contexts=(2048, 4096))
-    assert all(c.unsupported_reason for c in t.plan_cells([multi], t.SearchSpace(devices=("npu",))))
+    assert all(c.unsupported_reason for c in t.plan_cells([multi], t.SearchSpace(devices=("npu",), threads=(0,))))
+    assert "thread axis" in t.plan_cells([q], t.SearchSpace(devices=("npu",), threads=(4,)))[0].unsupported_reason
 
 
 def test_bounded_validated_search_and_batch_capability(setup):
@@ -144,21 +146,29 @@ def test_qairt_bundle_without_projector_wires_shared_options_and_tokenizer(setup
     bundle = root / "bundle"
     bundle.mkdir()
     (bundle / "context.bin").write_bytes(b"compiled context fixture")
+    config = {"dialog": {"context": {"size": 4096}, "engine": {
+        "model": {"binary": {"ctx-bins": ["context.bin"]}}}}}
+    (bundle / "genie_config.json").write_text(json.dumps(config))
     image, prompt, tokenizer = [root / x for x in ("image.png", "prompt.txt", "tokenizer.json")]
     for p in (image, prompt, tokenizer):
         p.write_bytes(b"fixture")
     q = replace(v, path=str(bundle), plugin="qairt", kind="vlm",
                 compiled_contexts=(4096,), tokenizer_path=str(tokenizer))
-    space = t.SearchSpace(devices=("npu",), warmup=2, repeats=3, temperature=0.2, seed=17)
+    space = t.SearchSpace(devices=("npu",), threads=(0,), warmup=2, repeats=3, temperature=0.2, seed=17)
     cmd = t.build_command(exe, q, t.plan_cells([q], space)[0], space, image, prompt)
     assert "--vlm" in cmd and "--mmproj-path" not in cmd
     for flag, val in (("--tokenizer-path", str(tokenizer)), ("--warmup", "2"),
-                      ("-r", "3"), ("--temperature", "0.2"), ("--seed", "17")):
+                      ("-r", "3"), ("--temperature", "0.2"), ("--seed", "17"),
+                      ("-m", str(bundle / "context.bin")), ("-c", "0")):
         assert cmd[cmd.index(flag) + 1] == val
     record = t.run_tuning(exe, [q], space, root / "qairt-run", image_path=image, prompt_file=prompt)
     assert record["results"][0]["status"] == "completed"
     assert record["results"][0]["reported_params"]["n_ctx"] == 0
     assert record["recommended"]["context"] == 4096
+    config["dialog"]["context"]["size"] = 2048
+    (bundle / "genie_config.json").write_text(json.dumps(config))
+    with pytest.raises(t.TuningError, match="differs from QAIRT compiled"):
+        t.build_command(exe, q, t.plan_cells([q], space)[0], space, image, prompt)
 
 
 def test_fake_external_command_full_pipeline_incremental_record_and_export(setup):
@@ -422,3 +432,69 @@ def test_service_export_rejects_unapplyable_plugin_and_requires_explicit_group(s
     rec["results"][0]["model"]["tokenizer_path"] = "explicit-tokenizer.json"
     with pytest.raises(t.TuningError, match="artifact overrides"):
         t.recommendation_record(rec, group)
+
+
+@pytest.mark.parametrize('changed', ['model', 'tokenizer', 'mmproj', 'image', 'prompt'])
+def test_end_verification_rejects_changed_artifacts_and_later_promotion(setup,changed):
+    exe,v,root=setup
+    tokenizer=root/'tokenizer.json';tokenizer.write_text('{}')
+    mmproj=root/'projector.gguf';mmproj.write_bytes(b'fake projector')
+    image=root/'image.png';image.write_bytes(b'fake image')
+    prompt=root/'prompt.txt';prompt.write_text('fake prompt')
+    # The fake benchmark accepts VLM flags; no image/model decoding takes place.
+    v=replace(v,kind='vlm',tokenizer_path=str(tokenizer),mmproj_path=str(mmproj))
+    paths={'model':Path(v.path),'tokenizer':tokenizer,'mmproj':mmproj,'image':image,'prompt':prompt}
+    def mutate(done,total):
+        if done==total:paths[changed].write_bytes(b'changed after measurement')
+    rec=t.run_tuning(exe,[v],t.SearchSpace(),root/'run',image_path=image,prompt_file=prompt,progress=mutate)
+    assert rec['results'][0]['status']=='completed'
+    assert Path(rec['results'][0]['result_path']).is_file()
+    assert rec['input_verification']['status']=='failed'
+    assert not rec['results'][0]['input_verified']
+    assert rec['ranking']==[] and rec['pareto_frontier']==[] and rec['recommendations']=={}
+    assert rec['recommended'] is None and rec['recommendation'] is None
+    assert t.rank_results(rec['results'])==[]
+    with pytest.raises(t.TuningError,match='Input verification'):
+        t.recommendation_record(rec,rec['results'][0]['group_id'])
+    assert not (root/'run'/'recommended.json').exists()
+
+
+def test_end_verification_rejects_deleted_input(setup):
+    exe,v,root=setup
+    prompt=root/'prompt.txt';prompt.write_text('prompt')
+    rec=t.run_tuning(exe,[v],t.SearchSpace(),root/'run',prompt_file=prompt,
+                     progress=lambda *_:prompt.unlink())
+    assert rec['input_verification']['status']=='failed'
+    assert rec['results'][0]['status']=='completed' and rec['ranking']==[]
+
+
+def test_end_verification_budget_failure_keeps_raw_evidence_unranked(setup,monkeypatch):
+    exe,v,root=setup
+    real_sha=t._sha256
+    count=0
+    def bounded_hash(*args,**kwargs):
+        nonlocal count
+        count+=1
+        if count==2: raise TimeoutError('synthetic verification deadline exhausted')
+        return real_sha(*args,**kwargs)
+    monkeypatch.setattr(t,'_sha256',bounded_hash)
+    rec=t.run_tuning(exe,[v],t.SearchSpace(),root/'run')
+    assert rec['input_verification']['status']=='failed'
+    assert 'deadline' in rec['recommendation_error']
+    assert rec['ranking']==[] and rec['recommended'] is None
+    assert rec['results'][0]['status']=='completed'
+    assert Path(rec['results'][0]['result_path']).is_file()
+
+
+def test_unchanged_inputs_freshly_verified_and_remain_eligible(setup,monkeypatch):
+    exe,v,root=setup
+    real_sha=t._sha256;reads=[]
+    def capture(path,*args,**kwargs):
+        reads.append(str(path));return real_sha(path,*args,**kwargs)
+    monkeypatch.setattr(t,'_sha256',capture)
+    rec=t.run_tuning(exe,[v],t.SearchSpace(),root/'run')
+    assert reads.count(str(Path(v.path).resolve()))==2
+    assert rec['input_verification']['status']=='passed'
+    assert rec['input_verification']['before']==rec['input_verification']['after']
+    assert rec['results'][0]['input_verified'] is True
+    assert rec['ranking'] and rec['recommendation']

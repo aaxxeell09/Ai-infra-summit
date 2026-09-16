@@ -122,7 +122,12 @@ class GoldenTests(unittest.TestCase):
 
     def test_heldout_leakage_scan(self):
         heldout=[c for c in self.cases if c['split']=='heldout']
-        self.assertEqual(leakage(heldout),[])
+        from eval.leakage_audit import audit
+        report = audit(heldout=heldout)
+        self.assertEqual(report["unreviewed_exposure"], [])
+        self.assertEqual(report["archive_integrity_errors"], [])
+        self.assertFalse(report["heldout_unseen_by_developers"])
+        self.assertTrue(report["developer_archive_exposure"])
 
 
 if __name__=='__main__': unittest.main()

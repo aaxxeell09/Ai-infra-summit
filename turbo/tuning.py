@@ -11,6 +11,8 @@ import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+from .runtime_identity import binding_matches, runtime_identity
+
 
 class TuningError(ValueError):
     """Invalid request or unsupported benchmark capability."""
@@ -121,6 +123,8 @@ def plan_cells(variants, space, max_cells=256):
             reason = "unsupported device; automatic coercion is not tuning"
         elif v.plugin == "qairt" and device != "npu":
             reason = "qairt requires npu; device coercion rejected"
+        elif v.plugin == "qairt" and threads != 0:
+            reason = "qairt does not expose the llama.cpp thread axis"
         elif v.plugin == "qairt" and len(v.compiled_contexts or ()) != 1:
             reason = "qairt needs one compiled context per bundle; -c cannot select it"
         elif v.compiled_contexts is not None and str(context) not in map(str, v.compiled_contexts):
@@ -153,8 +157,20 @@ def build_command(bench_exe, variant, cell, space, image_path=None, prompt_file=
     for path in filter(None, paths):
         if not Path(path).exists():
             raise TuningError(f"missing local artifact: {path}")
+    model_path, native_context = str(Path(variant.path).resolve()), cell.context
+    if variant.plugin == "qairt":
+        from .native import _qairt_bundle_input
+        try:
+            model_path, compiled_context = _qairt_bundle_input(variant.path)
+        except ValueError as exc:
+            raise TuningError(str(exc)) from exc
+        if cell.context != compiled_context:
+            raise TuningError("registered context differs from QAIRT compiled artifact")
+        # Both the benchmark and ctypes bridge use the same C ABI: select the
+        # bundle via a declared shard, leaving compiled graph contexts intact.
+        native_context = 0
     cmd = [str(Path(bench_exe).resolve()), "--plugin", variant.plugin, "--device", cell.device,
-           "-m", str(Path(variant.path).resolve()), "-c", str(cell.context),
+           "-m", model_path, "-c", str(native_context),
            "-p", str(space.prompt_tokens), "-n", str(space.gen_tokens), "-t", str(cell.threads),
            "-r", str(space.repeats), "--warmup", str(space.warmup),
            "--temperature", str(space.temperature), "--seed", str(space.seed)]
@@ -212,7 +228,8 @@ def _group(row, energy=False):
 
 def _eligible(row):
     n = row.get("repeats")
-    return (row.get("status") == "completed" and type(n) is int and n > 0
+    return (row.get("status") == "completed" and row.get("input_verified", True) is True
+            and type(n) is int and n > 0
             and _positive(row.get("gen_tokens")) and _positive(row.get("prompt_tokens"))
             and row.get("full_length") is True and row.get("run_count") == n
             and row.get("complete_length_runs") == n and _group(row) is not None)
@@ -325,18 +342,24 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
     cells = plan_cells(variants, space)
     out = Path(output_dir).resolve()
     out.mkdir(parents=True, exist_ok=False)
-    deadline, cache = time.monotonic() + budget_s, {}
+    deadline, cache, references = time.monotonic() + budget_s, {}, {}
     record = dict(schema_version="turbo.tuning.v2", objective=objective, constraints=constraints,
-                  variability_penalty=variability_penalty, results=[], cells_planned=len(cells))
+                  variability_penalty=variability_penalty, results=[], cells_planned=len(cells),
+                  input_verification={"status":"pending"})
     def save():
         temp = out / "record.tmp"
         temp.write_text(json.dumps(record, indent=2, allow_nan=False), encoding="utf-8")
         temp.replace(out / "record.json")
     def fingerprint(path):
+        declared = str(Path(path).absolute())
         path = str(Path(path).resolve())
+        references.setdefault(declared, path)
         if path not in cache:
             cache[path] = _sha256(path, deadline)
         return cache[path]
+    runtime_binding = runtime_identity(bench_exe, deadline=deadline)
+    record["runtime_binding"] = runtime_binding
+    record["bench_exe"] = str(Path(bench_exe).resolve())
     save()
     for i, cell in enumerate(cells):
         variant = next(v for v in variants if v.id == cell.variant_id)
@@ -353,7 +376,8 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
             architecture=variant.architecture, quantization=variant.quantization,
             power_state=power_state, power_scope=str(out) if power_state == "unavailable" else "declared",
             result_path=str(target), log_path=str(log), status="pending", tokens_per_joule=None,
-            energy_valid=False, energy_reason="unavailable: runner does not capture energy")
+            energy_valid=False, energy_reason="unavailable: runner does not capture energy",
+            input_verified=False)
         record["results"].append(row)
         try:
             if cell.unsupported_reason:
@@ -371,7 +395,7 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
             for key in ("devices", "threads", "contexts", "batch", "ubatch", "energy_channel"):
                 workload.pop(key)
             row.update(command=cmd, artifact_sha256=artifacts, model_sha256=artifacts["model"],
-                runtime_sha256=fingerprint(bench_exe), workload=workload, workload_id=_digest(workload), status="running")
+                runtime_sha256=runtime_binding["sha256"], workload=workload, workload_id=_digest(workload), status="running")
             row["group_id"] = _group(row)
             save()
             remaining = min(timeout_s, deadline - time.monotonic())
@@ -385,6 +409,9 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
                 raise TimeoutError('native benchmark exceeded cell deadline')
             data = json.loads(target.read_text(encoding="utf-8-sig"), parse_constant=_invalid_constant)
             row.update(_parse_result_json(data, space.gen_tokens, space.repeats))
+            if variant.plugin == "qairt":
+                row["prefill_metric_kind"] = "runtime-reported prompt tokens divided by TTFT; may include compiled padding"
+                row["prefill_is_independent_measurement"] = False
             params = data.get("params") or {}
             expected = dict(repetitions=space.repeats, n_gen=space.gen_tokens, warmup=space.warmup,
                 temperature=space.temperature, seed=space.seed, n_threads=cell.threads,
@@ -408,6 +435,38 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
             save()
             if progress:
                 progress(i + 1, len(cells))
+    # Fresh reads deliberately bypass fingerprint's per-sweep cache. A failed or
+    # incomplete verification invalidates eligibility, not the retained raw trial.
+    verification={"status":"pending", "before":dict(cache), "after":{},
+                  "resolved_paths":dict(references)}
+    try:
+        for declared, resolved in references.items():
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Input verification exceeded total tuning budget")
+            if str(Path(declared).resolve()) != resolved:
+                raise TuningError("Input artifact path changed during tuning: " + declared)
+        for path, expected_hash in cache.items():
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Input verification exceeded total tuning budget")
+            current_hash = _sha256(path, deadline)
+            verification["after"][path] = current_hash
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Input verification exceeded total tuning budget")
+            if current_hash != expected_hash:
+                raise TuningError("Input artifact changed during tuning: " + path)
+        if not binding_matches(runtime_binding, runtime_identity(bench_exe, deadline=deadline)):
+            raise TuningError("Native SDK changed during tuning; recommendation rejected")
+        if time.monotonic() >= deadline:
+            raise TimeoutError("Input verification exceeded total tuning budget")
+        verification["status"] = "passed"
+    except (OSError, ValueError, TimeoutError, RuntimeError) as exc:
+        verification.update(status="failed", error=str(exc))
+    record["input_verification"] = verification
+    for row in record["results"]:
+        row["input_verified"] = verification["status"] == "passed"
+        if not row["input_verified"]:
+            row["input_verification_error"] = verification["error"]
+    save()
     ranked = rank_results(record["results"], objective, constraints, variability_penalty)
     recommendations = {r["group_id"]: r for r in ranked if r["rank"] == 1}
     record.update(ranking=ranked, pareto_frontier=pareto_frontier(record["results"]),
@@ -421,7 +480,7 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
         recpath = out / "recommended.json"
         recpath.write_text(json.dumps(record["recommendation"], indent=2, allow_nan=False), encoding="utf-8")
         record["recommendation_path"] = str(recpath)
-    except TuningError as exc:
+    except (OSError, ValueError, TimeoutError) as exc:
         record.update(recommendation=None, recommendation_path=None, recommendation_error=str(exc))
     save()
     return record
@@ -429,6 +488,9 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
 
 def recommendation_record(record, group_id=None):
     """Parent Engine.modes/apply contract; explicit group selection, no static profiles."""
+    verification=record.get("input_verification", {})
+    if verification.get("status") in ("pending", "failed"):
+        raise TuningError("Input verification failed or incomplete: " + verification.get("error", "pending"))
     # Unsupported/failed trials remain in the audit but must not erase
     # usable recommendations from the successful, comparable trials.
     groups = {_group(r) for r in record["results"] if _eligible(r)}
@@ -441,9 +503,9 @@ def recommendation_record(record, group_id=None):
         raise TuningError("no eligible measurements for service modes")
     first = rows[0]
     model = first["model"]
-    if (first["plugin"] != "llama_cpp" or first["kind"] != "llm"
+    if (first["plugin"] not in ("llama_cpp", "qairt") or first["kind"] != "llm"
             or model.get("tokenizer_path") or model.get("mmproj_path")):
-        raise TuningError("current parent apply supports llama_cpp LLM without artifact overrides only")
+        raise TuningError("current parent apply supports LLM without artifact overrides only")
     modes, unavailable = {}, {}
     for mode in ("fast", "efficient", "balanced"):
         ranked = rank_results(rows, mode, record.get("constraints"), record.get("variability_penalty", 0))
@@ -453,7 +515,8 @@ def recommendation_record(record, group_id=None):
         r = ranked[0]
         metrics = {k: r.get(k) for k in ("decode_tps", "prefill_tps", "latency_s", "tokens_per_joule")}
         metrics.update(median_decode_tps=r["decode_tps"], median_ttft_ms=r["ttft_ms"],
-                       median_peak_mib=r.get("peak_working_set_mb"))
+                       median_peak_mib=r.get("peak_working_set_mb"),
+                       energy_channel=r.get("energy_channel"), energy_scope=r.get("energy_scope"))
         modes[mode] = dict(device=r["device"], threads=r["threads"], context=r["context"],
             metrics=metrics, evidence=r["result_path"], command=r["command"],
             provisional=True, requires_paired_confirmation=True)
@@ -462,6 +525,7 @@ def recommendation_record(record, group_id=None):
     return dict(schema_version="turbo.recommended.v2", model_id=first["variant_id"],
         model_sha256=first["model_sha256"], model=model, plugin=first["plugin"],
         artifact_sha256=first["artifact_sha256"], runtime_sha256=first["runtime_sha256"],
+        runtime_binding=record.get("runtime_binding"),
         scope=dict(group_id=group_id, workload=first["workload"], power_state=first["power_state"],
             power_scope=first["power_scope"], quality_calibrated=False, cold_kv=True,
             evidence=str(Path(record["output_dir"]) / "record.json"),
@@ -475,6 +539,7 @@ def export_recommended(record, path, group_id=None):
         raise TuningError("no eligible recommendation; select a group for multiple models/workloads")
     config = dict(schema_version="turbo.recommended.v2", model=rec["model"],
         model_sha256=rec["model_sha256"], artifact_sha256=rec["artifact_sha256"],
+        runtime_binding=record.get("runtime_binding"),
         plugin=rec["plugin"], device=rec["device"], threads=rec["threads"], context=rec["context"],
         scope={k: rec[k] for k in ("group_id", "workload", "power_state", "power_scope", "runtime_sha256", "objective")},
         provisional=True, requires_paired_confirmation=True)

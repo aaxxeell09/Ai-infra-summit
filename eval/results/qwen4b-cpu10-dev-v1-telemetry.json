@@ -1,0 +1,92 @@
+{
+  "candidate_name": "qwen4b-cpu10-dev-v1",
+  "exit_code": 2,
+  "timed_out": false,
+  "energy": {
+    "duration_s": 263.68275889987126,
+    "channels": {
+      "SYS": {
+        "energy_j": 10089.423457937999,
+        "average_power_w": 38.26349322205505,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_0": {
+        "energy_j": 2166.5759367204,
+        "average_power_w": 8.216600682425042,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_1": {
+        "energy_j": 1766.3252928804,
+        "average_power_w": 6.69867571262454,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_2": {
+        "energy_j": 1800.6811788528,
+        "average_power_w": 6.828968213035787,
+        "tokens_per_joule": null
+      }
+    },
+    "unit": "picowatt-hours",
+    "scope": "full process trial including model initialization and any warmup",
+    "error": null
+  },
+  "raw_before": {
+    "monotonic_s": 2443058.1027695,
+    "channels_pwh": {
+      "SYS": 88796029944745,
+      "GPU": 153939076607,
+      "CPU_CLUSTER_0": 15843623838317,
+      "CPU_CLUSTER_1": 5225863315475,
+      "CPU_CLUSTER_2": 3923620637458
+    },
+    "error": null
+  },
+  "raw_after": {
+    "monotonic_s": 2443321.7855284,
+    "channels_pwh": {
+      "SYS": 91598647571950,
+      "GPU": 153939076607,
+      "CPU_CLUSTER_0": 16445450487406,
+      "CPU_CLUSTER_1": 5716509230164,
+      "CPU_CLUSTER_2": 4423809853806
+    },
+    "error": null
+  },
+  "power_before": {
+    "ac_line_status": "ac",
+    "battery_percent": 100,
+    "battery_flag": 1,
+    "battery_saver": false,
+    "active_scheme_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "power_mode": null
+  },
+  "power_after": {
+    "ac_line_status": "ac",
+    "battery_percent": 100,
+    "battery_flag": 1,
+    "battery_saver": false,
+    "active_scheme_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "power_mode": null
+  },
+  "peak_working_set_mib": 3833.91796875,
+  "sampled_peak_private_mib": 4928.1875,
+  "memory_samples": 3997,
+  "scope": "Complete evaluator child process: validation, hashes, model load, one uncounted warmup, cases, fixture execution and scoring, output serialization. Not inference-only or warm-task energy.",
+  "tokens_per_joule": null,
+  "tokens_per_joule_unavailable_reason": "Untimed warmup token counts are not in the runner report.",
+  "command": [
+    "python.exe",
+    "-X",
+    "utf8",
+    "eval/run_secretary_eval.py",
+    "--dataset",
+    "dev",
+    "--candidate-name",
+    "qwen4b-cpu10-dev-v1",
+    "--config",
+    "local/qwen4b-cpu10-config.json",
+    "--output-dir",
+    "local/qwen4b-evaluation"
+  ],
+  "supervisor_source": "observe_secretary_eval.py"
+}

@@ -1,0 +1,11 @@
+root ::= ws (envelope | "DONE") ws
+envelope ::= "<tool_call>" ws action ws "</tool_call>"
+action ::= action-0 | action-1 | action-2 | action-3 | action-4
+action-0 ::= "{" ws "\"name\"" ws ":" ws "\"list_files\"" ws "," ws "\"arguments\"" ws ":" ws "{" ws "}" ws "}"
+action-1 ::= "{" ws "\"name\"" ws ":" ws "\"read_file\"" ws "," ws "\"arguments\"" ws ":" ws "{" ws "\"path\"" ws ":" ws string ws "}" ws "}"
+action-2 ::= "{" ws "\"name\"" ws ":" ws "\"search_files\"" ws "," ws "\"arguments\"" ws ":" ws "{" ws "\"query\"" ws ":" ws string ws "}" ws "}"
+action-3 ::= "{" ws "\"name\"" ws ":" ws "\"move_file\"" ws "," ws "\"arguments\"" ws ":" ws "{" ws "\"path\"" ws ":" ws string ws "," ws "\"destination\"" ws ":" ws string ws "}" ws "}"
+action-4 ::= "{" ws "\"name\"" ws ":" ws "\"clarify\"" ws "," ws "\"arguments\"" ws ":" ws "{" ws "\"question\"" ws ":" ws string ws "}" ws "}"
+string ::= "\"" char+ "\""
+char ::= [^"\\\x00-\x1F] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
+ws ::= [ \t\n\r]*

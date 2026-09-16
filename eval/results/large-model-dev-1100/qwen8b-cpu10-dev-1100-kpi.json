@@ -1,0 +1,54 @@
+{
+  "success_rate_pct": 77.14285714285714,
+  "correct_tasks": 27,
+  "total_tasks": 35,
+  "median_e2e_ms": 9377.869,
+  "p95_e2e_ms": 38410.431,
+  "mean_e2e_ms": 15792.154314285714,
+  "latency_boundary": "recorded_task_latency_ms: evaluator task boundary; not user-facing cold E2E",
+  "latency_unavailable_reason": null,
+  "inference_latency_ms": {
+    "n": 35,
+    "mean": 15701.380114285714,
+    "median": 9274.73,
+    "p95": 38305.226,
+    "stddev": 11768.482710083208,
+    "cv": 0.7495189992487217,
+    "min": 6859.556,
+    "max": 39047.267
+  },
+  "gross_sys_j": 20167.8051565116,
+  "gross_sys_j_per_correct_task": 746.9557465374667,
+  "energy_denominator_complete": true,
+  "energy_scope": "full_process_energy",
+  "energy_qualification": "diagnostic_uncommissioned",
+  "energy_comparable": false,
+  "energy_unavailable_reason": null,
+  "invalid_count": 1,
+  "invalid_rate": 0.02857142857142857,
+  "clarify_accuracy": 11.11111111111111,
+  "clarify_cases": 9,
+  "generated_tokens": {
+    "n": 35,
+    "mean": 23.885714285714286,
+    "median": 22,
+    "p95": 33,
+    "stddev": 7.399409469964592,
+    "cv": 0.309783889292776,
+    "min": 15,
+    "max": 51
+  },
+  "total_generated_tokens": 836,
+  "error_taxonomy": {
+    "correct": 27,
+    "clarify_failure": 7,
+    "filesystem_state_failure": 3,
+    "invalid_format": 1,
+    "execution_failure": 1
+  },
+  "diagnostic_labels_overlap": true,
+  "publication": {
+    "private_original_sha256": "0341be0c9509901d93c7b6dd33e4b61c55c02ab830e027b4a08b486e53b88416",
+    "redaction": "Private Windows tools root replaced with ${QUALCOMM_TOOLS}; original sealed archive retained privately and verified before publication."
+  }
+}

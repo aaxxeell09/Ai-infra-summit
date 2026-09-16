@@ -1,6 +1,6 @@
 # Benchmark protocol
 
-The primary question is whether the Latitude generates tokens faster than the default configuration on identical weights and quantization. A separate experiment tests whether routing and context reduction complete local secretary tasks faster at comparable correctness.
+The primary objective is now to minimize **energy per correct Secretary task**, subject to acceptable accuracy, bounded task latency and existing safety gates. See [the task-energy protocol](energy-protocol.md) for exact boundaries, idle measurements and future commands, and [the decision matrix](decision-matrix.md) for current evidence. The throughput protocols below remain separate diagnostic experiments.
 
 ## Controlled inference comparison
 
@@ -29,4 +29,4 @@ Use disposable files. Score tool name, arguments and filesystem state, not plaus
 
 For context reduction, count its own time, final serialized prompt, recovery calls and cache effects. Preserve exact paths, numbers, dates and negation or provide explicit raw recovery. Character savings are not token savings.
 
-No final device result has been accepted yet. Inspect raw results and runtime configuration before publishing numbers; retain failed trials.
+Historical correctness and throughput results remain in `eval/results/` and `benchmarks/results/`. They do not supply the new warm-task energy comparison. Inspect raw results, lifecycle and runtime configuration before publishing numbers; retain failed trials.

@@ -1,0 +1,21 @@
+{
+  "sdk_dir": "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1",
+  "model_path": "${QUALCOMM_TOOLS}\\models\\gpt-oss-20b-MXFP4.gguf",
+  "backend": "llama_cpp_cpu",
+  "plugin": "llama_cpp",
+  "device": "cpu",
+  "threads": 10,
+  "threads_batch": 0,
+  "ubatch": 0,
+  "n_batch": 0,
+  "context": 4096,
+  "max_tokens": 128,
+  "grammar": false,
+  "spec_type": "none",
+  "draft_tokens": 8,
+  "hardware_note": "Dell Latitude 7455 Snapdragon X Elite 32GB; isolated CPU10 larger-model development trial; pinned model download checksum verified before execution",
+  "publication": {
+    "private_original_sha256": "e0375089e2cb3ab760957ba737589dfc79d4499a196ed24b36ed299b495d1ae8",
+    "redaction": "Private Windows tools root replaced with ${QUALCOMM_TOOLS}; original sealed archive retained privately and verified before publication."
+  }
+}

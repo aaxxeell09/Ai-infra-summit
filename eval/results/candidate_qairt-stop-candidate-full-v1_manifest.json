@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "candidate_name": "qairt-stop-candidate-full-v1",
+  "application_commit": "728c6a2ad72917a8173f88cf647360bb83269c0a",
+  "benchmark_version": "secretary-eval-v2",
+  "status": "queued_not_measured",
+  "change": "Enable native streaming callback cancellation after the first literal closing tool_call delimiter. All native full_text and token/profile data remain unmodified; scoring remains unchanged.",
+  "expected_improvement": "Reduce unwanted trailing actions and generation time. Native cancellation and semantic correctness must be measured; this is not a native decode-throughput claim.",
+  "model": "Official Qualcomm Qwen3-0.6B v0.62.2 W4A16 Snapdragon X Elite QAIRT bundle",
+  "runtime": "GenieX 0.6.1 / qairt",
+  "config": {
+    "backend": "qairt_npu",
+    "plugin": "qairt",
+    "device": "npu",
+    "threads": 0,
+    "context": 4096,
+    "max_tokens": 128,
+    "stop_after_tool_call": true
+  },
+  "control_candidate_name": "qairt-stop-control-full-v1",
+  "control_difference": "stop_after_tool_call is false; all other configuration fields are identical and both runs use the same clean commit.",
+  "private_required_config": [
+    "sdk_dir",
+    "model_path",
+    "hardware_note"
+  ],
+  "development_command": "pythonw -X utf8 scripts/observe_secretary_eval.py qairt-stop-candidate-dev-v1 dev --config local/qairt-stop-candidate.json --output-dir local/qairt-stop-recovery-0600",
+  "full_command": "pythonw -X utf8 scripts/observe_secretary_eval.py qairt-stop-candidate-full-v1 all --config local/qairt-stop-candidate.json --output-dir local/qairt-stop-recovery-0600",
+  "control_full_command": "pythonw -X utf8 scripts/observe_secretary_eval.py qairt-stop-control-full-v1 all --config local/qairt-stop-control.json --output-dir local/qairt-stop-recovery-0600",
+  "limitations": [
+    "Literal streaming delimiter detection is not a JSON-aware grammar; malformed or semantically wrong actions remain failures.",
+    "Cancellation cannot undo suffix text already produced in the same native chunk.",
+    "QAIRT sampling retains the documented v0.6.1 bundle-default behavior; zero requested temperature does not establish greedy sampling.",
+    "Retain NOT_COMPARABLE against the historical baseline when evaluator provenance differs. Do not replace or re-freeze the baseline."
+  ],
+  "launch_note": "Original waiting supervisor exited before inference. Recovery uses windowless Python; clean source and control/candidate inference configuration are unchanged."
+}

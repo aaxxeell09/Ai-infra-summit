@@ -25,7 +25,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PARENT_ROOT = Path("/Users/user/Documents/Qualcomm/Ai-infra-summit")
 sys.path.insert(0, str(REPO_ROOT))
 
 from turbo.mcp_server import (  # noqa: E402
@@ -494,7 +493,11 @@ STUB_C = textwrap.dedent("""
 def build_stub_dylib(workdir: Path) -> Path:
     cc = shutil.which("cc") or shutil.which("clang") or shutil.which("gcc")
     src = workdir / "stub.c"
-    dylib = workdir / "libgeniex.dylib"
+    if sys.platform == "win32":
+        raise unittest.SkipTest("MCP compiled ABI stub currently supports POSIX shared-library toolchains only")
+    if cc is None:
+        raise unittest.SkipTest("MCP ABI integration requires a C compiler (cc, clang or gcc)")
+    dylib = workdir / ("libgeniex.dylib" if sys.platform == "darwin" else "libgeniex.so")
     src.write_text(STUB_C)
     subprocess.run([cc, "-shared", "-o", str(dylib), str(src)], check=True)
     return dylib
@@ -503,9 +506,9 @@ def build_stub_dylib(workdir: Path) -> Path:
 @contextlib.contextmanager
 def real_engine_server(tmp: Path, recommendation_file: Path):
     """Boot the REAL parent Engine (no hardware: stub dylib, stdlib HTTP)."""
-    model_src = PARENT_ROOT / "local" / "Qwen3-0.6B-Q4_0.gguf"
     model_path = tmp / "model.gguf"
-    shutil.copyfile(model_src, model_path)  # tiny 0.6B q4_0 file, read-only use
+    # No inference is exercised: an opaque local artifact tests hash binding.
+    model_path.write_bytes(b"synthetic MCP hash-binding fixture; not model weights")
     config = {
         "sdk_dir": str(tmp),
         "models": {"qwen06": {"path": str(model_path)}},
@@ -513,31 +516,22 @@ def real_engine_server(tmp: Path, recommendation_file: Path):
         "recommendation_file": str(recommendation_file),
         "results_dir": str(tmp / "results"),
         "data_dir": str(tmp / "data"),
+        "tuner": {"exe": str(tmp / "bench.exe")},
         "profiles": [],
     }
     cfg_path = tmp / "config.json"
     cfg_path.write_text(json.dumps(config))
-    sys.path.insert(0, str(PARENT_ROOT))
-    for name in list(sys.modules):
-        if name == "turbo" or name.startswith("turbo."):
-            del sys.modules[name]
+    from turbo.service import Engine, handler
+    engine = Engine(json.loads(cfg_path.read_text()))
+    server = ThreadingHTTPServer(("127.0.0.1", 0), handler(engine))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
     try:
-        from turbo.service import Engine, handler
-        engine = Engine(json.loads(cfg_path.read_text()))
-        server = ThreadingHTTPServer(("127.0.0.1", 0), handler(engine))
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
-        thread.start()
-        try:
-            yield engine, server.server_address[1]
-        finally:
-            server.shutdown()
-            server.server_close()
+        yield engine, server.server_address[1]
     finally:
-        for name in list(sys.modules):
-            if name == "turbo" or name.startswith("turbo."):
-                del sys.modules[name]
-        sys.path.remove(str(PARENT_ROOT))
-        sys.path.insert(0, str(REPO_ROOT))
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
 
 
 def mcp_exchange(proc, msg):
@@ -557,24 +551,31 @@ class RealEngineIntegrationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp = Path(tempfile.mkdtemp(prefix="mcp-e2e-"))
+        cls.addClassCleanup(shutil.rmtree, cls.tmp, ignore_errors=True)
         build_stub_dylib(cls.tmp)
-        rec = dict(REC_V1)
+        rec = json.loads(json.dumps(REC_V1))
+        from turbo.runtime_identity import runtime_identity
+        exe = cls.tmp / 'bench.exe'; exe.write_bytes(b'benchmark fixture')
+        rec.update(schema_version='turbo.recommended.v2',plugin='llama_cpp',
+                   runtime_binding=runtime_identity(exe,cls.tmp))
+        rec['modes']['efficient']['metrics'].update(energy_channel='SYS',energy_scope='full_process_trial')
         rec["model_sha256"] = "0" * 64  # placeholder; Engine verifies model hash on apply
         rec_path = cls.tmp / "recommended.json"
-        # Reuse the real model's measured record; engine.hash check needs the
-        # actual sha of the copied weights, so compute it here.
+        # Match the synthetic artifact created by real_engine_server.
         import hashlib
-        digest = hashlib.file_digest(open(PARENT_ROOT / "local" / "Qwen3-0.6B-Q4_0.gguf", "rb"), "sha256").hexdigest()
-        rec["model_sha256"] = digest
+        rec["model_sha256"] = hashlib.sha256(
+            b"synthetic MCP hash-binding fixture; not model weights").hexdigest()
         rec_path.write_text(json.dumps(rec))
         cls.ctx = real_engine_server(cls.tmp, rec_path)
         cls.engine, cls.port = cls.ctx.__enter__()
+        cls.addClassCleanup(cls.ctx.__exit__, None, None, None)
         env = dict(os.environ, TURBO_BASE_URL="http://127.0.0.1:%d" % cls.port,
                    PYTHONPATH=str(REPO_ROOT))
         cls.proc = subprocess.Popen(
             [sys.executable, "-m", "turbo.mcp_server"],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, text=True, env=env, cwd=str(REPO_ROOT))
+        cls.addClassCleanup(cls._stop_process)
         init = mcp_exchange(cls.proc, {
             "jsonrpc": "2.0", "id": 1, "method": "initialize",
             "params": {"protocolVersion": "2025-06-18", "capabilities": {},
@@ -585,11 +586,11 @@ class RealEngineIntegrationTests(unittest.TestCase):
         cls.proc.stdin.flush()
 
     @classmethod
-    def tearDownClass(cls):
+    def _stop_process(cls):
         cls.proc.kill()
         cls.proc.wait(timeout=5)
-        cls.ctx.__exit__(None, None, None)
-        shutil.rmtree(cls.tmp, ignore_errors=True)
+        for stream in (cls.proc.stdin, cls.proc.stdout, cls.proc.stderr):
+            stream.close()
 
     def call(self, name, arguments, id=99):
         resp = mcp_exchange(self.proc, {"jsonrpc": "2.0", "id": id,

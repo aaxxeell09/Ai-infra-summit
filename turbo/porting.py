@@ -41,9 +41,31 @@ class GGUFError(ValueError):
 _SCALARS = {0: 1, 1: 1, 2: 2, 3: 2, 4: 4, 5: 4, 6: 4, 7: 1, 10: 8, 11: 8, 12: 8}
 
 
+# Resource bounds for an offline architecture scan, not runtime format limits.
+_MAX_METADATA_ITEMS = 1_000_000
+_MAX_ARRAY_DEPTH = 16
+_MAX_READ_STRING_BYTES = 1024 * 1024
+
+
+def _remaining(fh):
+    position = fh.tell()
+    end = fh.seek(0, 2)
+    fh.seek(position)
+    return end - position
+
+
+def _require(fh, length, label):
+    if length < 0 or length > _remaining(fh):
+        raise GGUFError('truncated ' + label)
+
+
+def _skip(fh, length, label):
+    _require(fh, length, label)
+    fh.seek(length, 1)
+
+
 def read_gguf_arch(path: Path) -> str | None:
-    """Return general.architecture from GGUF metadata, or None if absent."""
-    size = path.stat().st_size
+    """Return general.architecture, with bounded allocation and metadata work."""
     with path.open("rb") as fh:
         if fh.read(4) != b"GGUF":
             raise GGUFError("bad magic")
@@ -51,18 +73,21 @@ def read_gguf_arch(path: Path) -> str | None:
         if version not in (2, 3):
             raise GGUFError(f"unsupported GGUF version {version}")
         _uint(fh, 8)  # tensor count (unused for metadata scan)
-        for _ in range(_uint(fh, 8)):
+        count = _uint(fh, 8)
+        if count > _MAX_METADATA_ITEMS or count > _remaining(fh) // 13:
+            raise GGUFError('metadata count exceeds scan budget or remaining bytes')
+        budget = [_MAX_METADATA_ITEMS]
+        for _ in range(count):
             key = _string(fh)
             vtype = _uint(fh, 4)
             if vtype == 8 and key.decode("utf-8", "replace") == "general.architecture":
                 return _string(fh).decode("utf-8", "replace")
-            _skip_value(fh, vtype)
-            if fh.tell() > size:
-                raise GGUFError("metadata exceeds file size")
+            _skip_value(fh, vtype, budget=budget)
     return None
 
 
 def _uint(fh, n: int) -> int:
+    _require(fh, n, 'integer')
     data = fh.read(n)
     if len(data) != n:
         raise GGUFError("truncated integer")
@@ -71,23 +96,41 @@ def _uint(fh, n: int) -> int:
 
 def _string(fh) -> bytes:
     length = _uint(fh, 8)
+    _require(fh, length, 'string')
+    if length > _MAX_READ_STRING_BYTES:
+        raise GGUFError('metadata key/architecture string exceeds scan allocation budget')
     data = fh.read(length)
     if len(data) != length:
         raise GGUFError("truncated string")
     return data
 
 
-def _skip_value(fh, vtype: int) -> None:
+def _skip_value(fh, vtype: int, *, depth=0, budget=None) -> None:
+    if budget is None:
+        budget = [_MAX_METADATA_ITEMS]
+    if budget[0] <= 0:
+        raise GGUFError('metadata exceeds scan work budget')
+    budget[0] -= 1
     if vtype == 8:
-        _string(fh)
-    elif vtype == 9:  # array: element type, count, elements
+        _skip(fh, _uint(fh, 8), 'string')
+    elif vtype == 9:
+        if depth >= _MAX_ARRAY_DEPTH:
+            raise GGUFError('metadata array nesting exceeds scan budget')
         etype, count = _uint(fh, 4), _uint(fh, 8)
-        for _ in range(count):
-            _skip_value(fh, etype)
+        if etype not in _SCALARS and etype not in (8, 9):
+            raise GGUFError(f"unknown metadata type {etype}")
+        if etype in _SCALARS:
+            _skip(fh, count * _SCALARS[etype], 'scalar array')
+        else:
+            minimum = 8 if etype == 8 else 12
+            if count > budget[0] or count > _remaining(fh) // minimum:
+                raise GGUFError('array count exceeds scan budget or remaining bytes')
+            for _ in range(count):
+                _skip_value(fh, etype, depth=depth+1, budget=budget)
     elif vtype not in _SCALARS:
         raise GGUFError(f"unknown metadata type {vtype}")
     else:
-        fh.read(_SCALARS[vtype])
+        _skip(fh, _SCALARS[vtype], 'scalar')
 
 
 def preflight(manifest: dict, model_path: str | None = None,

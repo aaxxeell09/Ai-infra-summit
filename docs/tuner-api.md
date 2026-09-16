@@ -45,12 +45,13 @@ Cartesian product before allocating it. Unsupported combinations remain visible
 as `Cell.unsupported_reason`. `batch`/`ubatch` are unsupported planned SDK
 capabilities; no batch flags are emitted. QAIRT accepts only explicit NPU cells.
 
-**QAIRT context is compiled into the bundle.** The captured official
-`benchmark.c` forces its runtime `n_ctx` to zero. Each QAIRT variant therefore
-requires exactly one registered compiled context and a bundle directory; every
-other context is rejected. Register a distinct variant/path per compiled
-context. `-c` is preserved in the command for reproducibility but does not
-select or recompile a QAIRT context. Its report's `params.n_ctx=0` is retained.
+**QAIRT context is compiled into the bundle.** Register its maximum context
+as one `compiled_contexts` entry; internal graph buckets such as 512/1024/4096
+are selected by the runtime, not separate `-c` sweep values. The adapter reads
+`genie_config.json`, verifies every declared shard, passes one shard as `-m`
+and explicitly passes `-c 0`. A registration that disagrees with the artifact
+is rejected. Only `device=npu` and `threads=0` are supported; llama.cpp thread
+axes must not be represented as QAIRT optimizations.
 
 `build_command(exe, variant, cell, space, image_path=None, prompt_file=None,
 output_json=None, cell_id=None)` emits supported native flags:
@@ -70,8 +71,11 @@ output_json=None, cell_id=None)` emits supported native flags:
 Support was checked against the locally captured official GenieX `options.c`,
 `benchmark.c`, and `run.c` in the parent's `local/geniex-research/`. The raw
 schema-4 fixture is `benchmarks/results/screen-01/cpu-t0.json`. These changes
-were verified offline; no native hardware validation or new network experiments
-were performed.
+include real Latitude QAIRT command validation: two complete 32-token trials
+through the compiled bundle after the shard/context fix. The screening cell
+had no comparator and establishes no optimization gain. QAIRT prefill is
+marked as runtime-reported prompt tokens / TTFT, potentially including compiled
+padding, rather than an independent prefill measurement.
 
 ## Runner and failure handling
 
@@ -129,10 +133,10 @@ required metrics are ineligible.
 
 Constraints use `{"rules": [["decode_tps", "min", 80],
 ["peak_working_set_mb", "max", 8000]]}`; missing constrained metrics exclude a
-row. This runner leaves memory/energy unavailable rather than inventing them.
-Energy capture from the parent telemetry layer is deliberately not integrated
-in this correction. Setting `energy_channel` alone does not enable it, and an
-`efficient` sweep consequently returns no recommendation.
+row. On Windows, the runner observes child-process peak working set and
+Energy Meter SYS counter deltas, including process startup and model loading.
+Efficient mode requires a valid full-process interval, known AC/battery state,
+full-length outputs, and `warmup=0`. Missing or stale readings remain unavailable.
 
 An external telemetry adapter may supply `energy_valid=true`, positive
 `energy_j` and `energy_duration_s`, `energy_scope="full_process_trial"`, a
@@ -259,3 +263,24 @@ arguments. It asserts the new measured configuration and model SHA are honored,
 and rejects absent efficient modes and another model's weights. The benchmark
 side is an external fake CLI using the real schema-4 fixture. This is software
 contract validation, not a claim of a new Latitude benchmark.
+
+
+## Runtime binding and application
+
+New recommendations include `runtime_binding`: SHA-256 of the benchmark executable
+and native SDK libraries, recursively including QAIRT HTP libraries. Relative
+manifest paths survive SDK relocation. The manifest excludes Windows, firmware
+and drivers, which remain separate experiment provenance.
+
+The tuner checks the SDK before and after measurements. The service verifies the
+model or complete bundle hash, plugin and SDK binding before applying a mode.
+Changed, missing or added libraries reject stale recommendations. A service with
+an already loaded SDK also retains its original identity and requires restart
+when disk bytes change; it cannot fix DLL residency by closing a model.
+Legacy records without a runtime manifest require a fresh tune.
+
+LLM recommendations support both `llama_cpp` and `qairt`. For QAIRT HTTP tuning,
+register the bundle's compiled context and configure `tuner.prompt_file` locally.
+This path supplies the same text workload to each selected backend. QAIRT modes
+remain provisional and `quality_calibrated=false`; a working apply path does
+not override the failed Secretary quality result.

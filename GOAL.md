@@ -8,12 +8,12 @@ Make a Snapdragon laptop a fast, private local AI workstation. Automatically mea
 
 Pitch: **Getting a model onto a Snapdragon is easy; getting it fast is guesswork. This removes the guesswork.**
 
-Native decode tokens/s is the core runtime target. Separately measure prefill throughput, time to first token and total useful task time. A faster incorrect action is not an accepted improvement. Fewer output tokens, context reduction and routing can improve task time without improving native decode speed; report these effects separately.
+The product target is time and energy to a correct useful task, with native decode tokens/s as a component metric. Separately measure prefill throughput, time to first token and total useful task time. A faster incorrect action is not an accepted improvement. Fewer output tokens, context reduction and routing can improve task time without improving native decode speed; report these effects separately.
 
 ## Hardware and offline requirement
 
 - Primary: Dell Latitude 7455, Snapdragon X Elite X1E80100, 32 GB RAM, Adreno X1-85, Windows ARM64.
-- Optional edge node/controller: Arduino UNO Q ABX00162 with Modulino buttons, knob, buzzer, pixels and vibration modules as available. Register it as a separate device only after probing its actual capabilities. Linux ARM64 CPU inference is a candidate, not a proven capability yet.
+- Optional edge node/controller: Arduino UNO Q ABX00162 with Modulino buttons, knob, buzzer, pixels and vibration modules as available. Register it as a separate device only after probing its actual capabilities. Linux ARM64 CPU inference is demonstrated with SmolLM2-360M Q8_0; the two diagnostic outputs failed exact formatting and do not establish Secretary eligibility. See `benchmarks/results/uno-q-smoke-01/`.
 - Core operation must work without the internet after installation and model download. No hidden cloud inference or hosted scoring dependency.
 - Credentials, addresses, connection details, model weights and raw private captures stay outside Git.
 
@@ -97,8 +97,27 @@ Greedy top-k workaround candidate (`41260c4`): **29/50 (58%)**, mean inference *
 
 ## Immediate priorities
 
-1. Preserve/publish the official reference and candidate failures. The 1.7B CPU/10 model substitution now measured 34/50 (68%), 2839.033 ms mean and 1530.137 ms median inference, with a failed gate (8% invalid output and one critical move regression). More parameters alone did not solve correctness or latency; test larger/instruction-specialized candidates without weakening the gate.
-2. Make recommendation application robust, finish live MCP integration and test the real end-to-end task path.
-3. Finish the 4B download; add verified 8B/14B/20–25B candidates and measured large-to-small routing.
-4. Integrate teammate frontend and the functional UNO Q controller without obscuring correctness failures.
-5. Pursue GenieX/prefix/batch/speculation/context improvements through isolated ablations and candidate gates, with a truthful reproducible demo.
+1. Secure unattended access before the Latitude is left at the venue. Fresh Tailscale SSH is verified after the Mac changed networks, and the local tunnel supervisor restarts successfully. Graphical desktop authentication still needs the Microsoft-backed Windows account credential. Keep the machine awake with a bounded process-scoped request.
+2. **QAIRT artifact and first full evaluation are complete.** Official Qwen3-0.6B W4A16 loaded on HTP v73; full result is 23/50 (46%), mean inference 786.338 ms, 34% invalid outputs. Distinguish its compiled deployment from GGUF CPU/HTP. Preserve all failures and do not qualify the model from throughput alone.
+3. Coordinate evaluator provenance with Axel before a formal comparison: the historical-reference guard correctly reports NOT_COMPARABLE. The questions, expected actions and scoring were preserved. Resolve the scanner's false positives on archived result reports with benchmark ownership.
+4. Complete the hash-bound tuner → recommendation → exact apply → correct task → MCP loop. Wire teammate frontend to real sequential trials. Hardware policy changes must alter the same applied configuration and show acknowledged feedback.
+5. Make Secretary reliable. Keep the measured CPU10 path; independently test production-schema grammar and conservative preconditions without changing golden answers. Coordinate any evaluation-adapter extension with Axel. The 1.7B result (34/50, 68%, 2839.033 ms mean, failed gate) does not establish a dependable larger-model solution.
+6. After the first QAIRT comparison, select one exposed QAIRT tuning experiment from evidence. Then resume 4B/8B/20–25B quality/routing trials and isolated prefix/KV, batch, speculation and local context experiments. UNO Q now has a real SmolLM2-360M CPU run; its exact-output failures prevent task admission. Physical controller acknowledgement remains pending.
+
+The supplied Henry V2 synthesis is research evidence. Its exact-runtime checks, output-validity findings, separate prefill-thread experiment and measurement cautions guide implementation. The subsequent explicit Qualcomm feedback makes the clean QAIRT comparison the immediate priority. See `docs/qairt-roadmap.md` for the execution gates.
+
+
+Latest access state: offsite Tailscale SSH returned on the evening of September 15.
+A fresh checkout pinned to `16d1313` completed two real QAIRT tune/apply/MCP cycles;
+both invoice tasks failed. The verified 4B transfer is underway. Overnight work
+is authorized through September 16 at 09:00 Pacific, with bounded jobs and cost
+controls. See `docs/overnight-handoff.md` for the current checkpoint.
+
+
+September 16, 11:00 UTC checkpoint: the isolated opt-in constrained feedback
+diagnostic moved the requested invoice with all file hashes verified. Its
+existing exact-call verifier still fails because it used extra search/list
+steps. This is not a v2 result or an accepted integrated demo. Both 8B and
+20B artifacts are downloaded and checksum-verified; sequential development
+evaluations are queued through the immutable tracker. See the latest section
+of `docs/overnight-handoff.md` for source, evidence, jobs and remaining gates.

@@ -1,0 +1,92 @@
+{
+  "candidate_name": "qairt-native-06-v1",
+  "exit_code": 2,
+  "timed_out": false,
+  "energy": {
+    "duration_s": 54.04456329997629,
+    "channels": {
+      "SYS": {
+        "energy_j": 760.7349677916,
+        "average_power_w": 14.076068365454509,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_0": {
+        "energy_j": 155.4377067324,
+        "average_power_w": 2.8761025576178203,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_1": {
+        "energy_j": 21.499529238,
+        "average_power_w": 0.3978111381651119,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_2": {
+        "energy_j": 0.5967424692,
+        "average_power_w": 0.011041674365796231,
+        "tokens_per_joule": null
+      }
+    },
+    "unit": "picowatt-hours",
+    "scope": "full process trial including model initialization and any warmup",
+    "error": null
+  },
+  "raw_before": {
+    "monotonic_s": 2432214.8106643,
+    "channels_pwh": {
+      "SYS": 85027095730910,
+      "GPU": 153715524668,
+      "CPU_CLUSTER_0": 15377386841367,
+      "CPU_CLUSTER_1": 5111092341222,
+      "CPU_CLUSTER_2": 3892861870160
+    },
+    "error": null
+  },
+  "raw_after": {
+    "monotonic_s": 2432268.8552276,
+    "channels_pwh": {
+      "SYS": 85238410999741,
+      "GPU": 153715524668,
+      "CPU_CLUSTER_0": 15420563982126,
+      "CPU_CLUSTER_1": 5117064432677,
+      "CPU_CLUSTER_2": 3893027631957
+    },
+    "error": null
+  },
+  "power_before": {
+    "ac_line_status": "ac",
+    "battery_percent": 100,
+    "battery_flag": 1,
+    "battery_saver": false,
+    "active_scheme_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "power_mode": null
+  },
+  "power_after": {
+    "ac_line_status": "ac",
+    "battery_percent": 100,
+    "battery_flag": 1,
+    "battery_saver": false,
+    "active_scheme_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "power_mode": null
+  },
+  "peak_working_set_mib": 2674.46484375,
+  "sampled_peak_private_mib": 746.68359375,
+  "memory_samples": 1073,
+  "scope": "Complete evaluator child process: validation, hashes, model load, one uncounted warmup, cases, fixture execution and scoring, output serialization. Not inference-only or warm-task energy.",
+  "tokens_per_joule": null,
+  "tokens_per_joule_unavailable_reason": "Untimed warmup token counts are not in the runner report.",
+  "command": [
+    "python.exe",
+    "-X",
+    "utf8",
+    "eval/run_secretary_eval.py",
+    "--dataset",
+    "all",
+    "--candidate-name",
+    "qairt-native-06-v1",
+    "--config",
+    "local/qairt-secretary.json",
+    "--output-dir",
+    "local/qairt-evaluation"
+  ],
+  "supervisor_source": "qairt_eval_supervisor.py"
+}

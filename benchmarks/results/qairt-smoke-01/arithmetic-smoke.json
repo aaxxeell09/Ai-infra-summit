@@ -1,0 +1,52 @@
+{
+  "text": "5",
+  "sampling": {
+    "requested_temperature": 0.0,
+    "sdk_top_k": 0,
+    "greedy_via_top_k": false,
+    "sdk_zero_temperature_uses_default": false
+  },
+  "profile": {
+    "ttft": 30745,
+    "media_time": 0,
+    "prompt_time": 30745,
+    "decode_time": 13392,
+    "prompt_tokens": 37,
+    "generated_tokens": 2,
+    "prefill_speed": 1203.447715075622,
+    "decoding_speed": 149.34289127837516,
+    "draft_n_total": 0,
+    "draft_n_accepted": 0,
+    "stop_reason": "eos"
+  },
+  "timings": {
+    "ttft": 0.030745,
+    "total": 0.04728990001603961
+  },
+  "backend_id": "qairt_npu",
+  "runtime": "qairt",
+  "requested_device": "npu",
+  "resolved_device": "NPU",
+  "device_resolution_warning": null,
+  "model_artifact_type": "QAIRT",
+  "model_path_or_id": "qwen3-06-qairt-x-elite",
+  "geniex_version": "0.6.1",
+  "qairt_version": null,
+  "dispatch_verified": false,
+  "context_source": "compiled_artifact",
+  "effective_compiled_context": 4096,
+  "backend": "geniex",
+  "device": "NPU",
+  "version": "0.6.1",
+  "config": {
+    "threads": 0,
+    "context": 4096,
+    "spec_type": "none",
+    "draft_tokens": 8,
+    "threads_batch": 0,
+    "ubatch": 0,
+    "n_batch": 0,
+    "plugin": "qairt"
+  },
+  "model_sha256": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446"
+}

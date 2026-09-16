@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "candidate_name": "qairt-native-06-v1",
+  "application_commit": "ef9bb660a98bf7779c06b722969597f7f5c79c06",
+  "branch": "main",
+  "working_tree_clean": true,
+  "benchmark_version": "secretary-eval-v2",
+  "baseline": "eval/results/baseline.json",
+  "change": "Official Qualcomm Qwen3-0.6B W4A16 mixed-precision compiled artifact through native GenieX QAIRT, instead of the GGUF Q4_0 llama.cpp deployment. No grammar, routing, speculation or prompt changes. This is a deployment comparison, not a same-weights kernel speedup.",
+  "expected_improvement": "Test native NPU task latency and full-process SYS energy while preserving all correctness failures. No improvement is presumed.",
+  "model": "qwen3-06-qairt-x-elite",
+  "model_sha256": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446",
+  "runtime": "GenieX 0.6.1 / QAIRT",
+  "backend": "qairt_npu",
+  "config": {
+    "backend": "qairt_npu",
+    "device": "npu",
+    "plugin": "qairt",
+    "max_tokens": 128,
+    "hardware_note": "Latitude 7455; X1E80100; 32 GB; Windows ARM64. Exclusive inference; downloads and board inference stopped; AC power. SDK default diagnostic logging to file. See paired telemetry sidecar for observed power state."
+  },
+  "compiled_context": 4096,
+  "native_n_ctx": 0,
+  "private_required_config": [
+    "sdk_dir: unpacked Windows ARM64 v0.6.1 benchmark SDK root",
+    "model_path: local imported bundle directory containing genie_config.json and both declared shards"
+  ],
+  "environment": {
+    "PYTHONUTF8": "1",
+    "GENIEX_QAIRT_LIB": null,
+    "GENIEX_CLOCK_KEEPER_THREADS": null,
+    "GENIEX_DECODE_WORKERS": null,
+    "GENIEX_DECODE_POLL": null
+  },
+  "run_command": "python -X utf8 eval/run_secretary_eval.py --dataset all --candidate-name qairt-native-06-v1 --config local/qairt-secretary.json --output-dir local/qairt-evaluation",
+  "telemetry_command": "python -X utf8 scripts/observe_secretary_eval.py qairt-native-06-v1 all --config local/qairt-secretary.json --output-dir local/qairt-evaluation",
+  "status": "measured_not_qualified",
+  "quality_gate": "NOT_COMPARABLE",
+  "comparability_reason": [
+    "Incompatible evaluator_sha256"
+  ],
+  "result": "eval/results/candidate_qairt-native-06-v1.json",
+  "runtime_components": "eval/results/candidate_qairt-native-06-v1_runtime.json",
+  "telemetry": "eval/results/candidate_qairt-native-06-v1_telemetry.json",
+  "generation_note": "Runner requests temperature 0; this does not establish the effective sampler. Artifact sampler is temp 0.8/top-k 40/top-p 0.95/seed 42. No sampler modifications applied.",
+  "dispatch_note": "QAIRT plugin, two compiled shards, HTP v73 initialization and prompt-dependent outputs observed. Generic SDK dispatch_verified remains false; no per-graph execution trace or utilization counter collected.",
+  "timing_note": "Report latency_ms measures inference; task_latency_ms additionally covers fixture execution/scoring. External energy interval includes complete evaluator child, loading, one uncounted warmup and serialization.",
+  "development_result": {
+    "candidate_name": "qairt-native-06-dev-v3",
+    "total": 35,
+    "correct": 14,
+    "invalid_output_rate": 0.42857142857142855,
+    "configuration_changes_before_full_run": false
+  }
+}

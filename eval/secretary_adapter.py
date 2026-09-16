@@ -36,23 +36,55 @@ class SecretaryAdapter:
         return name,args
 
 
-def execute_in_fixture(tool, arguments, expected, fixture_root):
-    """Never touches personal data: independently copied temporary roots per trial."""
-    with tempfile.TemporaryDirectory() as actual_dir, tempfile.TemporaryDirectory() as gold_dir:
-        shutil.copytree(fixture_root,actual_dir,dirs_exist_ok=True)
-        shutil.copytree(fixture_root,gold_dir,dirs_exist_ok=True)
-        # Block traversal before delegating to real executor, even inside a disposable fixture.
+class PreparedFixture:
+    """Prepare independent roots and golden execution outside the warm task interval."""
+    def __init__(self, fixture_root, expected):
+        self.fixture_root, self.expected = fixture_root, expected
+
+    def __enter__(self):
+        from contextlib import ExitStack
+        self.stack = ExitStack()
+        try:
+            self.actual_dir = self.stack.enter_context(tempfile.TemporaryDirectory())
+            gold_dir = self.stack.enter_context(tempfile.TemporaryDirectory())
+            shutil.copytree(self.fixture_root, self.actual_dir, dirs_exist_ok=True)
+            shutil.copytree(self.fixture_root, gold_dir, dirs_exist_ok=True)
+            args = self.expected['arguments'] if self.expected['tool'] != 'clarify' else {'question':'Clarify.'}
+            gold = execute_tool(gold_dir, self.expected['tool'], args)
+            if not gold['ok']: raise ValueError('Golden action is not executable on fixture')
+            self.gold_snapshot = snapshot(gold_dir)
+            self.outcome = None
+            return self
+        except BaseException:
+            self.stack.close()
+            raise
+
+    def run_actual(self, tool, arguments):
+        # Same protections and normalization as the original frozen adapter.
         for k in ['path','destination']:
             if k in arguments:
                 p=Path(arguments[k].replace('\\','/'))
                 if p.is_absolute() or '..' in p.parts or ':' in arguments[k]:
-                    return {'execution_ok':False,'final_state_match':False,'error':'Unsafe fixture path'}
+                    self.outcome = {'ok':False,'error':'Unsafe fixture path'}
+                    self.unsafe = True
+                    return
+        self.unsafe = False
         normalized=dict(arguments)
         for k in ['path','destination']:
             if k in normalized: normalized[k]=normalized[k].replace('\\','/')
-        outcome=execute_tool(actual_dir,tool,normalized)
-        golden_args=expected['arguments'] if expected['tool']!='clarify' else {'question':'Clarify.'}
-        gold=execute_tool(gold_dir,expected['tool'],golden_args)
-        if not gold['ok']: raise ValueError('Golden action is not executable on fixture')
-        return {'execution_ok':outcome['ok'],'final_state_match':snapshot(actual_dir)==snapshot(gold_dir),
-                'error':outcome.get('error')}
+        self.outcome=execute_tool(self.actual_dir,tool,normalized)
+
+    def check(self):
+        return {'execution_ok':self.outcome['ok'],
+                'final_state_match':not self.unsafe and snapshot(self.actual_dir)==self.gold_snapshot,
+                'error':self.outcome.get('error')}
+
+    def __exit__(self, *args):
+        return self.stack.__exit__(*args)
+
+
+def execute_in_fixture(tool, arguments, expected, fixture_root):
+    """Never touches personal data: independently copied temporary roots per trial."""
+    with PreparedFixture(fixture_root, expected) as fixture:
+        fixture.run_actual(tool, arguments)
+        return fixture.check()
