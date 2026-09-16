@@ -21,11 +21,30 @@ def fixture():
                 energy_measurement={'schema_version': 'secretary-energy-v1', 'valid': True, 'invalid_reasons': [],
                     'signature': {'boundary': 'warm_task_v1', 'channel': 'SYS', 'warmup_count': 3,
                     'idle_window_s': 5, 'idle_repeats': 3, 'counter_resolution_s': .1,
-                    'instrumentation_sha256': {'x': 'test'}, 'protocol_sha256': 'test',
-                    'runtime_files_sha256': {'x': 'test'}, 'power_condition': {'ac_line_status': 'ac', 'active_scheme_guid': 'test-guid', 'power_mode': 'test-mode', 'battery_saver': False},
+                    'instrumentation_sha256': {'x': 'a'*64}, 'protocol_sha256': 'test',
+                    'runtime_files_sha256': {'x': 'b'*64}, 'power_condition': {'ac_line_status': 'ac', 'active_scheme_guid': 'test-guid', 'power_mode': 'test-mode', 'battery_saver': False},
                     'machine': {'system': 'test', 'machine': 'test', 'hardware_note': 'test'}}})
     for field in ('power_before', 'power_ready', 'power_after'):
         base['energy_measurement'][field] = copy.deepcopy(base['energy_measurement']['signature']['power_condition'])
+    from eval.scoring import digest
+    from eval.energy_measurement import WARMUP_PROMPTS
+    protocol = dict(channel='SYS', warmup_count=3, idle_window_s=5, idle_repeats=3,
+                    counter_resolution_s=.1, idle_max_cv=.1, counter_resolution_evidence='synthetic',
+                    power_mode='test-mode', power_source='ac', hardware_note='test',
+                    display_network_conditions='synthetic', background_contamination=False)
+    energy = base['energy_measurement']
+    energy['protocol'] = protocol
+    energy['background_contamination'] = False
+    energy['signature']['protocol_sha256'] = digest(protocol)
+    energy['signature']['warmup_prompts_sha256'] = digest(WARMUP_PROMPTS)
+    def observation(scope):
+        return dict(scope=scope, channel='SYS', gross_energy_j=10., duration_s=5., avg_power_w=2.,
+                    raw_before=dict(monotonic_s=1., channels_pwh={'SYS': 1.}),
+                    raw_after=dict(monotonic_s=6., channels_pwh={'SYS': 1.+10./3.6e-9}))
+    for kind in ('platform', 'runtime'):
+        energy['idle_'+kind] = dict(stable=True, mean_power_w=2., cv=0.,
+                                   samples=[observation(kind+'_idle') for _ in range(3)])
+    energy['warmups'] = [observation('warmup') for _ in range(3)]
     reports = {slot: dict(copy.deepcopy(base), inference_backend={'backend_id': backend}) for slot, backend in SLOTS.items()}
     reports['qairt']['model_sha256'] = 'test-qairt'
     baseline = copy.deepcopy(reports['cpu'])
@@ -145,8 +164,8 @@ def test_summary_and_modes():
     reports, baseline = fixture()
     result = run(reports, baseline)
     assert result['modes']['BALANCED'] is None
-    assert result['modes']['FAST']
-    assert result['objective_winners']['highest_accuracy']
+    assert result['modes']['FAST'] is None
+    assert len(result['objective_co_winners']['highest_accuracy']) == 3
     summary = result['rows'][0]['measurement_summary']
     assert summary['energy_per_task_j']['mean'] == 2
     assert summary['energy_per_task_j']['p95'] == 2
@@ -180,3 +199,35 @@ def test_invalid_reason_cannot_be_marked_valid():
     result = run(reports, baseline)
     assert result['winner'] is None
     assert 'UNAVAILABLE' in markdown(result)
+
+
+def test_exact_ties_have_no_unique_winner():
+    reports, baseline = fixture()
+    result = run(reports, baseline)
+    assert result['winner'] is None
+    assert result['co_winners'] == list(SLOTS.values())
+    assert 'NO UNIQUE WINNER' in markdown(result)
+
+
+def test_generator_and_measurement_commits_are_distinct():
+    reports, baseline = fixture()
+    result = build(reports, baseline, POLICY, QUALITY, 'new-report-generator')
+    assert result['comparison_status'] == 'COMPARABLE'
+    assert result['measurement_commit'] == 'test-head'
+    assert result['report_generator_commit'] == 'new-report-generator'
+    assert result['historical_reference_commit'] == 'test-head'
+
+
+def test_contradictory_case_backend_blocks_selection():
+    reports, baseline = fixture()
+    reports['htp']['results'][0]['selected_device'] = 'cpu'
+    result = run(reports, baseline)
+    assert result['comparison_status'] == 'NOT_COMPARABLE'
+    assert any('contradictory' in reason for reason in result['rows'][1]['reasons'])
+
+
+def test_missing_commissioning_evidence_blocks_selection():
+    reports, baseline = fixture()
+    del reports['qairt']['energy_measurement']['idle_runtime']
+    result = run(reports, baseline)
+    assert result['comparison_status'] == 'NOT_COMPARABLE'

@@ -15,7 +15,13 @@ def reports():
     result = {}
     for slot, backend in SLOTS.items():
         report = copy.deepcopy(base)
-        report['inference_backend'] = {'backend_id': backend}
+        plugin = 'qairt' if slot == 'qairt' else 'llama_cpp'
+        device = 'cpu' if slot == 'cpu' else 'npu'
+        selected = 'cpu' if slot == 'cpu' else 'HTP0'
+        report['inference_backend'] = {'backend_id': backend, 'runtime': plugin}
+        report['config'].update(plugin=plugin, device=device)
+        for case in report['results']:
+            case['selected_device'] = selected
         report['git_commit'] = slot
         result[slot] = report
     return result
@@ -118,3 +124,21 @@ def test_valid_energy_is_separate_and_still_selects_no_winner():
     result = build(data)
     assert result['correctness_latency_comparable']
     assert not result['energy_comparable']
+
+
+@pytest.mark.parametrize('location', ['config', 'case', 'identity'])
+def test_contradictory_backend_metadata_rejects_comparison(location):
+    data = reports()
+    report = data['htp']
+    if location == 'config': report['config']['plugin'] = 'qairt'
+    if location == 'case': report['results'][0]['selected_device'] = 'cpu'
+    if location == 'identity': report['inference_backend']['runtime'] = 'qairt'
+    result = build(data)
+    assert not result['correctness_latency_comparable']
+    assert any('contradictory' in reason for reason in result['correctness_latency_reasons'])
+
+
+@pytest.mark.parametrize('key', ['config', 'inference_backend'])
+def test_malformed_identity_objects_fail_closed(key):
+    data = reports(); data['cpu'][key] = ['invalid']
+    assert not build(data)['correctness_latency_comparable']

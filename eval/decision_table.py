@@ -1,7 +1,6 @@
 """Conservative cross-backend decision report; never runs inference."""
 import argparse
 import hashlib
-import hashlib
 import json
 import math
 import statistics
@@ -14,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 from eval.scoring import compare, summarize
+from eval.report_validation import classify_backend_identity, backend_identity_errors, energy_evidence_errors, write_report_pair
 
 SLOTS = {'cpu': 'llama_cpp_cpu', 'htp': 'llama_cpp_htp', 'qairt': 'qairt_npu'}
 PROVENANCE = ('git_commit', 'benchmark_version', 'protocol_version', 'dataset_sha256',
@@ -67,7 +67,7 @@ def raw_valid(energy):
             and math.isclose(energy['gross_energy_j'], (after['channels_pwh']['SYS'] - before['channels_pwh']['SYS']) * 3.6e-9, rel_tol=1e-7, abs_tol=1e-9))
 
 
-def build(reports, baseline, policy, quality_policy, current_commit):
+def _build(reports, baseline, policy, quality_policy, current_commit):
     """All energy includes failed tasks. Selection requires all three current runs."""
     accuracy = policy.get('min_accuracy_pct')
     limit = policy.get('max_e2e_latency_ms')
@@ -79,6 +79,9 @@ def build(reports, baseline, policy, quality_policy, current_commit):
     if limit is not None and not finite(limit, True):
         raise ValueError('Invalid latency limit')
     output = {'schema_version': 'secretary-decision-v1', 'current_commit': current_commit,
+              'report_generator_commit': current_commit,
+              'measurement_commit': None, 'historical_reference_commit': (baseline or {}).get('git_commit'),
+              'co_winners': [], 'objective_co_winners': {},
               'generated_at': datetime.now(timezone.utc).isoformat(), 'policy': policy, 'rows': [], 'comparison_status': 'NOT_ENOUGH_DATA',
               'comparison_reasons': [], 'winner': None,
               'objective_winners': {k: None for k in ('lowest_joules_per_correct_task', 'lowest_latency', 'highest_accuracy', 'lowest_joules_per_task', 'best_eligible')},
@@ -99,7 +102,10 @@ def build(reports, baseline, policy, quality_policy, current_commit):
         row['provenance'] = {**{k: report.get(k) for k in PROVENANCE},
                              'source': report.get('_source'), 'timestamp': report.get('timestamp'),
                              'energy_measurement': report.get('energy_measurement')}
+        row['identity_validation'] = classify_backend_identity(report, backend)
         cases = report.get('results', [])
+        row['reasons'].extend(backend_identity_errors(report, backend))
+        row['reasons'].extend(energy_evidence_errors(report))
         if report.get('schema_version') != 2:
             row['reasons'].append('Expected report schema_version 2')
             continue
@@ -130,6 +136,7 @@ def build(reports, baseline, policy, quality_policy, current_commit):
         energy = report.get('energy_measurement') or {}
         signature = energy.get('signature') or {}
         if baseline:
+            row['reasons'].extend('Decision reference: ' + reason for reason in energy_evidence_errors(baseline))
             baseline_energy = baseline.get('energy_measurement') or {}
             if (baseline_energy.get('valid') is not True or baseline_energy.get('invalid_reasons') != [] or baseline_energy.get('signature') != signature
                     or any(baseline.get(k) != report.get(k) for k in PROVENANCE)):
@@ -210,25 +217,52 @@ def build(reports, baseline, policy, quality_policy, current_commit):
         if ref['model_sha256'] != reports['htp']['model_sha256']:
             output['comparison_reasons'].append('CPU and HTP must use the same GGUF artifact')
         output['comparison_status'] = 'NOT_COMPARABLE' if output['comparison_reasons'] else 'COMPARABLE'
+        if not output['comparison_reasons']:
+            output['measurement_commit'] = ref['git_commit']
         eligible = [r for r in output['rows'] if r['eligible']]
         if not output['comparison_reasons'] and eligible:
-            output['winner'] = min(eligible, key=lambda r: r['joules_per_correct_task'])['backend']
+            def leaders(metric, highest=False):
+                best = (max if highest else min)(r[metric] for r in eligible)
+                return [r['backend'] for r in eligible if r[metric] == best]
+            output['co_winners'] = leaders('joules_per_correct_task')
+            output['winner'] = output['co_winners'][0] if len(output['co_winners']) == 1 else None
             output['modes']['EFFICIENT'] = output['winner']
-            output['modes']['FAST'] = min(eligible, key=lambda r: r['latency_ms'])['backend']
+            fast = leaders('latency_ms')
+            output['modes']['FAST'] = fast[0] if len(fast) == 1 else None
             for name, metric in [('lowest_joules_per_correct_task', 'joules_per_correct_task'),
-                                 ('lowest_latency', 'latency_ms'), ('lowest_joules_per_task', 'joules_per_task')]:
-                output['objective_winners'][name] = min(eligible, key=lambda r: r[metric])['backend']
-            output['objective_winners']['highest_accuracy'] = max(eligible, key=lambda r: r['accuracy_pct'])['backend']
+                                 ('lowest_latency', 'latency_ms'), ('lowest_joules_per_task', 'joules_per_task'),
+                                 ('highest_accuracy', 'accuracy_pct')]:
+                tied = leaders(metric, name == 'highest_accuracy')
+                output['objective_co_winners'][name] = tied
+                output['objective_winners'][name] = tied[0] if len(tied) == 1 else None
             output['objective_winners']['best_eligible'] = output['winner']
+            output['objective_co_winners']['best_eligible'] = output['co_winners'][:]
     if all(reports.get(k) and reports[k].get('status') == 'measured' for k in SLOTS) and any(r['status'] == 'NOT_COMPARABLE' for r in output['rows']):
         output['comparison_status'] = 'NOT_COMPARABLE'
     return output
 
 
+def build(reports, baseline, policy, quality_policy, current_commit):
+    """Reject malformed imported structures without issuing partial recommendations."""
+    if not isinstance(policy, dict) or not isinstance(quality_policy, dict):
+        raise ValueError('Decision and quality policies must be objects')
+    try:
+        return _build(reports, baseline, policy, quality_policy, current_commit)
+    except (AttributeError, KeyError, TypeError, IndexError, ZeroDivisionError, OverflowError) as exc:
+        result = _build({}, None, policy, quality_policy, current_commit)
+        result['comparison_status'] = 'NOT_COMPARABLE'
+        reason = 'Malformed imported report structure: ' + type(exc).__name__
+        result['comparison_reasons'] = [reason]
+        for row in result['rows']:
+            row['status'] = 'NOT_COMPARABLE'
+            row['reasons'] = [reason]
+        return result
+
+
 def markdown(report):
     def cell(value): return 'NOT_MEASURED' if value is None else str(round(value, 4)) if isinstance(value, float) else str(value)
     lines = ['# Secretary energy decision matrix', '', 'Objective: minimize gross SYS joules per correct task, subject to correctness and latency limits.',
-             '', 'Comparison: **' + report['comparison_status'] + '**. Winner: **' + (report['winner'] or 'NOT ENOUGH DATA') + '**.',
+             '', 'Comparison: **' + report['comparison_status'] + '**. Winner: **' + (report['winner'] or ('NO UNIQUE WINNER (exact tie)' if report.get('co_winners') else 'NOT ENOUGH DATA')) + '**.',
              '', '| Config | Accuracy % | E2E latency ms | J/task | J/correct | Invalid | Clarify % | Peak RAM MB | Notes |',
              '|---|---:|---:|---:|---:|---:|---:|---:|---|']
     for r in report['rows']:
@@ -246,10 +280,14 @@ def markdown(report):
     lines += ['', '## Modes', '']
     lines.extend('- ' + mode + ': ' + (backend or 'NOT ENOUGH DATA') for mode, backend in report['modes'].items())
     lines += ['', 'EFFICIENT minimizes J/correct task; FAST minimizes the configured latency statistic. BALANCED remains undefined until an explicit Pareto/tie policy is agreed. These are report recommendations, not routing changes.',
-              '', 'Historical references are never promoted to a current baseline. No winner is issued without all three current comparable measurements, explicit thresholds and an approved correctness gate. Missing measurements remain unknown.', '']
+              '', 'Historical references are never promoted to a current baseline. Selection requires all three mutually comparable measurements, explicit thresholds and an approved correctness gate. Measurement commits need not equal the report generator commit. Exact ties have co-winners and no unique winner; this is not a statistical superiority claim. Missing measurements remain unknown.', '']
     lines += ['## Winners by objective', '']
     lines.extend('- ' + name + ': ' + (value or 'NOT ENOUGH DATA') for name, value in report['objective_winners'].items())
-    lines += ['', '## Measurement provenance and summaries', '', 'Generated: ' + report['generated_at'], '', 'Generator: ' + json.dumps(report.get('generator', {'commit':report['current_commit']})), '']
+    lines += ['', '## Measurement provenance and summaries', '', 'Generated: ' + report['generated_at'], '', 'Generator: ' + json.dumps(report.get('generator', {'commit':report['current_commit']})),
+              'Measurement commit: ' + str(report.get('measurement_commit')),
+              'Report generator commit: ' + str(report.get('report_generator_commit')),
+              'Historical reference commit: ' + str(report.get('historical_reference_commit')),
+              'Co-winners: ' + ', '.join(report.get('co_winners', [])), '']
     for row in report['rows']:
         lines += ['### ' + row['backend'], '', '```json', json.dumps({'provenance': row['provenance'], 'summary': row['measurement_summary']}, indent=2), '```', '']
     return '\n'.join(lines)
@@ -277,9 +315,11 @@ def main():
     result['generator'] = {'commit':commit,
         'source_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         'dirty':bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip())}
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(markdown(result), encoding='utf-8')
-    args.output.with_suffix('.json').write_text(json.dumps(result, indent=2, allow_nan=False)+'\n', encoding='utf-8')
+    try:
+        write_report_pair(args.output, markdown(result), json.dumps(result, indent=2, allow_nan=False)+'\n',
+                          [getattr(args, slot) for slot in SLOTS] + [args.baseline, args.policy, ROOT/'eval/quality_policy.json'])
+    except (ValueError, FileExistsError) as exc:
+        p.error(str(exc))
     print(result['comparison_status'] + ': ' + (result['winner'] or 'NOT ENOUGH DATA'))
 
 

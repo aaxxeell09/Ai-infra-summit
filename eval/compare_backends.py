@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+from eval.report_validation import backend_identity_errors
 from eval.decision_table import SLOTS, build as energy_build, distribution, finite
 
 MATCH = ('benchmark_version', 'protocol_version', 'scope', 'dataset_sha256',
@@ -18,10 +19,13 @@ LATENCY_BOUNDARY = 'latency_ms: timed model inference request, before scoring an
 
 def identity(report, cases):
     explicit = report.get('inference_backend') or {}
+    if not isinstance(explicit, dict):
+        return {'backend_id': None, 'identity_source': 'invalid inference_backend'}
     if explicit.get('backend_id'):
         return {**explicit, 'identity_source': 'inference_backend'}
     # Older reports predate explicit backend_id. Require plugin AND actual selected devices.
-    plugin = (report.get('config') or {}).get('plugin')
+    config = report.get('config') or {}
+    plugin = config.get('plugin') if isinstance(config, dict) else None
     devices = sorted({c.get('selected_device') for c in cases if isinstance(c.get('selected_device'), str)})
     complete = len(devices) == 1 and all(c.get('selected_device') == devices[0] for c in cases)
     backend = None
@@ -54,6 +58,7 @@ def build(reports, dataset='all'):
             cases = [c for c in cases if c.get('split') == 'development']
         selected[slot] = {**report, 'results': cases}
         row['backend'] = identity(report, cases)
+        row['reasons'].extend(backend_identity_errors(report, expected_backend))
         row['provenance'] = {k: report.get(k) for k in MATCH + ('git_commit', 'dirty', 'environment', 'model_sha256', 'model_label', 'config_sha256', 'generation_protocol', 'config', 'runtime_version', '_source')}
         row['cases'] = [{'id': c.get('id'), 'case_sha256': c.get('case_sha256')} for c in cases]
         row['source_case_count'] = len(report['results'])
@@ -70,6 +75,9 @@ def build(reports, dataset='all'):
             row['reasons'].append('Missing or duplicate case provenance')
         if any(type(c.get(k)) is not bool for c in cases for k in ('task_success', 'invalid_output', 'no_action_correct')):
             row['reasons'].append('Scoring flags must be booleans')
+            continue
+        if any(c.get('expected') is not None and not isinstance(c['expected'], dict) for c in cases):
+            row['reasons'].append('Invalid expected action object')
             continue
         if any(not c.get('expected_tool', (c.get('expected') or {}).get('tool')) for c in cases):
             row['reasons'].append('Missing expected tool for clarification denominator')
@@ -107,7 +115,7 @@ def build(reports, dataset='all'):
                 out['energy_reasons'].extend(row['backend'] + ': ' + r for r in row['reasons'] if r not in ('Accuracy and latency thresholds require an explicit decision', 'Official correctness quality gate is not PASS', 'Invalid output safety limit failed'))
         if not out['correctness_latency_comparable']:
             out['energy_reasons'].append('Correctness/latency provenance is incompatible')
-    except (KeyError, TypeError, ValueError, ZeroDivisionError) as exc:
+    except (AttributeError, KeyError, TypeError, ValueError, ZeroDivisionError) as exc:
         out['energy_reasons'].append('Invalid or unavailable energy report: ' + str(exc))
     return out
 

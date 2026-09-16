@@ -37,3 +37,10 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - JSON/raw telemetry checkpoint: `0a297ae`.
 - Added read-only canonical QAIRT artifact inspector: exact file hashes, explicit config evidence, unknown quantization retained, unsafe/missing references rejected.
 - Artifact tests: 11 passed. No model download or hardware execution. Bundle inspection waits for actual model access.
+
+## Report qualification checkpoint — 2026-09-16 UTC
+
+- Artifact inspector committed as `2487e88`.
+- Decision outputs cannot overwrite inputs or existing companions; exact ties expose co-winners. Imported identity/energy evidence validated, incomplete nested inputs fail closed, measurement/report/reference commits separated.
+- Added four identity evidence states; requested placement never independently proves dispatch. Descriptive backend comparison remains energy-optional and selects no overall winner.
+- Focused validation: **102 passed**.
