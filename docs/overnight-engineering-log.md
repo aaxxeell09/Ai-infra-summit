@@ -31,3 +31,9 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Portable validation committed as `7e899b2`.
 - Added strict BOM-tolerant private JSON reads, additive per-case sampler capture, raw PDH metadata and declared/observed power separation; reject unbound QAIRT runtime override.
 - Integrated validation: 514 passed, 1 skipped, 13 subtests passed. Runner file hash changes explicitly documented; no scoring/timing semantics changed.
+
+## Artifact inventory checkpoint — 2026-09-16 UTC
+
+- JSON/raw telemetry checkpoint: `0a297ae`.
+- Added read-only canonical QAIRT artifact inspector: exact file hashes, explicit config evidence, unknown quantization retained, unsafe/missing references rejected.
+- Artifact tests: 11 passed. No model download or hardware execution. Bundle inspection waits for actual model access.
