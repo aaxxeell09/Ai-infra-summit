@@ -1,4 +1,5 @@
 import { createRecordedProvider, METRICS, rankRows, exportConfiguration } from './data.mjs';
+import { createLatestResultsProvider } from './latest.mjs';
 import { PROMPTS, createComparisonRequest, comparisonLanes, createPreviewComparisonProvider } from './comparison.mjs';
 
 const $ = selector => document.querySelector(selector);
@@ -6,9 +7,10 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&a
 const number = (value, digits = 2) => value === null || value === undefined ? 'Unavailable' : value.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: digits });
 const arrow = '<span aria-hidden="true">↗</span>';
 const provider = createRecordedProvider();
+const latestProvider = createLatestResultsProvider();
 // Replace this provider with a device comparison provider at integration.
 const taskProvider = createPreviewComparisonProvider();
-const state = { snapshot: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
+const state = { snapshot: null, latest: null, latestError: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
 let demoGeneration = 0;
 let taskAbort;
 let toastTimer;
@@ -36,6 +38,21 @@ function notify(message) {
 function currentRow() {
   const ranked = rankRows(state.snapshot, state.metric);
   return state.snapshot.rows.find(row => row.id === state.selected) ?? ranked.rows.find(ranked.eligible);
+}
+
+function latestEvidence() {
+  if (!state.latest) return state.latestError ? `<p class="latest-unavailable">Latest model study unavailable. The configuration comparison above is unchanged.</p>` : '';
+  const q = state.latest.qairt;
+  const stateBlock = (name, result, tuned = false) => `<article class="behavior-state ${tuned ? 'tuned' : ''}"><span class="behavior-name">${name}</span><div class="behavior-metrics"><div><span>Task success</span><strong>${number(result.accuracy_pct, 0)}<small>%</small></strong></div><div><span>Mean inference</span><strong>${number(result.average_inference_ms, 0)}<small>ms</small></strong></div></div></article>`;
+  return `<section class="behavior-study" aria-labelledby="latest-evidence-title">
+    <header class="behavior-head"><div><span class="eyebrow">NPU OUTPUT CONTROL</span><h2 id="latest-evidence-title">One complete action. Then stop.</h2></div><p>No trailing text or extra tool calls.</p></header>
+    <div class="behavior-flow">
+      ${stateBlock('Without stop rule', q.control)}
+      <div class="behavior-transition"><span class="transition-line"></span><div><small>LOCALTURBO RULE</small><strong>Stop after first valid action</strong></div><span class="transition-arrow" aria-hidden="true">→</span></div>
+      ${stateBlock('With stop rule', q.optimized, true)}
+    </div>
+    <footer class="behavior-foot"><span>Qwen3 0.6B · QAIRT · NPU</span><span><i></i>Experimental · quality gate not passed</span></footer>
+  </section>`;
 }
 
 function deviceScreen() {
@@ -88,7 +105,7 @@ function calibrationScreen() {
       <div class="chart" aria-label="${esc(metric.label)} comparison">${chartRows}</div>
       <div class="chart-foot"><span>${baseline?.params ? `Median of ${baseline.params.repetitions} repetitions · ${baseline.params.n_prompt} input / ${baseline.params.n_gen} output tokens` : 'No comparable workload available'}</span></div>
     </div><aside class="selection-panel">
-      <div class="selection-top"><span class="eyebrow">SELECTED CONFIGURATION</span><span class="selection-icon" aria-hidden="true">${isLeader ? '↗' : '◇'}</span></div>
+      <div class="selection-top"><span class="eyebrow">SELECTED CONFIGURATION</span><span class="selection-status">${isLeader ? 'Current leader' : 'Measured'}</span></div>
       <h2>${chosen ? esc(chosen.label.replace(' · ', '<|>').split('<|>')[0]) : 'No result'}<span>${chosen?.device === 'cpu' ? esc(chosen.threads === 0 ? 'Automatic threads' : `${chosen.threads} threads`) : 'Recorded configuration'}</span></h2>
       <p class="selection-caption">${isEligible ? (isLeader ? `${leaders.length > 1 ? 'Tied for fastest' : 'Fastest'} ${{ decode: 'answer generation', prefill: 'prompt processing', ttft: 'first response' }[state.metric]} in this run.` : 'Selected for the answer comparison. Other settings may be faster.') : esc(chosen?.reason || 'No comparable result available.')}</p>
       <p class="ranking-scope">No overall winner yet.</p>
@@ -96,7 +113,7 @@ function calibrationScreen() {
       <div class="evidence-note"><span class="note-dot"></span><p>Preliminary measurements.<br>Repeat comparison and task checks pending.${chosen && ['npu', 'hybrid'].includes(chosen.device) ? '<br>NPU execution is not yet verified.' : ''}</p></div>
       <button class="button primary" data-action="try" ${!isEligible ? 'disabled' : ''}>Continue to demo ${arrow}</button>
       <button class="button ghost" data-action="export" ${!isEligible ? 'disabled' : ''}>Export configuration <span aria-hidden="true">↓</span></button>
-    </aside></div>
+    </aside></div>${latestEvidence()}
   </section>`;
 }
 
@@ -110,7 +127,7 @@ function demoScreen() {
   const lanes = ['default', 'turbo'].map(key => {
     const lane = state.lanes[key] || { status: 'idle', answer: '' };
     const meta = descriptions?.[key];
-    const status = lane.status === 'running' ? 'Writing…' : lane.status === 'completed' ? 'Done' : busy ? 'Queued' : '';
+    const status = lane.status === 'running' ? 'Writing…' : lane.status === 'completed' ? 'Done' : busy ? 'Queued' : 'Ready';
     const identity = !meta ? 'Configuration unavailable' : state.comparison === 'speed'
       ? `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`
       : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
@@ -216,9 +233,11 @@ function download(data, filename) {
 function showEvidence() {
   if (!state.snapshot) return;
   const s = state.snapshot; const row = currentRow();
+  const latest = state.latest;
+  const latestDetails = latest ? `<details><summary>Latest QAIRT and model study</summary><dl class="evidence-list"><div><dt>QAIRT optimization</dt><dd>${number(latest.qairt.control.accuracy_pct, 0)}% → ${number(latest.qairt.optimized.accuracy_pct, 0)}% task success; mean inference ${number(latest.qairt.control.average_inference_ms, 0)} → ${number(latest.qairt.optimized.average_inference_ms, 0)} ms.</dd></div><div><dt>Quality status</dt><dd>No candidate passed the frozen quality gate. Model runs remain separate experiments.</dd></div><div><dt>QAIRT sources</dt><dd class="mono hash">${esc(latest.sources.qairtControl)}<br>${esc(latest.sources.qairtOptimized)}</dd></div><div><dt>Larger-model sources</dt><dd class="mono hash">${esc(latest.sources.qwen4b)}<br>${esc(latest.sources.qwen8b)}</dd></div></dl></details>` : '';
   $('#evidence-content').innerHTML = `<div class="evidence-summary"><span class="mode-tag">Recorded screening</span><p>Measurements from the Dell Latitude, not this browser’s host. These observations do not establish a confirmed speedup or answer quality.</p></div>
     <dl class="evidence-list"><div><dt>Machine</dt><dd>${esc(s.device.name)}</dd></div><div><dt>Recorded</dt><dd>${esc(new Date(s.recordedAt).toUTCString())}</dd></div><div><dt>Timing source</dt><dd>${esc(s.timingSource)}</dd></div><div><dt>Source</dt><dd>${esc(s.source)}</dd></div><div><dt>Model SHA-256</dt><dd class="mono hash">${esc(s.modelHash)}</dd></div><div><dt>Runtime SHA-256</dt><dd class="mono hash">${esc(s.runtimeHash)}</dd></div><div><dt>Workload</dt><dd>${row?.params ? `${row.params.n_prompt} input · ${row.params.n_gen} output · ${row.params.n_ctx} context · ${row.params.warmup} warmup · ${row.params.repetitions} repetitions` : 'Unavailable'}</dd></div><div><dt>Reported device</dt><dd>${esc(row?.resolvedDevice || 'Not reported')} · ${esc(row?.dispatch)}</dd></div><div><dt>Energy scope</dt><dd>SYS channel, full process including initialization and warmup. Energy efficiency unavailable: warmup token counts are missing.</dd></div></dl>
-    <details><summary>Inspect selected raw result</summary><pre>${esc(JSON.stringify(row?.raw ?? {}, null, 2))}</pre></details><button class="button ghost" data-action="download-evidence">Download recorded evidence ↓</button>`;
+    ${latestDetails}<details><summary>Inspect selected raw result</summary><pre>${esc(JSON.stringify(row?.raw ?? {}, null, 2))}</pre></details><button class="button ghost" data-action="download-evidence">Download recorded evidence ↓</button>`;
   $('#evidence-dialog').showModal();
 }
 
@@ -268,7 +287,14 @@ window.addEventListener('hashchange', navigate);
 async function load() {
   $('#main').innerHTML = '<div class="loading-state"><span class="spinner"></span><p>Opening recorded results…</p></div>';
   try {
-    state.snapshot = await provider.load({ signal: AbortSignal.timeout(10000) });
+    const [snapshotResult, latestResult] = await Promise.allSettled([
+      provider.load({ signal: AbortSignal.timeout(10000) }),
+      latestProvider.load({ signal: AbortSignal.timeout(10000) }),
+    ]);
+    if (snapshotResult.status === 'rejected') throw snapshotResult.reason;
+    state.snapshot = snapshotResult.value;
+    state.latest = latestResult.status === 'fulfilled' ? latestResult.value : null;
+    state.latestError = latestResult.status === 'rejected' ? latestResult.reason?.message : null;
     resetDemo();
     state.selected = rankRows(state.snapshot).leaders[0] ?? null;
     navigate();
