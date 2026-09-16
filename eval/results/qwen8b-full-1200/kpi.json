@@ -1,0 +1,55 @@
+{
+  "success_rate_pct": 76.0,
+  "correct_tasks": 38,
+  "total_tasks": 50,
+  "median_e2e_ms": 12946.6765,
+  "p95_e2e_ms": 39431.437,
+  "mean_e2e_ms": 19992.70704,
+  "latency_boundary": "recorded_task_latency_ms: evaluator task boundary; not user-facing cold E2E",
+  "latency_unavailable_reason": null,
+  "inference_latency_ms": {
+    "n": 50,
+    "mean": 19896.85378,
+    "median": 12808.861499999999,
+    "p95": 39356.446,
+    "stddev": 12965.115193180081,
+    "cv": 0.6516163478173824,
+    "min": 8204.972,
+    "max": 41314.024
+  },
+  "gross_sys_j": 31161.6856012824,
+  "gross_sys_j_per_correct_task": 820.0443579284841,
+  "energy_denominator_complete": true,
+  "energy_scope": "full_process_energy",
+  "energy_qualification": "diagnostic_uncommissioned",
+  "energy_comparable": false,
+  "energy_unavailable_reason": null,
+  "invalid_count": 2,
+  "invalid_rate": 0.04,
+  "clarify_accuracy": 15.384615384615385,
+  "clarify_cases": 13,
+  "generated_tokens": {
+    "n": 50,
+    "mean": 23.46,
+    "median": 22.0,
+    "p95": 33,
+    "stddev": 7.042755722248593,
+    "cv": 0.3002027162083799,
+    "min": 14,
+    "max": 51
+  },
+  "total_generated_tokens": 1173,
+  "error_taxonomy": {
+    "correct": 38,
+    "invalid_format": 2,
+    "clarify_failure": 9,
+    "filesystem_state_failure": 3,
+    "execution_failure": 2,
+    "wrong_tool": 1
+  },
+  "diagnostic_labels_overlap": true,
+  "publication": {
+    "private_original_sha256": "636d8e58a275d70562c034d4d1fb3abe8813a4fe95265cd970ef8982ec9bb3fb",
+    "redaction": "Private tools path replaced. Original sealed archive preserved and verified; this is a publication copy."
+  }
+}
