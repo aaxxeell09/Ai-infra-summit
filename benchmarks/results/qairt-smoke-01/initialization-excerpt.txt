@@ -1,0 +1,7 @@
+[ INFO] Detected HTP arch: v73
+[ INFO] HTP arch v73 detected.
+[ INFO] htp config: perf_profile=5 rpc_control_latency=100us rpc_polling=0us hmx_timeout=0us adaptive_polling=0us
+[ INFO] HTP power vote applied (perf_profile=5, rpc_control_latency=100us)
+[ INFO] HTP device reports 1 NSP core(s)
+[ INFO] HTP graphs will execute on 1 core (default; set num_cores or add htp_backend_ext_config.json `cores` entries to request more)
+[ INFO] LLMModel initialized: 2 shards, 3 CL variants [512,1024,4096], vocab=151936, hidden=1024
