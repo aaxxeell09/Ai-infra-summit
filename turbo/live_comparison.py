@@ -120,11 +120,16 @@ class LiveComparisons:
                 if self.jobs[ident]['request'] != request:
                     raise ValueError('Request ID already belongs to different inputs')
                 return self.snapshot(ident)
+            output = Path(self.engine.config.get('data_dir', 'local/demo')) / 'live-comparisons' / ident
+            if output.exists():
+                saved_request = json.loads((output / 'request.json').read_text(encoding='utf-8'))
+                if saved_request != request:
+                    raise ValueError('Request ID already belongs to different inputs')
+                return self.snapshot(ident)
             if self.active is not None:
                 raise ValueError('Another live comparison is active; reconcile its status before retrying')
             if len(self.jobs) >= 100:
                 raise ValueError('Presentation session limit reached; restart the gateway after checking saved results')
-            output = Path(self.engine.config.get('data_dir', 'local/demo')) / 'live-comparisons' / ident
             output.mkdir(parents=True, exist_ok=False)
             job = {'request_id': ident, 'request': copy.deepcopy(request), 'state': 'running', 'events': [],
                    'cancel_requested': False, 'result': None, 'error': None, '_output': output}
@@ -138,13 +143,23 @@ class LiveComparisons:
     def snapshot(self, ident):
         with self.guard:
             if ident not in self.jobs:
-                raise KeyError('Unknown live comparison')
+                # A page may reconnect after the gateway was redeployed. Read
+                # its durable terminal result without launching inference again.
+                if not isinstance(ident, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}', ident):
+                    raise KeyError('Unknown live comparison')
+                path = Path(self.engine.config.get('data_dir', 'local/demo')) / 'live-comparisons' / ident / 'result.json'
+                if not path.is_file():
+                    raise KeyError('No saved terminal result; execution remains unverified')
+                saved = json.loads(path.read_text(encoding='utf-8'))
+                if saved.get('request_id') != ident or saved.get('state') not in ('completed', 'failed', 'cancelled'):
+                    raise ValueError('Saved result is not a matching terminal comparison')
+                return saved
             return copy.deepcopy({k: v for k, v in self.jobs[ident].items() if not k.startswith('_') and k != 'request'})
 
     def cancel(self, ident):
         with self.guard:
             if ident not in self.jobs:
-                raise KeyError('Unknown live comparison')
+                return self.snapshot(ident)
             if self.jobs[ident]['state'] == 'running':
                 self.jobs[ident]['cancel_requested'] = True
             return self.snapshot(ident)

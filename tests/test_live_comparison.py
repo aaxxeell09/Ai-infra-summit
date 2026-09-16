@@ -196,6 +196,24 @@ class ComparisonTests(unittest.TestCase):
         self.assertEqual(len(Model.instances), 2)
         changed=copy.deepcopy(self.request);changed['prompt_id']='reasoning';changed['prompt']=PROMPTS['reasoning']
         with self.assertRaises(ValueError): self.manager.start(changed)
+    def test_terminal_job_survives_gateway_restart_without_reexecution(self):
+        self.manager.start(self.request); original = self.finish()
+        restarted = LiveComparisons(self.engine, model_factory=Model)
+        self.assertEqual(restarted.snapshot('test-1'), original)
+        self.assertEqual(restarted.start(self.request), original)
+        self.assertEqual(restarted.cancel('test-1'), original)
+        self.assertEqual(len(Model.instances), 2)
+        changed = copy.deepcopy(self.request)
+        changed.update(prompt_id='reasoning', prompt=PROMPTS['reasoning'])
+        with self.assertRaises(ValueError): restarted.start(changed)
+        for ident in ('../test-1', 'missing'):
+            with self.assertRaises(KeyError): restarted.snapshot(ident)
+    def test_restart_does_not_invent_result_or_retry_unfinished_job(self):
+        output = Path(self.temp.name) / 'live-comparisons' / 'test-1'
+        output.mkdir(parents=True)
+        (output / 'request.json').write_text(json.dumps(self.request))
+        with self.assertRaises(KeyError): self.manager.start(self.request)
+        self.assertEqual(Model.instances, [])
     def test_gateway_other_work_prevents_overlapping_inference(self):
         ready=threading.Event();release=threading.Event()
         def hold():
