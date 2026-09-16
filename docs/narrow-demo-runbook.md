@@ -1,6 +1,7 @@
 # Local inference tuning with verified agent actions
 
-Use this as a short technical demonstration. The invoice run and the QAIRT
+Use [the four-slide presentation](../demo/local-turbo-narrow-demo-v4.pptx)
+for this short technical demonstration. The invoice run and the QAIRT
 experiment are separate pieces of evidence. Do not imply the invoice ran on
 QAIRT or that stopping generation increased native decode tokens per second.
 
@@ -16,8 +17,9 @@ to the local 4B model: find the invoice draft and move it to the invoices folder
 Run the live entrypoint only after reachability and hardware exclusivity are
 verified. Show the original tool replies, source/destination and content hash.
 Every unrelated file must retain its hash. The task acts on a fresh synthetic
-workspace, not a person's real files. The recorded MCP run took 20.492 seconds in
-the feedback loop, excluding model loading; do not call this full MCP latency.
+workspace, not a person's real files. The latest presenter rehearsal took
+21.791 seconds in the feedback loop and 48.634 seconds from MCP process launch
+through exit, including model loading. Do not confuse these timing scopes.
 
 Say the result precisely: “The requested filesystem change is verified. The
 existing exact-call check fails because the model used extra search/list calls.”
@@ -38,8 +40,8 @@ The combined tuner→MCP run is now verified for two public-fixture rounds;
 see [the recovered evidence](../benchmarks/results/bound-feedback-mcp-1400/README.md).
 Fast applied CPU/10 and Efficient CPU/6; both moved the invoice correctly, while
 both exact-call checks failed. These single observations do not establish a
-speed or efficiency winner. The older deck predates this recovery: replace its
-pending-integration line with this result when presenting. Do not claim a production-ready secretary.
+speed or efficiency winner. Slide 2 in the v4 deck shows the two verified rounds.
+Do not claim a production-ready secretary.
 
 ## Live preparation on the Latitude
 
@@ -50,9 +52,9 @@ inference process is running. Stop the existing gateway for this isolated demo;
 if its known service child remains listening, reconcile it before proceeding.
 Do not launch a second copy after an uncertain timeout.
 
-The one-command presenter entrypoint is implemented and locally tested. A successful
-hardware run of this new entrypoint remains pending; the underlying MCP path has
-recorded hardware evidence. Run:
+The one-command presenter entrypoint completed on the Latitude at clean commit
+`da59974`: [hardware rehearsal and original replies](../benchmarks/results/presenter-mcp-1645/README.md).
+The gateway was restored afterward and answered a real inference request. Run:
 
 ```powershell
 python -X utf8 scripts/demo_invoice_mcp.py --enable-candidate --config local/qwen4b-cpu10-config.json --output local/live-invoice-demo-001
@@ -84,6 +86,8 @@ show these committed artifacts. Do not animate preview responses as live inferen
 or silently fall back to a recorded result after a live failure.
 
 - [Actual MCP response and native report](../benchmarks/results/feedback-mcp-1300/result.json)
+- [One-command presenter rehearsal](../benchmarks/results/presenter-mcp-1645/README.md)
+- [Tuner → exact applied configuration → MCP, two modes](../benchmarks/results/bound-feedback-mcp-1400/README.md)
 - [MCP evidence and timing scope](../benchmarks/results/feedback-mcp-1300/README.md)
 - [All constrained repeats, including 20B failure](../benchmarks/results/grammar-repeats-1200/README.md)
 - [Six QAIRT development blocks](../eval/results/qairt-repeats-0700.md)

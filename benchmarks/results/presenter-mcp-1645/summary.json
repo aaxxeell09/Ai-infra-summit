@@ -1,0 +1,210 @@
+{
+  "schema": "demo_invoice_mcp.summary/1",
+  "task_id": "t13",
+  "model_id": "qwen4b",
+  "source": "Live entrypoint: python -Xutf8 -m turbo.feedback_mcp over stdio JSON-RPC, then scripts/run_secretary_feedback.py with native local inference. Execution success is reported separately below.",
+  "scope": "Public demo fixture diagnostic; not frozen secretary-eval-v2 quality PASS; no rescoring or repair; physical outcome and exact call grade are reported separately",
+  "quality_qualified": false,
+  "transport_completed": true,
+  "existing_demo_verification": {
+    "passed": false,
+    "calls_match": false,
+    "final_state_match": true,
+    "execution_ok": true,
+    "task_id": "t13"
+  },
+  "ok": true,
+  "git_commit": "da599746336ea092310a9978195c6b70bfb19f3c",
+  "mcp_process_elapsed_s": 48.63370919972658,
+  "mcp_process_timing_scope": "MCP process launch through exit, including native model load and diagnostic; excludes CLI preflight and output serialization",
+  "native_identity": {
+    "version": "secretary-feedback-diagnostic-v1",
+    "git_commit": "da599746336ea092310a9978195c6b70bfb19f3c",
+    "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+    "sdk_identity": {
+      "schema_version": "turbo.runtime.v1",
+      "sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+      "files": {
+        "benchmark/geniex-bench.exe": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+        "sdk/lib/geniex.dll": "b8c69332260ea772db6b1e9709800eb88956b94cd7b248131c4a119b194f5846",
+        "sdk/lib/llama_cpp/geniex_plugin.dll": "971c187a626bbe746e4ac635bcf5e8c9c8730aad5f5fcefe399da3112645df90",
+        "sdk/lib/llama_cpp/ggml-base.dll": "939d62c39934e7f9a6d2ff9832ace79d9c26234492e77b9d757372809b472fb7",
+        "sdk/lib/llama_cpp/ggml-cpu.dll": "014541b948ba35cf61ccad3b67807ff21d4a66e94affea83d0e91271c9b5e06a",
+        "sdk/lib/llama_cpp/ggml-hexagon.dll": "375635a0e4bce56edf033bd2d0cde575dcab585c8147713c423a655955ff7618",
+        "sdk/lib/llama_cpp/ggml-opencl.dll": "ca4e1af894b242f9d56fb631191a38372057f886fe117fc5ebea311767e52f35",
+        "sdk/lib/llama_cpp/ggml.dll": "a9ac39e4eff479a18a76f9cc1a18f528ac69e86b0f8b3a2d1ea6b0c17aba6922",
+        "sdk/lib/llama_cpp/libggml-htp-v73.so": "51b1f8be1296ff73652637a9508e6aedd5453130d6c0fe30a0a8366b740399c5",
+        "sdk/lib/llama_cpp/libggml-htp-v75.so": "d9b544835db27d27ce8381cd739dc3d365ef1a13527b169d8dfd4756dc9dee16",
+        "sdk/lib/llama_cpp/libggml-htp-v79.so": "74cc2b0144b0cc3b1e2379e6c9fc5dfb9cf176b4b45be709b0b418d652c81d09",
+        "sdk/lib/llama_cpp/libggml-htp-v81.so": "8be8efda2ad18c0330af360b3176f5d06989218f4693141f487cb2bc1cc35e36",
+        "sdk/lib/llama_cpp/libomp140.aarch64.dll": "2862472fe7654c6dca32c019e24c9640259265384ddba13d84795b8b4ca944b3",
+        "sdk/lib/llama_cpp/llama-common.dll": "ea8ced1fcf0771fcc837f089207d11901b4c6279ceed48d5dde1a193d6f14c1f",
+        "sdk/lib/llama_cpp/llama.dll": "ee343597f7d1db21968f445501b68361b01b0171de07025adf3f18df310bcacb",
+        "sdk/lib/llama_cpp/mtmd.dll": "0ca93534b2fde894f7a326179f1eb7a942a13d5b7cde6c34b5397688a289091e",
+        "sdk/lib/qairt/geniex-proc-vision.dll": "69d9aa839abaa13e11dfb31447a5722f37fe37c64c8753515d68050e948ae3d8",
+        "sdk/lib/qairt/geniex-proc.dll": "b7055bc33415543f3f056cf084665421760b8a6ab80d1b7d76f528d3f088e3b9",
+        "sdk/lib/qairt/geniex_core.dll": "52ed4108227897db70f371e7f820a1de8879223db3e620e4cf8bb83032b64c81",
+        "sdk/lib/qairt/geniex_plugin.dll": "e3138050f7dc6022092755d41fa194bb3137c2d3a9824d1799f660713f5a1c53",
+        "sdk/lib/qairt/geniex_vlm.dll": "cdf3d32ae1f0811b108e8b4c2307ed1231f61a02711b22cdaaaa9dd06b606619",
+        "sdk/lib/qairt/htp-files/PlatformValidatorShared.dll": "06df269e0ccd3df71d7cade11e63b7929216b04d6efc6e467c45c52a80fa9fc0",
+        "sdk/lib/qairt/htp-files/QnnChrometraceProfilingReader.dll": "bfc113593ecf311700f7290fb875ec0c1ce9ee98f64cc99f9fd43193b2e69f32",
+        "sdk/lib/qairt/htp-files/QnnHtp.dll": "3f1a96e0cc35992831ba3acf3e342074a494927dbe22fb5792233f2273732aff",
+        "sdk/lib/qairt/htp-files/QnnHtpNetRunExtensions.dll": "9d2bb9dde58eb054696d57635c8d9f5c2b08d7380aee07b787e4fe2690d78bff",
+        "sdk/lib/qairt/htp-files/QnnHtpOptraceProfilingReader.dll": "4dd1db629279fb1298e7ec049ff14b7453e336a39df054a40d052df9e24f1fdc",
+        "sdk/lib/qairt/htp-files/QnnHtpPrepare.dll": "e659c2fd811657cc3481bdb379444756047fd0c13d2d29de13c11022aecbeaa5",
+        "sdk/lib/qairt/htp-files/QnnHtpProfilingReader.dll": "e419ec669c2b0d7d95df802c11b396600cc4cb7b966fa8c700d42970a9209d6f",
+        "sdk/lib/qairt/htp-files/QnnHtpV73CalculatorStub.dll": "6c0b36162f04aa09e06f60d4188c8778bc994fa191c6174ed918f1b97bb6ab67",
+        "sdk/lib/qairt/htp-files/QnnHtpV73Stub.dll": "0c529ce342d3b56f88a148df1dd82513aec15485907fea95723b175e9a6a4405",
+        "sdk/lib/qairt/htp-files/QnnHtpV81CalculatorStub.dll": "47f1565fa451502477f82503edd909861fab5348c6f0e2007d2a5b8428f93e3f",
+        "sdk/lib/qairt/htp-files/QnnHtpV81Stub.dll": "09e8d3665c856af9ce178f0f6828faa870a5da5a1d1fe70d2ab0f14794f888f8",
+        "sdk/lib/qairt/htp-files/QnnIr.dll": "c057db8c6d9d5bac521e6c75eb3205a7c06fac9413305c93d3c7ec19921fd2bd",
+        "sdk/lib/qairt/htp-files/QnnJsonProfilingReader.dll": "9b5258465287d440ea8b1d3a319395145c75742837da2a767c70c874277456ca",
+        "sdk/lib/qairt/htp-files/QnnModelDlc.dll": "d7853356b8da11d19c57f041daa167acad02cf5996dca60d9ecdbb34039de4bf",
+        "sdk/lib/qairt/htp-files/QnnNetRunDirectV81Stub.dll": "81c156dd412343637eff6a9edcdc0325f487dd8a0fd88498a7d640fe250a80d1",
+        "sdk/lib/qairt/htp-files/QnnSaver.dll": "98ef48dda46bc6fa99480ffa46257073a117fa6f1548925ac8ccf0020167dbde",
+        "sdk/lib/qairt/htp-files/QnnSystem.dll": "baf80b0783608f3a2f5ed4f9629ccf1a4c796c64924de8b2300baae5ca456467",
+        "sdk/lib/qairt/htp-files/calculator.dll": "67d16e6c1ac1fd748f1221327575127e1f7d854b1fbd90cac74df41ac80b6667",
+        "sdk/lib/qairt/htp-files/calculator_htp.dll": "c6a58a900a8225d40967b00d9b558a4233689a74d213bdd87dc8615b2e28b8fd",
+        "sdk/lib/qairt/htp-files/libCalculator_skel.so": "5b160374e886745d5df31f8d44c91e6394c45dee00053213a2694df9f5a6e28e",
+        "sdk/lib/qairt/htp-files/libQnnHtpV73.so": "a05eae5e9c6962c69b975169d4ecc249b5b396d418459e9af6f7dc0e088c4c24",
+        "sdk/lib/qairt/htp-files/libQnnHtpV73QemuDriver.so": "8fafa9c25e1eee0b03f0b69007a7ff39fb1648267e8d5309acbb31245d91241c",
+        "sdk/lib/qairt/htp-files/libQnnHtpV73Skel.so": "d2fb5957e260e8d5fb12bf56fbf03a22bfce0b03165cd21588a652a23d811329",
+        "sdk/lib/qairt/htp-files/libQnnHtpV81.so": "b4610877765705aa12bdb27fb8d7e8f87692bfa2bbf86a0a9e525d3159cf1c1d",
+        "sdk/lib/qairt/htp-files/libQnnHtpV81Skel.so": "57330ed3f7846b94181b25b7a87bc3fe5dc71033766f2d5630520a1400477c97",
+        "sdk/lib/qairt/htp-files/libQnnNetRunDirectV81Skel.so": "0a8fd92f1ae352c1e3d11ac7b8b020bbaac783c37959fdcc5fd16ac05d7b1ba1",
+        "sdk/lib/qairt/htp-files/libQnnSaver.so": "bb76f974d92957604ab35b58b8f144b2aaf6558f7a637592914c119d855fe816",
+        "sdk/lib/qairt/htp-files/libQnnSystem.so": "0317434840a1ed5133a66e5607728048c93fd7712ab114dfd1a0798f4bc43834",
+        "sdk/lib/qairt/htp-files/libSnpeHtpV73Skel.so": "c4293dc4a1ab2df4701fa2dde88b16b89daac74b09a70c6feda57e2b69bf5b41",
+        "sdk/lib/qairt/htp-files/libSnpeHtpV81Skel.so": "a8a9a7ad930f2c2af8a2cf58a15687900682a96f0f74f7565e96cc5e1994469a"
+      },
+      "scope": "benchmark executable and SDK native libraries; excludes OS/driver"
+    },
+    "grammar_enabled": true,
+    "grammar_canary": {
+      "expected": "CANARY_OK_731",
+      "response": {
+        "text": "CANARY_OK_731",
+        "generation_control": {
+          "stop_after_tool_call": false,
+          "mechanism": null,
+          "delimiter": null,
+          "delimiter_seen": false,
+          "callbacks_after_stop_request": 0,
+          "native_text_modified": false
+        },
+        "sampling": {
+          "requested_temperature": 0.0,
+          "sdk_top_k": 0,
+          "greedy_via_top_k": false,
+          "sdk_zero_temperature_uses_default": true,
+          "zero_temperature_default_source": "plugin"
+        },
+        "profile": {
+          "ttft": 80785,
+          "media_time": 0,
+          "prompt_time": 68177,
+          "decode_time": 314869,
+          "prompt_tokens": 13,
+          "generated_tokens": 9,
+          "prefill_speed": 190.68014139665868,
+          "decoding_speed": 28.583315601091247,
+          "draft_n_total": 0,
+          "draft_n_accepted": 0,
+          "stop_reason": "eos"
+        },
+        "timings": {
+          "ttft": 0.080785,
+          "total": 0.3833053996786475
+        },
+        "backend_id": "llama_cpp_cpu",
+        "runtime": "llama_cpp",
+        "requested_device": "cpu",
+        "resolved_device": null,
+        "device_resolution_warning": null,
+        "model_artifact_type": "GGUF",
+        "model_path_or_id": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "geniex_version": "0.6.1",
+        "qairt_version": null,
+        "dispatch_verified": false,
+        "context_source": "model_config",
+        "effective_compiled_context": null,
+        "backend": "geniex",
+        "device": "cpu",
+        "version": "0.6.1",
+        "config": {
+          "threads": 10,
+          "context": 4096,
+          "spec_type": "none",
+          "draft_tokens": 8,
+          "threads_batch": 0,
+          "ubatch": 0,
+          "n_batch": 0,
+          "plugin": "llama_cpp",
+          "stop_after_tool_call": false
+        }
+      },
+      "passed": true
+    },
+    "diagnostic_elapsed_s": 48.07995720021427,
+    "timing_scope": "Artifact hashing, model load, optional canary, fixture creation, feedback loop, verification and model destruction; excludes initial argument/Git reads, final serialization and SDK shutdown; not frozen v2 timing"
+  },
+  "native_config": {
+    "plugin": "llama_cpp",
+    "device": "cpu",
+    "threads": 10,
+    "context": 4096
+  },
+  "timing": {
+    "loop": {
+      "elapsed_s": 21.791034600231797,
+      "timing_scope": "model calls, tool execution and loop checks; excludes model load and fixture creation"
+    },
+    "diagnostic": {
+      "elapsed_s": 48.07995720021427,
+      "timing_scope": "Artifact hashing, model load, optional canary, fixture creation, feedback loop, verification and model destruction; excludes initial argument/Git reads, final serialization and SDK shutdown; not frozen v2 timing"
+    }
+  },
+  "file_move": {
+    "expected_source": "drafts/hexagon-invoice.md",
+    "expected_destination": "invoices/2026/hexagon-invoice.md",
+    "initial_snapshot": {
+      "README.md": "b4fafffdbe20ab76ad84cae37c0094d353e218c2b2f85a5d72c08151a83d7076",
+      "todo.txt": "7615ff347750f95b39174e62194fed356d96fd79942a3d6eca5141919f1b207f",
+      "docs/expense-policy.md": "2b3adf592c235b69ca73c45bccc5c3ed35c792362f4fe03a3514ad236cd6758c",
+      "docs/onboarding.md": "37802ae1a7aa9a9c484770a8cf32110cc6f1e442e44c1aeca60d02f6be512d6c",
+      "docs/vendor-contacts.md": "88c1c668744bd5e839790cbc17f19c5d8423a9cf1b88f1dae726412ca53c5c0f",
+      "drafts/hexagon-invoice.md": "3682fa12150836b2c00966843ce17f4ecae88d9c16396dd19691011d2e313c05",
+      "drafts/q3-summary.md": "2b8da768d174c480b829f0603513c82216118436fca8111491c9cc55b471508c",
+      "notes/2026-09-standup.md": "96d4831e732e5142b3cb2c4cee951fb9768c4c2ce149d09a4ab9c67c0c1627cf",
+      "notes/ideas.md": "15e9f4aaad89189f392e41cf686273f3baf838456aca8559b2d4dcdab51c8a21",
+      "notes/parking-lot.md": "58dd0c1392bdf2ba441fc894f310fb5265e43cd6c16d93d61a2b4a4e48b807aa",
+      "invoices/2026/INV-0142.pdf": "a855ce33bc03967d815ff35813cb249c5d63582cd9ee3ac890ba3f864ac62998",
+      "invoices/2026/INV-0157.pdf": "a855ce33bc03967d815ff35813cb249c5d63582cd9ee3ac890ba3f864ac62998"
+    },
+    "final_snapshot": {
+      "README.md": "b4fafffdbe20ab76ad84cae37c0094d353e218c2b2f85a5d72c08151a83d7076",
+      "todo.txt": "7615ff347750f95b39174e62194fed356d96fd79942a3d6eca5141919f1b207f",
+      "docs/expense-policy.md": "2b3adf592c235b69ca73c45bccc5c3ed35c792362f4fe03a3514ad236cd6758c",
+      "docs/onboarding.md": "37802ae1a7aa9a9c484770a8cf32110cc6f1e442e44c1aeca60d02f6be512d6c",
+      "docs/vendor-contacts.md": "88c1c668744bd5e839790cbc17f19c5d8423a9cf1b88f1dae726412ca53c5c0f",
+      "drafts/q3-summary.md": "2b8da768d174c480b829f0603513c82216118436fca8111491c9cc55b471508c",
+      "notes/2026-09-standup.md": "96d4831e732e5142b3cb2c4cee951fb9768c4c2ce149d09a4ab9c67c0c1627cf",
+      "notes/ideas.md": "15e9f4aaad89189f392e41cf686273f3baf838456aca8559b2d4dcdab51c8a21",
+      "notes/parking-lot.md": "58dd0c1392bdf2ba441fc894f310fb5265e43cd6c16d93d61a2b4a4e48b807aa",
+      "invoices/2026/hexagon-invoice.md": "3682fa12150836b2c00966843ce17f4ecae88d9c16396dd19691011d2e313c05",
+      "invoices/2026/INV-0142.pdf": "a855ce33bc03967d815ff35813cb249c5d63582cd9ee3ac890ba3f864ac62998",
+      "invoices/2026/INV-0157.pdf": "a855ce33bc03967d815ff35813cb249c5d63582cd9ee3ac890ba3f864ac62998"
+    },
+    "verified": true,
+    "removed": {
+      "drafts/hexagon-invoice.md": "3682fa12150836b2c00966843ce17f4ecae88d9c16396dd19691011d2e313c05"
+    },
+    "added": {
+      "invoices/2026/hexagon-invoice.md": "3682fa12150836b2c00966843ce17f4ecae88d9c16396dd19691011d2e313c05"
+    },
+    "modified": [],
+    "sha256": "3682fa12150836b2c00966843ce17f4ecae88d9c16396dd19691011d2e313c05"
+  },
+  "inner_output_dir": "${QUALCOMM_TOOLS}\\presenter-da59974\\local\\live-presenter-1645\\mcp-runs\\feedback-mcp-20260916T094058-04e44aa8",
+  "result_path": "${QUALCOMM_TOOLS}\\presenter-da59974\\local\\live-presenter-1645"
+}

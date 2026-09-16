@@ -1,0 +1,19 @@
+{
+  "artifact": "local-turbo-narrow-demo-v4.pptx",
+  "sha256": "54c5a2cf1fef93f727125b32d5d153e5c7421c30d8acf9061d4b41284136a0d6",
+  "bytes": 24975,
+  "slides": 4,
+  "package_integrity": "pass",
+  "layout_findings": 0,
+  "native_chart_count": 1,
+  "native_chart_workbook_validation": true,
+  "reimport_verified": true,
+  "visual_review": "All four slides rendered from final PPTX and visually inspected; no clipping or overlap observed.",
+  "native_powerpoint_open_verified": false,
+  "sources": [
+    "benchmarks/results/bound-feedback-mcp-1400/integration.json",
+    "eval/results/qairt-repeats-0700.md",
+    "eval/results/qwen8b-full-1200/README.md"
+  ],
+  "scope": "Recorded device evidence. Two tuner-to-MCP rounds have verified physical file actions; exact-call grades fail. QAIRT latency claim is separate. No broad quality or energy-efficiency win."
+}

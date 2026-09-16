@@ -1,0 +1,41 @@
+{
+  "started_at": "2026-09-16T16:40:58.169231+00:00",
+  "scope": "Presenter rehearsal; public fixture, not frozen v2 quality evaluation",
+  "state": "complete",
+  "command": [
+    "${QUALCOMM_TOOLS}\\Python314\\python.exe",
+    "-X",
+    "utf8",
+    "scripts/demo_invoice_mcp.py",
+    "--enable-candidate",
+    "--config",
+    "local/qwen4b-cpu10-config.json",
+    "--output",
+    "local/live-presenter-1645"
+  ],
+  "exit_code": 0,
+  "transport_completed": true,
+  "runtime_ok": true,
+  "physical_move_verified": true,
+  "existing_demo_verification": {
+    "passed": false,
+    "calls_match": false,
+    "final_state_match": true,
+    "execution_ok": true,
+    "task_id": "t13"
+  },
+  "mcp_process_elapsed_s": 48.63370919972658,
+  "inner_timing": {
+    "loop": {
+      "elapsed_s": 21.791034600231797,
+      "timing_scope": "model calls, tool execution and loop checks; excludes model load and fixture creation"
+    },
+    "diagnostic": {
+      "elapsed_s": 48.07995720021427,
+      "timing_scope": "Artifact hashing, model load, optional canary, fixture creation, feedback loop, verification and model destruction; excludes initial argument/Git reads, final serialization and SDK shutdown; not frozen v2 timing"
+    }
+  },
+  "gateway_runtime_available": true,
+  "restored_content": "5",
+  "finished_at": "2026-09-16T16:42:15.264180+00:00"
+}

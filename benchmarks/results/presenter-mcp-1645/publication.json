@@ -1,0 +1,172 @@
+{
+  "source_commit": "da599746336ea092310a9978195c6b70bfb19f3c",
+  "scope": "Single presenter CLI rehearsal on public fixture; no frozen evaluation or causal speed claim.",
+  "redactions": "Private paths replaced recursively, including serialized MCP content. Raw bytes kept privately.",
+  "files": [
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/diagnostic.json",
+      "original_sha256": "a0dd949dec6994be41caa67728f7501f270b86707d4ed3c4d3b0cd033f130ad6",
+      "original_bytes": 30371,
+      "published": true,
+      "published_sha256": "87b384fb65cd14540fffb93533c3fb40e50d3d1b494f797d79b8a4aada800833"
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/tool-grammar.gbnf",
+      "original_sha256": "c9152fb6870d56189c33c6359c29c1d3285aa1626d9c0a968539119f698d2408",
+      "original_bytes": 1030,
+      "published": true,
+      "published_sha256": "c9152fb6870d56189c33c6359c29c1d3285aa1626d9c0a968539119f698d2408"
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/README.md",
+      "original_sha256": "b4fafffdbe20ab76ad84cae37c0094d353e218c2b2f85a5d72c08151a83d7076",
+      "original_bytes": 48,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/docs/expense-policy.md",
+      "original_sha256": "2b3adf592c235b69ca73c45bccc5c3ed35c792362f4fe03a3514ad236cd6758c",
+      "original_bytes": 52,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/docs/onboarding.md",
+      "original_sha256": "37802ae1a7aa9a9c484770a8cf32110cc6f1e442e44c1aeca60d02f6be512d6c",
+      "original_bytes": 47,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/docs/vendor-contacts.md",
+      "original_sha256": "88c1c668744bd5e839790cbc17f19c5d8423a9cf1b88f1dae726412ca53c5c0f",
+      "original_bytes": 57,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/drafts/q3-summary.md",
+      "original_sha256": "2b8da768d174c480b829f0603513c82216118436fca8111491c9cc55b471508c",
+      "original_bytes": 63,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/invoices/2026/INV-0142.pdf",
+      "original_sha256": "a855ce33bc03967d815ff35813cb249c5d63582cd9ee3ac890ba3f864ac62998",
+      "original_bytes": 14,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/invoices/2026/INV-0157.pdf",
+      "original_sha256": "a855ce33bc03967d815ff35813cb249c5d63582cd9ee3ac890ba3f864ac62998",
+      "original_bytes": 14,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/invoices/2026/hexagon-invoice.md",
+      "original_sha256": "3682fa12150836b2c00966843ce17f4ecae88d9c16396dd19691011d2e313c05",
+      "original_bytes": 56,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/notes/2026-09-standup.md",
+      "original_sha256": "96d4831e732e5142b3cb2c4cee951fb9768c4c2ce149d09a4ab9c67c0c1627cf",
+      "original_bytes": 62,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/notes/ideas.md",
+      "original_sha256": "15e9f4aaad89189f392e41cf686273f3baf838456aca8559b2d4dcdab51c8a21",
+      "original_bytes": 45,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/notes/parking-lot.md",
+      "original_sha256": "58dd0c1392bdf2ba441fc894f310fb5265e43cd6c16d93d61a2b4a4e48b807aa",
+      "original_bytes": 49,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-runs/feedback-mcp-20260916T094058-04e44aa8/workspace/todo.txt",
+      "original_sha256": "7615ff347750f95b39174e62194fed356d96fd79942a3d6eca5141919f1b207f",
+      "original_bytes": 50,
+      "published": false,
+      "reason": "Duplicate public fixture bytes retained privately and checked against the published final snapshot."
+    },
+    {
+      "path": "mcp-stderr.txt",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_bytes": 0,
+      "published": true,
+      "published_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "mcp-stdout.txt",
+      "original_sha256": "0f7ac4203e30fa1826f7412f2487a53eb4b5a6dbb3be02769987dad5d8d6988a",
+      "original_bytes": 77243,
+      "published": true,
+      "published_sha256": "5a2e30cf05e7a62fad1e485540cf382b445c33563650f22725c8e8181c81bd10"
+    },
+    {
+      "path": "parsed-replies.json",
+      "original_sha256": "53bea28fae86fd423eb30c9ef753722f043637958c627fcc9e706ea1b85edc04",
+      "original_bytes": 92822,
+      "published": true,
+      "published_sha256": "03c16a5cba0153a290da1a13b7ac979477fae9032ad83b608b360ec52b0f4013"
+    },
+    {
+      "path": "summary.json",
+      "original_sha256": "3ee2db005d5937ccc8f3899a392cf3860caeed438be030f453292b231ba67404",
+      "original_bytes": 13915,
+      "published": true,
+      "published_sha256": "dbbf15b641c3dc0e3abf232e74ec483de76ff1a00dd865805a25233d6b8ccbcc"
+    },
+    {
+      "path": "supervisor/restored-inference.json",
+      "original_sha256": "e54231bd79862aab3e85855403fca0bb79514f9eb7d2d05ac8dbd1455e147ace",
+      "original_bytes": 7066,
+      "published": true,
+      "published_sha256": "5d6cfedb95c647746abc962fd3c413a5a42de038b532b915ae29c64e23f36973"
+    },
+    {
+      "path": "supervisor/status.json",
+      "original_sha256": "d4934b932cb192b8b61ef0f6d7b241e1b66b6bae8a76df26f29c65aa40a81431",
+      "original_bytes": 1411,
+      "published": true,
+      "published_sha256": "a4eb82f45b73b35dcaa7dfbada494bd88d4af31fc4d27288f2ffd0feb41da639"
+    },
+    {
+      "path": "supervisor/stderr.log",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_bytes": 0,
+      "published": true,
+      "published_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "supervisor/stdout.log",
+      "original_sha256": "2fee394207a6d1b302718d9ea52dc9c81dc87de84cc3f4bbe59d4fcc82afa8d4",
+      "original_bytes": 13917,
+      "published": true,
+      "published_sha256": "2d68ca204042a1ccbf99724fd1331e28ecdde09434e35a0aa886f262a881ff2f"
+    }
+  ],
+  "independent_checks": {
+    "native_report_matches_mcp": true,
+    "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+    "clean_source": true,
+    "copied_workspace_hashes_match": true,
+    "file_move_verified": true,
+    "unchanged_other_files": 11,
+    "exact_call_check_passed": false,
+    "gateway_restored_actual_content": "5"
+  },
+  "quality_qualified": false
+}

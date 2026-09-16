@@ -1,0 +1,205 @@
+{
+  "id": "chatcmpl-c1afbe44ca084bd0a13fca0872d2b61c",
+  "object": "chat.completion",
+  "model": "qwen4b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "5"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 20,
+    "completion_tokens": 1
+  },
+  "turbo": {
+    "text": "5",
+    "generation_control": {
+      "stop_after_tool_call": false,
+      "mechanism": null,
+      "delimiter": null,
+      "delimiter_seen": false,
+      "callbacks_after_stop_request": 0,
+      "native_text_modified": false
+    },
+    "sampling": {
+      "requested_temperature": 0.0,
+      "sdk_top_k": 0,
+      "greedy_via_top_k": false,
+      "sdk_zero_temperature_uses_default": true,
+      "zero_temperature_default_source": "plugin"
+    },
+    "profile": {
+      "ttft": 70890,
+      "media_time": 0,
+      "prompt_time": 70494,
+      "decode_time": 26936,
+      "prompt_tokens": 20,
+      "generated_tokens": 1,
+      "prefill_speed": 283.7120889721111,
+      "decoding_speed": 37.125037125037124,
+      "draft_n_total": 0,
+      "draft_n_accepted": 0,
+      "stop_reason": "eos"
+    },
+    "timings": {
+      "ttft": 0.07089,
+      "total": 0.0977083002217114
+    },
+    "backend_id": "llama_cpp_cpu",
+    "runtime": "llama_cpp",
+    "requested_device": "cpu",
+    "resolved_device": null,
+    "device_resolution_warning": null,
+    "model_artifact_type": "GGUF",
+    "model_path_or_id": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+    "geniex_version": "0.6.1",
+    "qairt_version": null,
+    "dispatch_verified": false,
+    "context_source": "model_config",
+    "effective_compiled_context": null,
+    "backend": "geniex",
+    "device": "cpu",
+    "version": "0.6.1",
+    "config": {
+      "threads": 10,
+      "context": 4096,
+      "spec_type": "none",
+      "draft_tokens": 8,
+      "threads_batch": 0,
+      "ubatch": 0,
+      "n_batch": 0,
+      "plugin": "llama_cpp",
+      "stop_after_tool_call": false
+    },
+    "elapsed_s": 27.32379319984466,
+    "model": "qwen4b",
+    "route": {
+      "reason": "measured configuration applied",
+      "model": "qwen4b",
+      "mode": "fast",
+      "config": {
+        "device": "cpu",
+        "threads": 10,
+        "context": 4096
+      },
+      "evidence": {
+        "source": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-b28aebdba7\\record.json",
+        "scope": {
+          "group_id": "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09",
+          "workload": {
+            "prompt_tokens": 128,
+            "gen_tokens": 32,
+            "warmup": 0,
+            "repeats": 2,
+            "temperature": 0,
+            "seed": 42,
+            "image_path": null,
+            "prompt_file": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+            "image_sha256": null,
+            "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+          },
+          "power_state": "ac",
+          "power_scope": "measured",
+          "quality_calibrated": false,
+          "cold_kv": true,
+          "evidence": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-b28aebdba7\\record.json",
+          "provisional": true,
+          "requires_paired_confirmation": true
+        },
+        "metrics": {
+          "decode_tps": 37.408063,
+          "prefill_tps": 318.628902,
+          "latency_s": 0.934009,
+          "tokens_per_joule": 0.4606279400959099,
+          "median_decode_tps": 37.408063,
+          "median_ttft_ms": 78.748,
+          "median_peak_mib": 3699.5390625,
+          "energy_channel": "SYS",
+          "energy_scope": "full_process_trial"
+        },
+        "qualification": {
+          "kind": "exploratory_benchmark_recommendation",
+          "secretary_qualified": false,
+          "product_policy": "owner_thresholds_required",
+          "objectives": {
+            "fast": "decode_tokens_per_second",
+            "efficient": "full_trial_tokens_per_joule",
+            "balanced": "exploratory_tradeoff_not_product_policy"
+          },
+          "product_objectives": {
+            "fast": "task_latency_among_quality_eligible",
+            "efficient": "gross_sys_j_per_correct_task_among_quality_eligible",
+            "balanced": null
+          }
+        }
+      }
+    },
+    "mode": "turbo",
+    "tool_calls": [],
+    "applied": {
+      "model": "qwen4b",
+      "mode": "fast",
+      "config": {
+        "device": "cpu",
+        "threads": 10,
+        "context": 4096
+      },
+      "evidence": {
+        "source": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-b28aebdba7\\record.json",
+        "scope": {
+          "group_id": "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09",
+          "workload": {
+            "prompt_tokens": 128,
+            "gen_tokens": 32,
+            "warmup": 0,
+            "repeats": 2,
+            "temperature": 0,
+            "seed": 42,
+            "image_path": null,
+            "prompt_file": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+            "image_sha256": null,
+            "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+          },
+          "power_state": "ac",
+          "power_scope": "measured",
+          "quality_calibrated": false,
+          "cold_kv": true,
+          "evidence": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-b28aebdba7\\record.json",
+          "provisional": true,
+          "requires_paired_confirmation": true
+        },
+        "metrics": {
+          "decode_tps": 37.408063,
+          "prefill_tps": 318.628902,
+          "latency_s": 0.934009,
+          "tokens_per_joule": 0.4606279400959099,
+          "median_decode_tps": 37.408063,
+          "median_ttft_ms": 78.748,
+          "median_peak_mib": 3699.5390625,
+          "energy_channel": "SYS",
+          "energy_scope": "full_process_trial"
+        },
+        "qualification": {
+          "kind": "exploratory_benchmark_recommendation",
+          "secretary_qualified": false,
+          "product_policy": "owner_thresholds_required",
+          "objectives": {
+            "fast": "decode_tokens_per_second",
+            "efficient": "full_trial_tokens_per_joule",
+            "balanced": "exploratory_tradeoff_not_product_policy"
+          },
+          "product_objectives": {
+            "fast": "task_latency_among_quality_eligible",
+            "efficient": "gross_sys_j_per_correct_task_among_quality_eligible",
+            "balanced": null
+          }
+        }
+      }
+    }
+  }
+}
