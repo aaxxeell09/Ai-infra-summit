@@ -98,6 +98,7 @@ def test_abandoned_backfill_gets_new_archive(tmp_path):
 
 
 def setup_run(tmp_path,monkeypatch):
+    monkeypatch.setattr(e,'capture_environment',lambda:{'capture_scope':'synthetic test only'})
     import eval.validate_dataset as validator
     monkeypatch.setattr(validator,'validate',lambda:{})
     monkeypatch.setattr(e,'git_state',lambda repo:{'git_commit':'abc','dirty':False,'branch':'main','git_status':'','git_diff':''})
@@ -255,3 +256,41 @@ def test_run_qualification_checks_captured_identity(tmp_path,monkeypatch,forged)
     else:
         assert metadata['status']=='completed_qualified'
     assert not e.verify(path)
+
+
+def test_environment_inventory_uses_bounded_allowlisted_version_commands(monkeypatch):
+    calls=[]
+    monkeypatch.setattr(e.shutil,'which',lambda name:'/synthetic/'+name)
+    def version(command,**kwargs):
+        calls.append((command,kwargs))
+        return subprocess.CompletedProcess(command,0,command[0].rsplit('/',1)[-1]+' version 1.2.3\nextra\n','')
+    monkeypatch.setattr(e.subprocess,'run',version)
+    monkeypatch.setenv('PRIVATE_SECRET_FOR_TEST','must not appear')
+    result=e.capture_environment()
+    assert [cmd for cmd,_ in calls]==[['/synthetic/'+name,'--version'] for name in ('git','node','npm')]
+    assert all(kwargs['timeout']==2 and kwargs['check'] is False for _,kwargs in calls)
+    assert all(result['software'][name]['status']=='available' for name in ('git','node','npm'))
+    assert result['software']['node']['version']=='node version 1.2.3'
+    assert result['os'] and result['architecture'] and result['python_version']
+    assert 'PRIVATE_SECRET_FOR_TEST' not in json.dumps(result) and 'must not appear' not in json.dumps(result)
+
+
+def test_environment_missing_and_timed_out_tools_are_nonfatal(monkeypatch):
+    monkeypatch.setattr(e.shutil,'which',lambda name:None if name=='node' else '/synthetic/'+name)
+    def version(command,**kwargs):
+        if command[0].endswith('git'):raise subprocess.TimeoutExpired(command,kwargs['timeout'])
+        raise FileNotFoundError('executable disappeared')
+    monkeypatch.setattr(e.subprocess,'run',version)
+    result=e.capture_environment()
+    assert all(item['status']=='unavailable' and item['version'] is None for item in result['software'].values())
+    assert '2 seconds' in result['software']['git']['reason']
+    assert 'not found' in result['software']['node']['reason']
+
+
+def test_historical_environment_is_never_filled_from_ingestion_host(tmp_path,monkeypatch):
+    monkeypatch.setattr(e,'capture_environment',lambda:pytest.fail('Must not inspect ingestion host'))
+    data=report();data['environment']={'machine':'historical recorded machine','python':'old recorded version'}
+    src=tmp_path/'historical.json';src.write_text(json.dumps(data))
+    archive=e.backfill(src,tmp_path/'archives')
+    assert e.read_json(archive/'environment.json')==data['environment']
+    assert e.read_json(archive/'manifest.json')['environment']==data['environment']

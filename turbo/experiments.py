@@ -15,8 +15,10 @@ import json
 import math
 import os
 from pathlib import Path
+import platform
 import re
 import shlex
+import shutil
 import signal
 import statistics
 import subprocess
@@ -181,6 +183,34 @@ def kpis(report, telemetry=None, *, complete=True):
                 clarify_cases=len(clar),generated_tokens=tokens,
                 total_generated_tokens=sum((r.get('profile') or {}).get('generated_tokens') for r in rows) if tokens['mean'] is not None else None,
                 error_taxonomy=counts,diagnostic_labels_overlap=True)
+
+
+def capture_environment():
+    """Small allowlisted software inventory; no environment variables or hostname."""
+    software={}
+    for name in ('git','node','npm'):
+        executable=shutil.which(name)
+        if executable is None:
+            software[name]={'status':'unavailable','version':None,'reason':'Executable not found'}
+            continue
+        try:
+            completed=subprocess.run([executable,'--version'],capture_output=True,text=True,
+                                     encoding='utf-8',errors='replace',timeout=2,check=False)
+            output=(completed.stdout or completed.stderr or '').strip()
+            if completed.returncode or not output:
+                software[name]={'status':'unavailable','version':None,
+                                'reason':'Version command failed or returned no output','returncode':completed.returncode}
+            else:
+                software[name]={'status':'available','version':output.splitlines()[0][:256]}
+        except subprocess.TimeoutExpired:
+            software[name]={'status':'unavailable','version':None,'reason':'Version command exceeded 2 seconds'}
+        except OSError:
+            software[name]={'status':'unavailable','version':None,'reason':'Version command could not execute'}
+    return {'python':sys.version,'platform':sys.platform,'os':platform.system(),
+            'os_release':platform.release(),'os_version':platform.version(),
+            'architecture':platform.machine(),'python_version':platform.python_version(),
+            'python_implementation':platform.python_implementation(),'software':software,
+            'capture_scope':'Supervisor host at execution; allowlisted OS and software versions only'}
 
 
 def git_state(repo=ROOT):
@@ -569,7 +599,7 @@ def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', c
     metadata=initialize(path,{**state,'timestamp':now(),'change':change,'hypothesis':hypothesis,
                  'control_experiment':control,'dataset':dataset,'benchmark':frozen,'command':command,
                  'qualification_status':'diagnostic_dirty' if state['dirty'] else 'pending_validation',
-                 'environment':{'python':sys.version,'platform':sys.platform},'artifact_identity_before':pre,
+                 'environment':capture_environment(),'artifact_identity_before':pre,
                  'runner_identity_before':runner_before,'case_set_complete':False,
                  'config_sha256':digest(config)},config_raw)
     meter=None;before=None;telemetry=None;status='failed';result=None;notes=[];exit_code=None;child=None;power_before=None

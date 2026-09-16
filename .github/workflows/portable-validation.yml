@@ -17,6 +17,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       PYTHONDONTWRITEBYTECODE: '1'
+      # Frozen readers use platform defaults: make the execution encoding explicit.
+      PYTHONUTF8: '1'
     steps:
       # Source and historical archive identities are byte hashes. Frozen fixtures
       # additionally retain their independent -text checkout regression test.

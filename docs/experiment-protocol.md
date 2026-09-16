@@ -32,3 +32,7 @@ Target three independent blocks per treatment, balanced order, e.g. CPU/HTP/QAIR
 `backfill` copies, never moves or changes sources. Original bytes and companions remain available. Idempotency is by captured evidence fingerprints, not filename alone. Historical dirty/unknown provenance stays diagnostic. Metadata is OBSERVED_LOG, statistics DERIVED, missing fields UNKNOWN. Reproduction commands are copied only if recorded; otherwise NOT_RECORDED. Current machine facts must never fill old gaps.
 
 Failure categories are diagnostic projections of existing flags, can overlap, and do not rescore output. Correct vs invalid are not complements:21/35 correct and2 invalid also means12 well-formed but incorrect tasks. Frozen evaluator defects require owner-approved versioning, not post-hoc cleanup.
+
+## Windows text environment
+
+Use `python -X utf8` (or `PYTHONUTF8=1`) for frozen validation and tooling on Windows. The frozen validator retains platform-default reads; legacy Windows code pages otherwise misdecode UTF-8 inventory names. CI sets UTF-8 explicitly without changing fixture bytes, filenames, inventory or validator semantics. Tracker child commands already use `-X utf8`.

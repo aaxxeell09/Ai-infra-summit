@@ -77,3 +77,9 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Added sealed-archive summary, repeated campaign statistics, strict comparable case deltas and single-archive development-only error analysis. Diagnostic uncommissioned energy is excluded from qualified deltas/Pareto/pooling. No overall winner.
 - Focused tracker/analysis: **47 passed**.
 - First hosted CI at99591e8: macOS passes; Linux/Windows fail. Investigating actual logs; not declaring cross-platform completion.
+
+## Portable CI diagnosis and machine evidence — 2026-09-16 UTC
+
+- Reporting checkpoint: `b3f8329`; generated local SUMMARY, campaign and development-error reports. Only available development report has 25/35 correct and 9/9 failed clarify cases; this is Qwen4B historical evidence, not QAIRT-stop evidence.
+- Windows failure traced to platform-default decoding of the frozen UTF-8 inventory: set execution UTF-8 explicitly, no frozen file edit. Linux failure is an unbounded GGUF metadata length allocation; fixing reader separately.
+- Added bounded optional Git/Node/npm and machine/Python version capture; 45 tracker tests pass. Historical metadata remains untouched.
