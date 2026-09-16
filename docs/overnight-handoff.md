@@ -88,6 +88,31 @@ manifests describe the committed configurations and exact runner commands.
 
 ## Next bounded work
 
+### 06:00 UTC checkpoint — recovery is active
+
+The 4B upload completed and both hashes match. Development result is published
+under `eval/results/candidate_qwen4b-cpu10-dev-v1.*`: 25/35 correct, all six moves,
+zero of nine clarifications, 5.71% invalid outputs, mean inference 6,756.383 ms.
+See `eval/results/qwen4b-development-note.md` for scope, failures and telemetry.
+
+Both original campaign processes exited with `0xC000013A` before the full 4B
+result or any QAIRT result was saved. Their old status files are stale. No Python
+inference processes remained when checked; origin of termination is unknown.
+One bounded recovery was launched using `pythonw.exe` to avoid console coupling:
+
+- Task `Qualcomm-Overnight-4B-Recovery-0600`: full candidate
+  `qwen4b-cpu10-v2`, unchanged clean `16d1313`, output/status under
+  `roadmap-16d1313/local/qwen4b-recovery-0600/`. Deadline 08:00 UTC.
+- Task `Qualcomm-Overnight-QAIRT-Recovery-0600`: same four QAIRT trials, clean
+  `728c6a2`, output/status under `roadmap-728c6a2/local/qairt-stop-recovery-0600/`.
+  Waits for that recovery, then restores the service. Deadline 09:00 UTC.
+- Both new tasks were observed Running. Do not restart the old campaigns or
+  overlap these jobs. If this recovery is also interrupted, inspect the cause
+  rather than blindly repeating it. Original partial logs remain private.
+- The QAIRT model-directory availability bug is fixed locally and covered by a
+  focused status test. Deploy the resulting commit only after current campaigns
+  finish; do not alter their pinned clean checkouts.
+
 1. Collect the already queued 4B and QAIRT ablation results. Preserve native logs,
    verify captured provenance, redact private paths and publish complete evidence.
    Keep the historical `NOT_COMPARABLE` guard when evaluator provenance differs.

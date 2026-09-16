@@ -19,14 +19,19 @@
   },
   "control_candidate_name": "qairt-stop-control-full-v1",
   "control_difference": "stop_after_tool_call is false; all other configuration fields are identical and both runs use the same clean commit.",
-  "private_required_config": ["sdk_dir", "model_path", "hardware_note"],
-  "development_command": "python -X utf8 scripts/observe_secretary_eval.py qairt-stop-candidate-dev-v1 dev --config local/qairt-stop-candidate.json --output-dir local/qairt-stop-evaluation",
-  "full_command": "python -X utf8 scripts/observe_secretary_eval.py qairt-stop-candidate-full-v1 all --config local/qairt-stop-candidate.json --output-dir local/qairt-stop-evaluation",
-  "control_full_command": "python -X utf8 scripts/observe_secretary_eval.py qairt-stop-control-full-v1 all --config local/qairt-stop-control.json --output-dir local/qairt-stop-evaluation",
+  "private_required_config": [
+    "sdk_dir",
+    "model_path",
+    "hardware_note"
+  ],
+  "development_command": "pythonw -X utf8 scripts/observe_secretary_eval.py qairt-stop-candidate-dev-v1 dev --config local/qairt-stop-candidate.json --output-dir local/qairt-stop-recovery-0600",
+  "full_command": "pythonw -X utf8 scripts/observe_secretary_eval.py qairt-stop-candidate-full-v1 all --config local/qairt-stop-candidate.json --output-dir local/qairt-stop-recovery-0600",
+  "control_full_command": "pythonw -X utf8 scripts/observe_secretary_eval.py qairt-stop-control-full-v1 all --config local/qairt-stop-control.json --output-dir local/qairt-stop-recovery-0600",
   "limitations": [
     "Literal streaming delimiter detection is not a JSON-aware grammar; malformed or semantically wrong actions remain failures.",
     "Cancellation cannot undo suffix text already produced in the same native chunk.",
     "QAIRT sampling retains the documented v0.6.1 bundle-default behavior; zero requested temperature does not establish greedy sampling.",
     "Retain NOT_COMPARABLE against the historical baseline when evaluator provenance differs. Do not replace or re-freeze the baseline."
-  ]
+  ],
+  "launch_note": "Original waiting supervisor exited before inference. Recovery uses windowless Python; clean source and control/candidate inference configuration are unchanged."
 }

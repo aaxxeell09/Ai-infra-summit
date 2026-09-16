@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "candidate_name": "qwen4b-cpu10-v1",
+  "candidate_name": "qwen4b-cpu10-v2",
   "application_commit": "16d13138a61fd3f0e4bcbe5ae6bcb2271fb1b843",
   "benchmark_version": "secretary-eval-v2",
-  "status": "full_run_interrupted_development_measured",
+  "status": "recovery_running_not_measured",
   "change": "Replace Qwen3-0.6B Q4_0 with Qwen3-4B-Instruct-2507 Q4_0 on the same GenieX llama.cpp CPU10 configuration; no prompt, grammar, routing or scorer changes.",
   "expected_improvement": "Test stronger instruction/tool correctness. Higher latency is expected; this is model admission for routing, not a claimed throughput improvement.",
   "model": "Qwen3-4B-Instruct-2507-Q4_0.gguf",
@@ -31,11 +31,10 @@
     "model_path",
     "hardware_note"
   ],
-  "development_command": "python -X utf8 scripts/observe_secretary_eval.py qwen4b-cpu10-dev-v1 dev --config local/qwen4b-cpu10-config.json --output-dir local/qwen4b-evaluation",
-  "full_command": "python -X utf8 scripts/observe_secretary_eval.py qwen4b-cpu10-v1 all --config local/qwen4b-cpu10-config.json --output-dir local/qwen4b-evaluation",
+  "full_command": "pythonw -X utf8 scripts/observe_secretary_eval.py qwen4b-cpu10-v2 all --config local/qwen4b-cpu10-config.json --output-dir local/qwen4b-recovery-0600",
   "baseline": "eval/results/baseline.json",
   "comparability_note": "Keep NOT_COMPARABLE if current evaluator provenance differs from historical reference. No benchmark edits or baseline replacement.",
-  "development_result": "candidate_qwen4b-cpu10-dev-v1.json",
-  "full_result": null,
-  "recovery_candidate": "qwen4b-cpu10-v2"
+  "recovery_of": "qwen4b-cpu10-v1",
+  "recovery_reason": "Original full run interrupted with scheduled-process exit 0xC000013A; completed development report retained unchanged.",
+  "development_result": "candidate_qwen4b-cpu10-dev-v1.json"
 }
