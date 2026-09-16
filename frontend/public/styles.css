@@ -35,31 +35,31 @@
 @media(max-width:850px){.ranking-scope{grid-column:1;grid-row:4}}
 @media(max-width:560px){.metric-explanation{padding:0 14px 16px}.metric-tabs button{font-size:11px;white-space:normal;min-height:44px}.ranking-scope{font-size:12px}}
 /* Demo workbench: prompt first, answers second, supporting detail on demand. */
-.comparison-demo{max-width:1200px;margin:0 auto;padding:32px 0}
+.comparison-demo{max-width:1120px;margin:0 auto;padding:32px 0}
 .demo-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:24px}
 .demo-heading h1{font-size:32px;font-weight:600;letter-spacing:-1.2px;line-height:1.2}
 .comparison-switch{display:flex;gap:3px;background:#e9edf3;padding:4px;border-radius:9px;flex-shrink:0}
 .comparison-switch button{font-size:13px;min-height:40px;padding:9px 17px;color:var(--muted);background:transparent;border-radius:6px}
 .comparison-switch button[aria-pressed=true]{color:var(--ink);background:#fff;box-shadow:0 1px 4px #10203a10}
-.comparison-workspace{background:#fff;border:1px solid #dfe4ed;border-radius:14px;overflow:hidden}
-.prompt-composer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:15px 28px;padding:23px 26px;border-bottom:1px solid var(--line)}
+.comparison-workspace{background:#fff;border:1px solid #dce2eb;border-radius:18px;overflow:hidden;box-shadow:0 18px 55px #1a28400b}
+.prompt-composer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:15px 28px;padding:24px 26px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff,#fbfcfe)}
 .prompt-controls{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .prompt-controls label{font-size:13px;font-weight:600;color:var(--ink)}
 .prompt-controls select{font:inherit;font-size:12px;min-height:36px;max-width:210px;padding:6px 28px 6px 10px;background:#f8f9fb;color:#596475;border:1px solid var(--line);border-radius:6px;cursor:pointer}
 .prompt-controls select:focus-visible{outline:3px solid #90b0ff;outline-offset:3px}
-.prompt-copy{font-size:18px;line-height:1.6;letter-spacing:-.2px;max-width:920px;align-self:center}
+.prompt-copy{font-size:18px;line-height:1.55;letter-spacing:-.25px;max-width:850px;align-self:center}
 .run-comparison{align-self:end;min-width:130px;min-height:46px;font-size:14px;gap:16px;box-shadow:none!important}
 .response-grid{display:grid;grid-template-columns:1fr 1fr}
-.response-column{min-width:0;display:flex;flex-direction:column}
+.response-column{min-width:0;display:flex;flex-direction:column}.response-turbo{background:linear-gradient(180deg,#fbfcff 0,#fff 48%)}
 .response-column+.response-column{border-left:1px solid var(--line)}
-.response-header{padding:24px 26px 0}
+.response-header{padding:22px 24px 0}
 .response-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .response-title h2{font-size:17px;font-weight:600;letter-spacing:-.3px}
 .response-turbo .response-title h2{color:var(--blue)}
-.response-status{font-size:11px;color:var(--muted);white-space:nowrap}
-.response-status.active{color:var(--blue)}
+.response-status{padding:4px 7px;border:1px solid #e2e6ed;border-radius:999px;background:#f7f8fa;color:#7c8696;font-size:9px;line-height:1;white-space:nowrap}
+.response-status.active{border-color:#d8e2ff;background:#f1f5ff;color:var(--blue)}
 .response-header>p{font-size:12px;line-height:1.5;color:var(--muted);margin-top:8px;overflow-wrap:anywhere}
-.response-text{padding:24px 26px 30px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:16px;line-height:1.8;min-height:190px;flex:1}
+.response-text{padding:22px 24px 26px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:16px;line-height:1.75;min-height:150px;flex:1}
 
 .response-text.writing:after{content:'';display:inline-block;height:16px;width:2px;background:var(--blue);margin-left:3px;vertical-align:middle;animation:cursor-pulse .7s steps(2,start) infinite}
 
@@ -75,7 +75,7 @@
 @media(max-width:600px){.demo-heading{align-items:flex-start;flex-direction:column;gap:16px;margin-bottom:20px}.demo-heading h1{font-size:29px}.comparison-switch{width:100%}.comparison-switch button{flex:1;min-height:44px}.prompt-composer{grid-template-columns:1fr;padding:18px;gap:16px}.prompt-controls{grid-column:auto}.prompt-controls select{min-height:44px;max-width:200px}.prompt-copy{font-size:17px}.run-comparison{justify-self:stretch;min-height:48px}.response-grid{grid-template-columns:1fr}.response-column+.response-column{border-left:0;border-top:1px solid var(--line)}.response-header{padding:20px 18px 0}.response-text{padding:20px 18px;min-height:160px;font-size:15px}.response-header>p{font-size:12px}.demo-secondary{justify-content:flex-start}.comparison-info summary{text-align:left}}
 
 /* The example picker and per-answer clocks belong to the comparison surface. */
-.prompt-label{font-size:13px;font-weight:600}
+.prompt-label{font:600 9px var(--mono);letter-spacing:1.1px;text-transform:uppercase;color:#657084}
 .prompt-picker{position:relative;max-width:100%;margin:0;padding:0;border:0;border-radius:0}
 .prompt-picker summary{display:flex;align-items:center;gap:24px;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);font-size:12px;list-style:none;cursor:pointer}
 .prompt-picker summary::-webkit-details-marker{display:none}
@@ -86,7 +86,7 @@
 .prompt-options button{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:44px;padding:10px 12px;border-radius:6px;background:transparent;text-align:left;font-size:13px}
 .prompt-options button:hover{background:#f4f6fa}
 .prompt-options button[aria-pressed=true]{color:var(--blue);background:var(--blue-soft)}
-.response-timing{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 26px;padding:16px 0;border-top:1px solid var(--line)}
+.response-timing{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 24px;padding:15px 0;border-top:1px solid var(--line)}
 .response-timing>span{font-size:12px;color:var(--muted)}
 .response-timing strong{font:500 22px var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.8px}
 @media(max-width:850px){.response-timing{margin:0 20px}}

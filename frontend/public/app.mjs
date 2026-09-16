@@ -127,7 +127,7 @@ function demoScreen() {
   const lanes = ['default', 'turbo'].map(key => {
     const lane = state.lanes[key] || { status: 'idle', answer: '' };
     const meta = descriptions?.[key];
-    const status = lane.status === 'running' ? 'Writing…' : lane.status === 'completed' ? 'Done' : busy ? 'Queued' : '';
+    const status = lane.status === 'running' ? 'Writing…' : lane.status === 'completed' ? 'Done' : busy ? 'Queued' : 'Ready';
     const identity = !meta ? 'Configuration unavailable' : state.comparison === 'speed'
       ? `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`
       : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
