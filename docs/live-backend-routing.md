@@ -31,6 +31,13 @@ same quantized artifact as the GGUF. Precision is labeled as the bundle's
 `geniex.json` declaration (`w4a16` on the installed bundle), or null if unavailable.
 Do not present the routed pair as a same-model optimization experiment.
 
+The QAIRT answer lane explicitly requests temperature `-1`, the SDK's
+[greedy/argmax sentinel](https://github.com/qualcomm/GenieX/blob/v0.6.1/sdk/plugins/qairt/include/sampler_config_utils.h).
+Temperature zero would inherit the bundle sampler instead. The GGUF lanes keep
+their SDK-default zero request. This per-plugin difference is exported; routed
+timings are not a controlled sampler comparison. The frozen reference and all
+historical evaluation sampler settings remain unchanged.
+
 ## Identity, measurements and limits
 
 Each job requires a clean committed application checkout and verifies the

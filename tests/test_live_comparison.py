@@ -33,6 +33,7 @@ class Model:
                 {'cpu': 'CPU', 'gpu': 'GPUOpenCL', 'npu': 'NPU' if self.config['plugin'] == 'qairt' else 'HTP0'}[self.config['device']],
                 'dispatch_verified': False}
     def chat(self, messages, **kwargs):
+        self.temperature = kwargs['temperature']
         if self.block:
             self.block.wait(2)
         if self.config['threads'] == self.fail_threads:
@@ -122,6 +123,7 @@ class ComparisonTests(unittest.TestCase):
             self.manager.start(self.request); state = self.finish()
         self.assertEqual(state['state'], 'completed', state['error'])
         self.assertEqual([m.config['plugin'] for m in Model.instances], ['llama_cpp', 'qairt'])
+        self.assertEqual([m.temperature for m in Model.instances], [0, -1])
         ack = state['result']['routing']['effective_configuration']
         self.assertEqual(ack['model_sha256'], 'a'*64)
         self.assertEqual(ack['native_provenance']['resolved_device'], 'NPU')

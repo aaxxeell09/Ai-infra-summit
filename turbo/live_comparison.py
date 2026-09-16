@@ -176,6 +176,8 @@ class LiveComparisons:
                   'winner': None, 'speedup': None, 'quality': 'not_evaluated', 'routing': None,
                   'prompt_sha256': hashlib.sha256(request['prompt'].encode()).hexdigest(),
                   'generation': {'max_tokens': 128, 'temperature_requested': 0, 'seed': -1,
+                                 'plugin_temperature_overrides': {'qairt': -1},
+                                 'qairt_temperature_scope': 'Explicit negative greedy/argmax sentinel in GenieX 0.6.1; zero would defer to bundle defaults',
                                  'seed_scope': 'SDK default, not a deterministic seeded trial',
                                  'greedy_zero': False, 'fresh_model_each_lane': True, 'fresh_kv': True, 'warmup': 0},
                   'scope': 'Public answer demonstration. Different answer lengths can affect latency. No confirmed tuning or quality win.'}
@@ -230,7 +232,7 @@ class LiveComparisons:
                        'runtime_hash_scope': 'benchmark executable; current SDK/plugin hashes are in runtime_binding',
                        'sdk_sha256': binding['sha256'], 'plugin': cfg['plugin'], 'device': cfg['requested_device'],
                        'backend_id': backend, 'threads': params['n_threads'], 'context': params['n_ctx'],
-                       'thread_scope': 'Value passed to the SDK; zero requests automatic selection, resolved worker count unavailable',
+                       'thread_scope': 'Not a QAIRT runtime knob' if cfg['plugin'] == 'qairt' else 'Value passed to the SDK; zero requests automatic selection, resolved worker count unavailable',
                        'quantization': route['quantization'] if selected_route else 'Q4_0', 'source_sha256': cfg.get('source_sha256'),
                        'source_hash_validation': 'Exact JSON bytes or Git CRLF-to-LF conversion only'}
                 if selected_route:
@@ -270,8 +272,10 @@ class LiveComparisons:
                         return True
                     if job['cancel_requested'] or time.perf_counter() >= deadline:
                         raise InterruptedError('Comparison cancelled during model loading')
+                    # QAIRT's C adapter reserves negative temperature for greedy
+                    # generation; zero inherits the bundle sampler instead.
                     native = model.chat([{'role': 'user', 'content': request['prompt']}], max_tokens=128,
-                                        temperature=0, reset=True, on_token=token)
+                                        temperature=-1 if cfg['plugin'] == 'qairt' else 0, reset=True, on_token=token)
                     # Native text is authoritative, including a truncated/cancelled answer.
                     lane_result['answer'] = native['text']
                     if native.get('backend_id') not in (None, backend):
