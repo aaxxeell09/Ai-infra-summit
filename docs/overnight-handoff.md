@@ -88,6 +88,37 @@ manifests describe the committed configurations and exact runner commands.
 
 ## Next bounded work
 
+### 07:00 UTC checkpoint — recovery complete; balanced repeats queued
+
+Both recovery campaigns completed. Full 4B scored 37/50 (74%), 4% invalid,
+mean inference 5,940.103 ms. QAIRT control/stop scored 20/50 versus 29/50;
+mean inference 810.762 versus 518.686 ms; invalid 34% versus 8%. No quality
+PASS. Full details: `eval/results/overnight-0700-results.md`. Five completed
+reports and telemetry are published unchanged and backfilled into verified
+historical-diagnostic archives in this worktree's ignored `local/experiments/`.
+
+Origin advanced through `a8c3707`; fast-forwarded without touching the dirty
+main Mac checkout. Its experiment tracker, provenance fixes and diagnostics
+passed 675 tests and 17 subtests here. The frozen data remain unchanged.
+
+Current hardware owner is task `Qualcomm-QAIRT-Repeats-0700`, windowless Python,
+clean Windows checkout `roadmap-a8c3707`. Status/plan/logs are under
+`local/repeats-0700/`; immutable EXP archives are under that checkout's
+`local/experiments/`. It runs six development-only trials through the committed
+tracker, three per treatment with rotated order, one at a time. Child timeout
+300 s; supervisor 360 s; campaign stops before 09:00 UTC. Do not overlap it.
+
+The previous gateway returned HTTP 200 after recovery. It is paused for these
+repeats. The wrapper now uses `roadmap-a8c3707` (previous wrapper backed up).
+The campaign will restore it and save an actual arithmetic inference response
+as `local/repeats-0700/gateway-smoke.json`. Inspect that response before claiming
+success. The deployed code includes the QAIRT directory availability fix.
+
+Next: collect/verify the six archives; analyze development-only repeatability;
+verify restored gateway/MCP and pursue a correct task. Do not silently modify
+the frozen prompt/parser/tool schema to address clarification failures; the
+new `OWNER_DECISIONS_REQUIRED.md` records those versioned-methodology decisions.
+
 ### 06:00 UTC checkpoint — recovery is active
 
 The 4B upload completed and both hashes match. Development result is published

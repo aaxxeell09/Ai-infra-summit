@@ -1,0 +1,3935 @@
+{
+  "schema_version": 2,
+  "benchmark_version": "secretary-eval-v2",
+  "protocol_version": "secretary-single-action-v2",
+  "scope": "single_action_with_fixture_execution",
+  "type": "candidate",
+  "status": "measured",
+  "candidate_name": "qairt-stop-control-full-v1",
+  "git_commit": "728c6a2ad72917a8173f88cf647360bb83269c0a",
+  "branch": "overnight-728c6a2",
+  "dirty": false,
+  "application_sources_sha256": {
+    "turbo/secretary.py": "b8d60b9646a607cf7c2a46390e83bddd55c73db46a619a88379aa10d24567d87",
+    "turbo/service.py": "8790365ce0dcb73f8158f9466753844e1e24edf0e23db83057b12ead7901d40a",
+    "turbo/native.py": "73a5871db691347275388508b4dfc59da92c7dd143a631a260843aa0809d640e",
+    "turbo/policy.py": "3b103d7321b06f1a0ad64653025d0d5beb80746819c103039084ea6c583c71c3",
+    "turbo/tuning.py": "453c67960e89d1520d17e9169ad4358ee6f659c172afa3b0f3be633d1136a8a3"
+  },
+  "timestamp": "2026-09-16T06:10:43.423233+00:00",
+  "dataset_sha256": "643c036ec9084339875ca3fd26c402562a432fa9bfdc211ece8aa4975f508d32",
+  "fixture_sha256": "69ec2946e157195b6aedecec6129b26897a06865c7dc20d8c99a6f7f1dc0e7df",
+  "inventory_sha256": "423d6cc7f3b12498e83293bcb7245b5e9a0aa088de72dc024bfba1605bbdf986",
+  "action_schema_sha256": "3a1c425ebed06cef92eafda44142bf5eae65d3c47fd82b8730ca3683eb248a22",
+  "system_prompt_sha256": "e977a9fe92d57c6b8a2af61f3cd6e3621f3fc2caf8300145abf7896f57c45eaf",
+  "baseline_approval": null,
+  "config_sha256": "f00c713a6021d1e3badc775f7f7ad53704e86aa54c3b2b4974f936be7186cf95",
+  "environment": {
+    "system": "Windows",
+    "machine": "ARM64",
+    "python": "3.14.6",
+    "hardware_note": "Dell Latitude 7455, Snapdragon X Elite X1E80100, 32 GB; sequential isolated QAIRT stop ablation after 4B campaign"
+  },
+  "config": {
+    "backend": "qairt_npu",
+    "plugin": "qairt",
+    "device": "npu",
+    "threads": 0,
+    "context": 4096,
+    "max_tokens": 128,
+    "hardware_note": "Dell Latitude 7455, Snapdragon X Elite X1E80100, 32 GB; sequential isolated QAIRT stop ablation after 4B campaign",
+    "stop_after_tool_call": false
+  },
+  "evaluator_sha256": {
+    "eval/scoring.py": "961e76c3dfeca12f642ad63431b60c8fba0d89581a0c6554189b5e3e65d7578b",
+    "eval/run_secretary_eval.py": "5669564d028e06dd9df2f8f75e70e13e21f3c72077d311e05dc15d355bd92fb2",
+    "eval/validate_dataset.py": "f68a622095c5b86ec218f90597e00c9d5814b7a54d5a637c83c21b035a53e1ef",
+    "eval/secretary_adapter.py": "9497301ca77d1264cbc39a7e216a9adda597f8f83f5cf052418100be58317cd9"
+  },
+  "generation_protocol": {
+    "max_tokens": 128,
+    "temperature": 0,
+    "reset": true
+  },
+  "model_label": "qwen3-06-qairt-x-elite",
+  "model_sha256": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446",
+  "run_command": "python eval/run_secretary_eval.py --dataset all --candidate-name qairt-stop-control-full-v1 --config PRIVATE_CONFIG.json --baseline BASELINE.json --output-dir OUTPUT_DIRECTORY",
+  "warmup": "one untimed first-development prompt; reset context each case; temperature 0",
+  "secretary_module_present": true,
+  "runtime_version": "0.6.1",
+  "model_hash_method": "turbo.tuning._sha256 directory manifest",
+  "source_hashes": {
+    "turbo/secretary.py": "b8d60b9646a607cf7c2a46390e83bddd55c73db46a619a88379aa10d24567d87",
+    "turbo/service.py": "8790365ce0dcb73f8158f9466753844e1e24edf0e23db83057b12ead7901d40a",
+    "turbo/native.py": "73a5871db691347275388508b4dfc59da92c7dd143a631a260843aa0809d640e",
+    "turbo/policy.py": "3b103d7321b06f1a0ad64653025d0d5beb80746819c103039084ea6c583c71c3",
+    "turbo/tuning.py": "453c67960e89d1520d17e9169ad4358ee6f659c172afa3b0f3be633d1136a8a3",
+    "eval/scoring.py": "961e76c3dfeca12f642ad63431b60c8fba0d89581a0c6554189b5e3e65d7578b",
+    "eval/run_secretary_eval.py": "5669564d028e06dd9df2f8f75e70e13e21f3c72077d311e05dc15d355bd92fb2",
+    "eval/validate_dataset.py": "f68a622095c5b86ec218f90597e00c9d5814b7a54d5a637c83c21b035a53e1ef",
+    "eval/secretary_adapter.py": "9497301ca77d1264cbc39a7e216a9adda597f8f83f5cf052418100be58317cd9",
+    "eval/benchmark_manifest.json": "677f7b0f43928dc9a986e1838dd5e7bcd5d038795dc0a10b818bbdee96bea441",
+    "eval/fixtures/files.json": "0e144438a32cd7baf5953c149c62273b42716947beb4d4c52d0e0f19696a88c1",
+    "eval/datasets/secretary_dev.json": "5f50aac84b55c53e7a8603531d96ea7512b8b5df9d868c73019f344112807162",
+    "eval/datasets/secretary_heldout.json": "10b3d612eb0fe9bf6eed7af82b902a541c4e7a986c411344221a6d7f798e0416"
+  },
+  "inference_backend": {
+    "backend_id": "qairt_npu",
+    "runtime": "qairt",
+    "requested_device": "npu",
+    "resolved_device": "NPU",
+    "device_resolution_warning": null,
+    "model_artifact_type": "QAIRT",
+    "model_path_or_id": "qwen3-06-qairt-x-elite",
+    "geniex_version": "0.6.1",
+    "qairt_version": null,
+    "dispatch_verified": false,
+    "context_source": "compiled_artifact",
+    "effective_compiled_context": 4096
+  },
+  "results": [
+    {
+      "id": "dev_001",
+      "difficulty": "easy",
+      "prompt": "Read the contents of docs/README.md.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "docs/README.md"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "read",
+      "split": "development",
+      "tool": "read_file",
+      "action": "read_file",
+      "arguments": {
+        "path": "docs/README.md"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 518.448,
+      "expected_tool": "read_file",
+      "case_sha256": "4e8cfcbd06cd4164baf92ff695678e1f40f130f8efcb7ec650156af70a7fd903",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"docs/README.md\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 194142,
+        "media_time": 0,
+        "prompt_time": 194142,
+        "decode_time": 303841,
+        "prompt_tokens": 685,
+        "generated_tokens": 23,
+        "prefill_speed": 3528.345231840611,
+        "decoding_speed": 75.6974865143282,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.194142,
+        "total": 0.49937699967995286
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 579.87
+    },
+    {
+      "id": "dev_002",
+      "difficulty": "easy",
+      "prompt": "Open reports/baseline.json and show its contents.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "reports/baseline.json"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "WRONG_ACTION"
+      ],
+      "category": "read",
+      "split": "development",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "reports/baseline.json"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": true,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 527.159,
+      "expected_tool": "read_file",
+      "case_sha256": "b668a75503d4d89c9a36ab73b052505ba4690f23652acf1154513001672fb295",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"reports/baseline.json\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 196992,
+        "media_time": 0,
+        "prompt_time": 196992,
+        "decode_time": 309617,
+        "prompt_tokens": 686,
+        "generated_tokens": 23,
+        "prefill_speed": 3482.3749187784274,
+        "decoding_speed": 74.28532671009667,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.196992,
+        "total": 0.5080896001309156
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 593.891
+    },
+    {
+      "id": "dev_003",
+      "difficulty": "medium",
+      "prompt": "Read the ideas text file from the supplied file inventory. I only need its contents, not a directory listing.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "notes/ideas.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "WRONG_ARGUMENT",
+        "EXECUTION_ERROR"
+      ],
+      "category": "read_paraphrase",
+      "split": "development",
+      "tool": "read_file",
+      "action": "read_file",
+      "arguments": {
+        "path": "data/ideas.txt"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": false,
+      "no_action_correct": true,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 521.991,
+      "expected_tool": "read_file",
+      "case_sha256": "ba188a6106daae1ff43b2cedca17ec91328c389ab8f05d67a155c3b31d08cc7b",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"data/ideas.txt\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 198029,
+        "media_time": 0,
+        "prompt_time": 198029,
+        "decode_time": 303889,
+        "prompt_tokens": 698,
+        "generated_tokens": 23,
+        "prefill_speed": 3524.7362759999796,
+        "decoding_speed": 75.68552991388303,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.198029,
+        "total": 0.5033025001175702
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": false,
+      "final_state_match": true,
+      "error": "file not found: data/ideas.txt",
+      "task_latency_ms": 594.312
+    },
+    {
+      "id": "dev_004",
+      "difficulty": "medium",
+      "prompt": "Read inbox/Read Me.txt, preserving the spaces and capitalization in its path.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "inbox/Read Me.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "INVALID_OUTPUT"
+      ],
+      "category": "read_exact_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "ValueError",
+      "latency_ms": 1785.28,
+      "expected_tool": "read_file",
+      "case_sha256": "4f9d6cca733fd2a6823144b5e4214a06b56fe334481bec29af1fe957ac1ddd15",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"inbox/Read Me.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"inbox/transfer.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"inbox/receipt.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"inbox/summary.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"inbox/README.md\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 196105,
+        "media_time": 0,
+        "prompt_time": 196105,
+        "decode_time": 1568975,
+        "prompt_tokens": 693,
+        "generated_tokens": 116,
+        "prefill_speed": 3533.8211672318403,
+        "decoding_speed": 73.93361908252203,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.196105,
+        "total": 1.766488399822265
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1785.515
+    },
+    {
+      "id": "dev_005",
+      "difficulty": "hard",
+      "prompt": "I need the plan for beta. The alpha plan is a distractor; read only the beta one from the inventory.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "projects/beta/plan.md"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "WRONG_ACTION"
+      ],
+      "category": "read_exact_path",
+      "split": "development",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "beta"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": true,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 492.665,
+      "expected_tool": "read_file",
+      "case_sha256": "f7595f6eaa8f53448eb589ce15035866a87d0a72952c428c78864534d4c0b9f1",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"beta\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 200515,
+        "media_time": 0,
+        "prompt_time": 200515,
+        "decode_time": 271784,
+        "prompt_tokens": 700,
+        "generated_tokens": 20,
+        "prefill_speed": 3491.010647582475,
+        "decoding_speed": 73.58784917434433,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.200515,
+        "total": 0.47372129978612065
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 557.518
+    },
+    {
+      "id": "dev_006",
+      "difficulty": "medium",
+      "prompt": "Read the JSON file in config whose name refers to runtime, rather than settings.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "config/runtime.json"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "INVALID_OUTPUT"
+      ],
+      "category": "read",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "ValueError",
+      "latency_ms": 1934.808,
+      "expected_tool": "read_file",
+      "case_sha256": "de976dc7ba83ccec0969c27d8f435c01d50f9bdfa4a1d3176026c0e260dd2aa3",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"config/runtime.json\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>\n<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"runtime.json\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"config/runtime.json\", \"destination\": \"archive/2025-summary.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"clarify\", \"arguments\": {\"question\": \"please check if the JSON file in config/runtime is the one to search for\"}}",
+      "profile": {
+        "ttft": 198310,
+        "media_time": 0,
+        "prompt_time": 198310,
+        "decode_time": 1717087,
+        "prompt_tokens": 692,
+        "generated_tokens": 127,
+        "prefill_speed": 3489.4861580353995,
+        "decoding_speed": 73.9624724897457,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.19831,
+        "total": 1.916801099665463
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1935.034
+    },
+    {
+      "id": "dev_007",
+      "difficulty": "easy",
+      "prompt": "Show a recursive inventory of the entire workspace.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "list",
+      "split": "development",
+      "tool": "list_files",
+      "action": "list_files",
+      "arguments": {},
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 426.054,
+      "expected_tool": "list_files",
+      "case_sha256": "fd7187ddffbd85e45af249d0244e3ba0c7af75f86e8d0f50eb514a6010f91f5e",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+      "profile": {
+        "ttft": 198048,
+        "media_time": 0,
+        "prompt_time": 198048,
+        "decode_time": 207416,
+        "prompt_tokens": 685,
+        "generated_tokens": 16,
+        "prefill_speed": 3458.757472935854,
+        "decoding_speed": 77.13966135688665,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.198048,
+        "total": 0.40695139998570085
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 494.473
+    },
+    {
+      "id": "dev_008",
+      "difficulty": "easy",
+      "prompt": "List all workspace file paths, including files in nested folders.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "list",
+      "split": "development",
+      "tool": "list_files",
+      "action": "list_files",
+      "arguments": {},
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 429.676,
+      "expected_tool": "list_files",
+      "case_sha256": "256e86603ce31148c696d4f38c33f089e0dfadaac9f4359add56457ec355af44",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+      "profile": {
+        "ttft": 201375,
+        "media_time": 0,
+        "prompt_time": 201375,
+        "decode_time": 207970,
+        "prompt_tokens": 688,
+        "generated_tokens": 16,
+        "prefill_speed": 3416.5114835505897,
+        "decoding_speed": 76.93417319805742,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.201375,
+        "total": 0.4107535998336971
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 501.864
+    },
+    {
+      "id": "dev_009",
+      "difficulty": "medium",
+      "prompt": "I do not need the contents of summary.txt. Show the complete workspace file inventory instead.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "list_paraphrase",
+      "split": "development",
+      "tool": "list_files",
+      "action": "list_files",
+      "arguments": {},
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 427.903,
+      "expected_tool": "list_files",
+      "case_sha256": "c2a337fe4c9f41b617b8eb4ca911d633ad4e895aa0a8fc9f26988281b0db2183",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+      "profile": {
+        "ttft": 201480,
+        "media_time": 0,
+        "prompt_time": 201480,
+        "decode_time": 207242,
+        "prompt_tokens": 694,
+        "generated_tokens": 16,
+        "prefill_speed": 3444.510621401628,
+        "decoding_speed": 77.2044276739271,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.20148,
+        "total": 0.41007249988615513
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 498.319
+    },
+    {
+      "id": "dev_010",
+      "difficulty": "medium",
+      "prompt": "Which files are available anywhere in this workspace? Give me the full listing.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "list_paraphrase",
+      "split": "development",
+      "tool": "list_files",
+      "action": "list_files",
+      "arguments": {},
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 425.627,
+      "expected_tool": "list_files",
+      "case_sha256": "43769ccf782e05eb5e5d972b9e876aa49640002fb9253ecc854993eeb3bcc4b2",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+      "profile": {
+        "ttft": 197110,
+        "media_time": 0,
+        "prompt_time": 197110,
+        "decode_time": 208878,
+        "prompt_tokens": 691,
+        "generated_tokens": 16,
+        "prefill_speed": 3505.6567398914312,
+        "decoding_speed": 76.59973764589856,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.19711,
+        "total": 0.40736979991197586
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 494.889
+    },
+    {
+      "id": "dev_011",
+      "difficulty": "medium",
+      "prompt": "The projects folder is relevant later. For now, list all files across the whole workspace, not just project files.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "list_exact_path",
+      "split": "development",
+      "tool": "list_files",
+      "action": "list_files",
+      "arguments": {},
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 428.872,
+      "expected_tool": "list_files",
+      "case_sha256": "dc215167572a3ac6c3bb977772fd01406f45824de3cfecb2b5242f2778af074d",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+      "profile": {
+        "ttft": 200897,
+        "media_time": 0,
+        "prompt_time": 200897,
+        "decode_time": 208240,
+        "prompt_tokens": 699,
+        "generated_tokens": 16,
+        "prefill_speed": 3479.3949138115554,
+        "decoding_speed": 76.83442182097579,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.200897,
+        "total": 0.41045610001310706
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 498.294
+    },
+    {
+      "id": "dev_012",
+      "difficulty": "easy",
+      "prompt": "Search file contents for the substring \"latency\".",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "latency"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "search",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 493.435,
+      "expected_tool": "search_files",
+      "case_sha256": "f9f604670b96ae8af742f8405e647bf7c0d0bcbd3b3c34de0409f5bf78fd3ce6",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"latency\"}\n</tool_call>",
+      "profile": {
+        "ttft": 196795,
+        "media_time": 0,
+        "prompt_time": 196795,
+        "decode_time": 276571,
+        "prompt_tokens": 686,
+        "generated_tokens": 21,
+        "prefill_speed": 3485.8609212632437,
+        "decoding_speed": 75.9298697260378,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.196795,
+        "total": 0.47473479993641376
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 493.569
+    },
+    {
+      "id": "dev_013",
+      "difficulty": "easy",
+      "prompt": "Search inside file contents for the literal substring \"baseline.json\"; this is not a filename lookup.",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "baseline.json"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "search",
+      "split": "development",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "baseline.json"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 495.786,
+      "expected_tool": "search_files",
+      "case_sha256": "731c9431835439995546c653e1ed264dd255b505f972635fc5d65a6dd5a84675",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"baseline.json\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 200695,
+        "media_time": 0,
+        "prompt_time": 200695,
+        "decode_time": 275625,
+        "prompt_tokens": 695,
+        "generated_tokens": 21,
+        "prefill_speed": 3462.966192481128,
+        "decoding_speed": 76.19047619047619,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.200695,
+        "total": 0.4776570997200906
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 566.734
+    },
+    {
+      "id": "dev_014",
+      "difficulty": "medium",
+      "prompt": "Find occurrences of the complete phrase \"meeting notes\" inside file contents.",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "meeting notes"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "search_paraphrase",
+      "split": "development",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "meeting notes"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 497.136,
+      "expected_tool": "search_files",
+      "case_sha256": "6ed85dd53e05b24cd094d4eb2d6f4fa63f8192e1a8ea64aa19a6697ba418023b",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"meeting notes\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 201556,
+        "media_time": 0,
+        "prompt_time": 201556,
+        "decode_time": 276398,
+        "prompt_tokens": 690,
+        "generated_tokens": 21,
+        "prefill_speed": 3423.3662108793583,
+        "decoding_speed": 75.9773949160269,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.201556,
+        "total": 0.47933000000193715
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 566.434
+    },
+    {
+      "id": "dev_015",
+      "difficulty": "hard",
+      "prompt": "The words CPU and GPU occur in our discussion. Search file contents for the literal substring \"CPU OR GPU\", including the spaces and OR; do not treat OR as an operator or perform two searches.",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "CPU OR GPU"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "search_exact_query",
+      "split": "development",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "CPU OR GPU"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 510.505,
+      "expected_tool": "search_files",
+      "case_sha256": "dc167b3dfb19f5e51ce51fe15bdd8fad2ba1bd0d6f63537e4c3dcd49cea675d8",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"CPU OR GPU\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 200076,
+        "media_time": 0,
+        "prompt_time": 200076,
+        "decode_time": 290450,
+        "prompt_tokens": 716,
+        "generated_tokens": 22,
+        "prefill_speed": 3578.640116755633,
+        "decoding_speed": 75.74453434326045,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.200076,
+        "total": 0.4919432997703552
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 579.024
+    },
+    {
+      "id": "dev_016",
+      "difficulty": "easy",
+      "prompt": "Search text contents for the substring \"2025-summary\"; do not open the similarly named file.",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "2025-summary"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "search_exact_query",
+      "split": "development",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "2025-summary"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 533.487,
+      "expected_tool": "search_files",
+      "case_sha256": "1aa3cf35c7ee487b39d0d166f66af891c97c41ec5e94504afaa5d4b9c948179b",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"2025-summary\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 196781,
+        "media_time": 0,
+        "prompt_time": 196781,
+        "decode_time": 317134,
+        "prompt_tokens": 697,
+        "generated_tokens": 24,
+        "prefill_speed": 3542.0086288818534,
+        "decoding_speed": 75.67778919951817,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.196781,
+        "total": 0.5153101999312639
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 603.833
+    },
+    {
+      "id": "dev_017",
+      "difficulty": "easy",
+      "prompt": "Move notes/draft.txt to archive/draft.txt.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "notes/draft.txt",
+          "destination": "archive/draft.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "move",
+      "split": "development",
+      "tool": "move_file",
+      "action": "move_file",
+      "arguments": {
+        "path": "notes/draft.txt",
+        "destination": "archive/draft.txt"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 653.626,
+      "expected_tool": "move_file",
+      "case_sha256": "75538dbfd06ef1b0aff7e4a3b3fefee9d3c632eb8f80c9f4a54a98060cd726ab",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"notes/draft.txt\", \"destination\": \"archive/draft.txt\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 199960,
+        "media_time": 0,
+        "prompt_time": 199960,
+        "decode_time": 434214,
+        "prompt_tokens": 687,
+        "generated_tokens": 32,
+        "prefill_speed": 3435.6871374274856,
+        "decoding_speed": 73.6963801259287,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.19996,
+        "total": 0.6354990997351706
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 714.408
+    },
+    {
+      "id": "dev_018",
+      "difficulty": "easy",
+      "prompt": "Move inbox/receipt.txt to archive/receipt.txt.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "inbox/receipt.txt",
+          "destination": "archive/receipt.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "INVALID_OUTPUT"
+      ],
+      "category": "move",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "ValueError",
+      "latency_ms": 1539.35,
+      "expected_tool": "move_file",
+      "case_sha256": "c6aa92e93fca0a0d2af1f5af7c31824de60903e6961b0584f899637a890ca7c7",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"inbox/receipt.txt\", \"destination\": \"archive/receipt.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"inbox/transfer.txt\", \"destination\": \"archive/transfer.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"docs/meeting-notes.txt\", \"destination\": \"archive/meetings.txt\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 198771,
+        "media_time": 0,
+        "prompt_time": 198771,
+        "decode_time": 1321163,
+        "prompt_tokens": 687,
+        "generated_tokens": 98,
+        "prefill_speed": 3456.238586111656,
+        "decoding_speed": 74.17706974839592,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.198771,
+        "total": 1.5212926999665797
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1539.573
+    },
+    {
+      "id": "dev_019",
+      "difficulty": "hard",
+      "prompt": "The old-results CSV in archive must stay where it is. Relocate the results CSV currently under reports to archive/results.csv.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "reports/results.csv",
+          "destination": "archive/results.csv"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "move_paraphrase",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 1186.421,
+      "expected_tool": "move_file",
+      "case_sha256": "f8951a0a82807cb9cba4f9e4586f02252c3195c46cce1e5325168ffea6022486",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\"}\n</tool_call>\n<tool_call>\n{\"name\": \"move_file\"}\n,{\"path\": \"archive/old-results.csv\", \"destination\": \"reports/archive/results.csv\"}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\"}\n</tool_call>\n<tool_call>\n{\"name\": \"search_files\"}\n,{\"query\": \"old-results CSV\"}\"\n</tool_call>",
+      "profile": {
+        "ttft": 197937,
+        "media_time": 0,
+        "prompt_time": 197937,
+        "decode_time": 968476,
+        "prompt_tokens": 701,
+        "generated_tokens": 72,
+        "prefill_speed": 3541.530891142131,
+        "decoding_speed": 74.34360789529116,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.197937,
+        "total": 1.1678549996577203
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1186.568
+    },
+    {
+      "id": "dev_020",
+      "difficulty": "medium",
+      "prompt": "Move inbox/Read Me.txt to archive/Read Me.txt. Keep its capitalization and spaces.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "inbox/Read Me.txt",
+          "destination": "archive/Read Me.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "INVALID_OUTPUT"
+      ],
+      "category": "move_exact_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "ValueError",
+      "latency_ms": 1894.529,
+      "expected_tool": "move_file",
+      "case_sha256": "9d6a06b8925a3e9cc310436fd56dfc8914141162a02fc4360882ca4b843143d8",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"inbox/Read Me.txt\", \"destination\": \"archive/Read Me.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"archive/runtime.json\", \"destination\": \"archive/runtime.json\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"data/sample.json\", \"destination\": \"archive/data.json\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"docs/setup.md\", \"destination\": \"docs/setup.md\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 201756,
+        "media_time": 0,
+        "prompt_time": 201756,
+        "decode_time": 1673224,
+        "prompt_tokens": 696,
+        "generated_tokens": 124,
+        "prefill_speed": 3449.711532742521,
+        "decoding_speed": 74.10842780165716,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.201756,
+        "total": 1.8766212998889387
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1894.738
+    },
+    {
+      "id": "dev_021",
+      "difficulty": "medium",
+      "prompt": "Rename notes/todo.txt to notes/tasks.txt. Keep the same directory and do not alter its contents.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "notes/todo.txt",
+          "destination": "notes/tasks.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "move_rename",
+      "split": "development",
+      "tool": "move_file",
+      "action": "move_file",
+      "arguments": {
+        "path": "notes/todo.txt",
+        "destination": "notes/tasks.txt"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 576.662,
+      "expected_tool": "move_file",
+      "case_sha256": "7cfc53b25ea707aa0c95559946833ba51e181d4d362420c1402e0d926864a57f",
+      "execution_error": null,
+      "output_text": "{\"name\": \"move_file\", \"arguments\": {\"path\": \"notes/todo.txt\", \"destination\": \"notes/tasks.txt\"}}",
+      "profile": {
+        "ttft": 196947,
+        "media_time": 0,
+        "prompt_time": 196947,
+        "decode_time": 359704,
+        "prompt_tokens": 696,
+        "generated_tokens": 27,
+        "prefill_speed": 3533.945680817682,
+        "decoding_speed": 75.06171741209438,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.196947,
+        "total": 0.5582165997475386
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 636.834
+    },
+    {
+      "id": "dev_022",
+      "difficulty": "easy",
+      "prompt": "Read the file for me.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_missing_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 374.435,
+      "expected_tool": "clarify",
+      "case_sha256": "763983accd18af7220a6f38b6efe086a5ddc82e2fd496d5c3d0ce6befb15b7d8",
+      "execution_error": null,
+      "output_text": "Clarify: What file would you like to read?",
+      "profile": {
+        "ttft": 200793,
+        "media_time": 0,
+        "prompt_time": 200793,
+        "decode_time": 154019,
+        "prompt_tokens": 682,
+        "generated_tokens": 12,
+        "prefill_speed": 3396.532747655546,
+        "decoding_speed": 77.91246534518469,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.200793,
+        "total": 0.3561030998826027
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 374.559
+    },
+    {
+      "id": "dev_023",
+      "difficulty": "hard",
+      "prompt": "Read meeting-notes.txt.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "FAILED_TO_CLARIFY"
+      ],
+      "category": "clarify_ambiguous_path",
+      "split": "development",
+      "tool": "read_file",
+      "action": "read_file",
+      "arguments": {
+        "path": "docs/README.md"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": false,
+      "invalid_output": false,
+      "unnecessary_tool_call": true,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": true,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 803.756,
+      "expected_tool": "clarify",
+      "case_sha256": "0c4cefb51e3dab2a9febec10b9463fb97e8cdd05f320a6b598f92db2e1fc07f5",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"docs/README.md\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {\"query\": \"meeting-notes.txt\"}}",
+      "profile": {
+        "ttft": 195762,
+        "media_time": 0,
+        "prompt_time": 195762,
+        "decode_time": 588787,
+        "prompt_tokens": 681,
+        "generated_tokens": 44,
+        "prefill_speed": 3478.713948570203,
+        "decoding_speed": 74.72991081664507,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.195762,
+        "total": 0.7859093998558819
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 864.134
+    },
+    {
+      "id": "dev_024",
+      "difficulty": "medium",
+      "prompt": "Move inbox/transfer.txt.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "FAILED_TO_CLARIFY",
+        "WRONG_FINAL_STATE"
+      ],
+      "category": "clarify_missing_destination",
+      "split": "development",
+      "tool": "move_file",
+      "action": "move_file",
+      "arguments": {
+        "path": "inbox/transfer.txt",
+        "destination": "summary.txt"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": false,
+      "invalid_output": false,
+      "unnecessary_tool_call": true,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": true,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 620.649,
+      "expected_tool": "clarify",
+      "case_sha256": "74b1fed175a3716ffafc896880bc8ea4dedd0611bd2c78d8ed4378c6bec8d73e",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"inbox/transfer.txt\", \"destination\": \"summary.txt\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 203053,
+        "media_time": 0,
+        "prompt_time": 203053,
+        "decode_time": 398198,
+        "prompt_tokens": 682,
+        "generated_tokens": 30,
+        "prefill_speed": 3358.7290017877103,
+        "decoding_speed": 75.33940401508798,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.203053,
+        "total": 0.6025279997847974
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": false,
+      "error": null,
+      "task_latency_ms": 681.786
+    },
+    {
+      "id": "dev_025",
+      "difficulty": "medium",
+      "prompt": "Search the workspace files.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "FAILED_TO_CLARIFY"
+      ],
+      "category": "clarify_missing_query",
+      "split": "development",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "all files"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": false,
+      "invalid_output": false,
+      "unnecessary_tool_call": true,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": true,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 497.26,
+      "expected_tool": "clarify",
+      "case_sha256": "e9c04c25fe39630966aa87a0ac746d517b8409e062f630a601556d4bcbd08cfc",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"all files\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 200914,
+        "media_time": 0,
+        "prompt_time": 200914,
+        "decode_time": 276344,
+        "prompt_tokens": 681,
+        "generated_tokens": 21,
+        "prefill_speed": 3389.5099395761367,
+        "decoding_speed": 75.99224155400516,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.200914,
+        "total": 0.47872080001980066
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 568.766
+    },
+    {
+      "id": "dev_026",
+      "difficulty": "medium",
+      "prompt": "Delete notes/draft.txt permanently.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "INVALID_OUTPUT"
+      ],
+      "category": "clarify_unsupported",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "ValueError",
+      "latency_ms": 1965.833,
+      "expected_tool": "clarify",
+      "case_sha256": "316b08d4d20b716d20609cf642927e14fbc5205ac3d2b635dff20945de0be25b",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"notes/draft.txt\", \"destination\": \"inbox/draft.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"notes/ideas.txt\", \"destination\": \"inbox/ideas.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"notes/meeting (final).txt\", \"destination\": \"inbox/meeting.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"clarify\", \"arguments\": {\"question\": \"Are you sure? If you want to delete notes/draft.txt",
+      "profile": {
+        "ttft": 196182,
+        "media_time": 0,
+        "prompt_time": 196182,
+        "decode_time": 1749443,
+        "prompt_tokens": 683,
+        "generated_tokens": 128,
+        "prefill_speed": 3481.461092251073,
+        "decoding_speed": 73.1661448815423,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 0.196182,
+        "total": 1.9470202000811696
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1966.045
+    },
+    {
+      "id": "dev_027",
+      "difficulty": "medium",
+      "prompt": "Create notes/new.txt containing hello.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_unsupported",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 673.546,
+      "expected_tool": "clarify",
+      "case_sha256": "ce3829b674886c938cc1cc501129a0c1be62b1b15c78a13d4796200c3fb28c1a",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"tools\", \"arguments\": {\"tools\": [\"create_note\", {\"path\": \"notes\", \"content\": \"hello\"]}}}\n</tool_call>",
+      "profile": {
+        "ttft": 199934,
+        "media_time": 0,
+        "prompt_time": 199934,
+        "decode_time": 453594,
+        "prompt_tokens": 683,
+        "generated_tokens": 34,
+        "prefill_speed": 3416.127322016265,
+        "decoding_speed": 74.95689978262499,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.199934,
+        "total": 0.6549511002376676
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 673.673
+    },
+    {
+      "id": "dev_028",
+      "difficulty": "hard",
+      "prompt": "Move budget.csv to archive/budget.csv.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "FAILED_TO_CLARIFY",
+        "EXECUTION_ERROR"
+      ],
+      "category": "clarify_ambiguous_path",
+      "split": "development",
+      "tool": "move_file",
+      "action": "move_file",
+      "arguments": {
+        "path": "budget.csv",
+        "destination": "archive/budget.csv"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": false,
+      "invalid_output": false,
+      "unnecessary_tool_call": true,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": true,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 619.918,
+      "expected_tool": "clarify",
+      "case_sha256": "c6708ab3cffcccb976712da54744f2eceb220222237a121518a831aa5c67c5c9",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"budget.csv\", \"destination\": \"archive/budget.csv\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 201448,
+        "media_time": 0,
+        "prompt_time": 201448,
+        "decode_time": 398745,
+        "prompt_tokens": 685,
+        "generated_tokens": 30,
+        "prefill_speed": 3400.381239823677,
+        "decoding_speed": 75.2360531166535,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.201448,
+        "total": 0.6014982000924647
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": false,
+      "final_state_match": true,
+      "error": "file not found: budget.csv",
+      "task_latency_ms": 679.603
+    },
+    {
+      "id": "dev_029",
+      "difficulty": "hard",
+      "prompt": "Eventually I want a complete workspace inventory. Before that, read the setup Markdown document under docs. Return only the first action.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "docs/setup.md"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "WRONG_ACTION"
+      ],
+      "category": "multistep_first_action",
+      "split": "development",
+      "tool": "list_files",
+      "action": "list_files",
+      "arguments": {},
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": true,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 428.404,
+      "expected_tool": "read_file",
+      "case_sha256": "080b2932056375175808c9d0f722d73bb1495653c1cf64114ae25b7d8dead1bc",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+      "profile": {
+        "ttft": 200599,
+        "media_time": 0,
+        "prompt_time": 200599,
+        "decode_time": 207786,
+        "prompt_tokens": 701,
+        "generated_tokens": 16,
+        "prefill_speed": 3494.533871056187,
+        "decoding_speed": 77.00230044372576,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.200599,
+        "total": 0.4098367001861334
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 489.622
+    },
+    {
+      "id": "dev_030",
+      "difficulty": "hard",
+      "prompt": "Read reports/summary.txt after first listing all files in the workspace. Return only the first action.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "INVALID_OUTPUT"
+      ],
+      "category": "multistep_first_action",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "ValueError",
+      "latency_ms": 1971.702,
+      "expected_tool": "list_files",
+      "case_sha256": "a480b155216075304ef384e09a7af7e857ba6bd364a167637803edeaf4a5d04e",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>\n<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"reports/summary.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>\n<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"reports/summary.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>\n<tool_call>\n",
+      "profile": {
+        "ttft": 200268,
+        "media_time": 0,
+        "prompt_time": 200268,
+        "decode_time": 1751909,
+        "prompt_tokens": 696,
+        "generated_tokens": 128,
+        "prefill_speed": 3475.343040325963,
+        "decoding_speed": 73.06315567760655,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 0.200268,
+        "total": 1.9534792001359165
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1971.931
+    },
+    {
+      "id": "dev_031",
+      "difficulty": "hard",
+      "prompt": "Before choosing any file to read, search file contents for the literal substring \"throughput\". Do not substitute \"latency\". Return only the first action.",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "throughput"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "multistep_first_action",
+      "split": "development",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "throughput"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 495.514,
+      "expected_tool": "search_files",
+      "case_sha256": "9d6e93437c7674a793111c225ef2ad6f0e746d163f8717cbf3b16973aa28cb52",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"throughput\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 198875,
+        "media_time": 0,
+        "prompt_time": 198875,
+        "decode_time": 276490,
+        "prompt_tokens": 707,
+        "generated_tokens": 21,
+        "prefill_speed": 3554.9968573224387,
+        "decoding_speed": 75.95211400050634,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.198875,
+        "total": 0.47683530021458864
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 566.165
+    },
+    {
+      "id": "dev_032",
+      "difficulty": "hard",
+      "prompt": "The receipt must stay in inbox. Move the transfer text file from inbox to archive/transfer.txt, then list all workspace files. Return only the first action.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "inbox/transfer.txt",
+          "destination": "archive/transfer.txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "INVALID_OUTPUT"
+      ],
+      "category": "multistep_first_action",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "ValueError",
+      "latency_ms": 1012.201,
+      "expected_tool": "move_file",
+      "case_sha256": "53ff07e526fab2f295f300fbf23ff86f24eb0a418e3e8d529f576ef78c4710e3",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"inbox/transfer.txt\", \"destination\": \"archive/transfer.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {\"path\": \"archive/2025-summary.txt\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 200175,
+        "media_time": 0,
+        "prompt_time": 200175,
+        "decode_time": 792422,
+        "prompt_tokens": 708,
+        "generated_tokens": 59,
+        "prefill_speed": 3536.90520794305,
+        "decoding_speed": 74.45527761722921,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.200175,
+        "total": 0.9940913002938032
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1012.408
+    },
+    {
+      "id": "dev_033",
+      "difficulty": "hard",
+      "prompt": "Move notes/draft.txt to archive/draft.txt, but keep notes/draft.txt in its original location too. Do not change either requirement.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "INVALID_OUTPUT"
+      ],
+      "category": "clarify_conflicting_constraints",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "ValueError",
+      "latency_ms": 1677.301,
+      "expected_tool": "clarify",
+      "case_sha256": "a553f05ebac9c42b8db80043c21fd06a8e99c11589d588b69475606ecf0e7cb0",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"notes/draft.txt\", \"destination\": \"archive/draft.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {\"path\": \"archive/2025-summary.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"notes/draft.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {\"path\": \"archive/notes/draft.txt\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 199634,
+        "media_time": 0,
+        "prompt_time": 199634,
+        "decode_time": 1457637,
+        "prompt_tokens": 705,
+        "generated_tokens": 107,
+        "prefill_speed": 3531.462576515022,
+        "decoding_speed": 73.40647911654273,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.199634,
+        "total": 1.6587196998298168
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1677.534
+    },
+    {
+      "id": "dev_034",
+      "difficulty": "hard",
+      "prompt": "Move inbox/summary.txt to reports/summary.txt without replacing any existing file.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "INVALID_OUTPUT"
+      ],
+      "category": "clarify_overwrite",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "ValueError",
+      "latency_ms": 1716.12,
+      "expected_tool": "clarify",
+      "case_sha256": "66b8cf0a13cceb9e3df040247a56801557e5c03305c6e95336e7ab80f879512e",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"inbox/summary.txt\", \"destination\": \"reports/summary.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {\"arguments\": []}}\n</tool_call>\n<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"summary.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"clarify\", \"arguments\": {\"question\": \"Is there any other file in the workspace that might conflict with moving to reports/summary.txt?\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 199209,
+        "media_time": 0,
+        "prompt_time": 199209,
+        "decode_time": 1497292,
+        "prompt_tokens": 692,
+        "generated_tokens": 110,
+        "prefill_speed": 3473.7386363065925,
+        "decoding_speed": 73.46596388680364,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.199209,
+        "total": 1.6979442997835577
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1716.336
+    },
+    {
+      "id": "dev_035",
+      "difficulty": "medium",
+      "prompt": "Read the CSV sample under data; the JSON sample is not the one I want.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "data/sample.csv"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "INVALID_OUTPUT"
+      ],
+      "category": "read_exact_path",
+      "split": "development",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "ValueError",
+      "latency_ms": 1975.362,
+      "expected_tool": "read_file",
+      "case_sha256": "46448ce12743d1b2b866ecf45fda4a7ed506494387b8918568f3478ca8fc16cf",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"sample.csv\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"sample.json\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>\n<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"archive/2025-summary.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"data/sample.json\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"data/sample.json\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 201525,
+        "media_time": 0,
+        "prompt_time": 201525,
+        "decode_time": 1753983,
+        "prompt_tokens": 693,
+        "generated_tokens": 128,
+        "prefill_speed": 3438.779307778191,
+        "decoding_speed": 72.97676203247124,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "length"
+      },
+      "timings": {
+        "ttft": 0.201525,
+        "total": 1.956934000365436
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1975.584
+    },
+    {
+      "id": "heldout_001",
+      "difficulty": "easy",
+      "prompt": "Retrieve the contents of reports/latency.csv.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "reports/latency.csv"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "WRONG_ACTION"
+      ],
+      "category": "read",
+      "split": "heldout",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "reports/latency.csv"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": true,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 538.479,
+      "expected_tool": "read_file",
+      "case_sha256": "2d1cdda6cb7b6e47ffb34460222dcc0b163cf46692b6239cdc6a6d85f41e6268",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"reports/latency.csv\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 201620,
+        "media_time": 0,
+        "prompt_time": 201620,
+        "decode_time": 317481,
+        "prompt_tokens": 686,
+        "generated_tokens": 24,
+        "prefill_speed": 3402.44023410376,
+        "decoding_speed": 75.595074980865,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.20162,
+        "total": 0.5205077002756298
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 603.524
+    },
+    {
+      "id": "heldout_002",
+      "difficulty": "easy",
+      "prompt": "Show the text of docs/guide-français.md.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "docs/guide-français.md"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "read_exact_path",
+      "split": "heldout",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 511.158,
+      "expected_tool": "read_file",
+      "case_sha256": "52ac7f4d8bf2fd3dc5f75c9c9f4e5946695506b830808a776b23787a291ffd81",
+      "execution_error": null,
+      "output_text": "No text of docs/guide-français.md. Let me know if you need that information.",
+      "profile": {
+        "ttft": 202174,
+        "media_time": 0,
+        "prompt_time": 202174,
+        "decode_time": 289288,
+        "prompt_tokens": 689,
+        "generated_tokens": 22,
+        "prefill_speed": 3407.95552345999,
+        "decoding_speed": 76.0487818367855,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.202174,
+        "total": 0.4928255998529494
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 511.289
+    },
+    {
+      "id": "heldout_003",
+      "difficulty": "medium",
+      "prompt": "Read the meeting text file whose basename contains \"(final)\" in the inventory, not either meeting-notes file.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "notes/meeting (final).txt"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "WRONG_ACTION"
+      ],
+      "category": "read_paraphrase",
+      "split": "heldout",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "meeting-notes.txt"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": true,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 470.159,
+      "expected_tool": "read_file",
+      "case_sha256": "43830bf3b72e271dd2bb525eadfce0b93230addbfd54cf279b191f8cd5967203",
+      "execution_error": null,
+      "output_text": "{\"name\": \"search_files\", \"arguments\": {\"query\": \"meeting-notes.txt\"}}",
+      "profile": {
+        "ttft": 201056,
+        "media_time": 0,
+        "prompt_time": 201056,
+        "decode_time": 249722,
+        "prompt_tokens": 697,
+        "generated_tokens": 19,
+        "prefill_speed": 3466.695845933471,
+        "decoding_speed": 76.08460608196314,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.201056,
+        "total": 0.4521329998970032
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 536.545
+    },
+    {
+      "id": "heldout_004",
+      "difficulty": "easy",
+      "prompt": "Display a sorted inventory covering all workspace files and subfolders, without opening file contents.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "list",
+      "split": "heldout",
+      "tool": "list_files",
+      "action": "list_files",
+      "arguments": {},
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 429.314,
+      "expected_tool": "list_files",
+      "case_sha256": "8996a6b4176912fbd5d0d0e1b58c689ca3236b9c50a24c695aab7464bcb5f097",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+      "profile": {
+        "ttft": 201079,
+        "media_time": 0,
+        "prompt_time": 201079,
+        "decode_time": 208159,
+        "prompt_tokens": 693,
+        "generated_tokens": 16,
+        "prefill_speed": 3446.4066361977134,
+        "decoding_speed": 76.86432006302874,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.201079,
+        "total": 0.4107325002551079
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 499.928
+    },
+    {
+      "id": "heldout_005",
+      "difficulty": "medium",
+      "prompt": "I may inspect the samples later. Right now show every file path in the workspace, including directories nested under projects.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "list_paraphrase",
+      "split": "heldout",
+      "tool": "list_files",
+      "action": "list_files",
+      "arguments": {},
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 428.777,
+      "expected_tool": "list_files",
+      "case_sha256": "db7f88983e57607abc24e12367d608861ec1f8eeaa6ed6726ae107de9d97c3ee",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+      "profile": {
+        "ttft": 200604,
+        "media_time": 0,
+        "prompt_time": 200604,
+        "decode_time": 208053,
+        "prompt_tokens": 699,
+        "generated_tokens": 16,
+        "prefill_speed": 3484.4768798229347,
+        "decoding_speed": 76.9034813244702,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.200604,
+        "total": 0.4101809002459049
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 500.647
+    },
+    {
+      "id": "heldout_006",
+      "difficulty": "easy",
+      "prompt": "Look inside the files for the exact substring \"tokens/s\".",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "tokens/s"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "search_exact_query",
+      "split": "heldout",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "tokens/s"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 494.452,
+      "expected_tool": "search_files",
+      "case_sha256": "7b6e2cdbba5eeb1bcada993f81cf81b246c7025d8f14e7d513ee5378e0c42101",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"tokens/s\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 197992,
+        "media_time": 0,
+        "prompt_time": 197992,
+        "decode_time": 276700,
+        "prompt_tokens": 688,
+        "generated_tokens": 21,
+        "prefill_speed": 3474.8878742575457,
+        "decoding_speed": 75.89447054571738,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.197992,
+        "total": 0.4761414001695812
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 563.956
+    },
+    {
+      "id": "heldout_007",
+      "difficulty": "medium",
+      "prompt": "Find content matches using \"memory footprint\" as the complete substring query.",
+      "expected": {
+        "tool": "search_files",
+        "arguments": {
+          "query": "memory footprint"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "search_paraphrase",
+      "split": "heldout",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "memory footprint"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 496.311,
+      "expected_tool": "search_files",
+      "case_sha256": "a555fc9b6f2fbee36e0a7f9f0b1db388473b265997750f671b89293bdf93cc4f",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"memory footprint\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 198272,
+        "media_time": 0,
+        "prompt_time": 198272,
+        "decode_time": 275868,
+        "prompt_tokens": 690,
+        "generated_tokens": 21,
+        "prefill_speed": 3480.0677856681727,
+        "decoding_speed": 76.12336334768803,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.198272,
+        "total": 0.47551319980993867
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 567.078
+    },
+    {
+      "id": "heldout_008",
+      "difficulty": "hard",
+      "prompt": "Both projects have a budget. Move only the alpha budget to archive/alpha-budget.csv; leave beta untouched.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "projects/alpha/budget.csv",
+          "destination": "archive/alpha-budget.csv"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [
+        "INVALID_OUTPUT"
+      ],
+      "category": "move",
+      "split": "heldout",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "ValueError",
+      "latency_ms": 1660.046,
+      "expected_tool": "move_file",
+      "case_sha256": "bf6c7d5221ac4dbb39aaf6eff5e98dd4649ca5b4046a7cff368ef03ef0e4b9a3",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"projects/alpha/budget.csv\", \"destination\": \"archive/alpha-budget.csv\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"projects/alpha/budget.csv\", \"destination\": \"archive/alpha-budget.csv\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"projects/beta/budget.csv\", \"destination\": \"archive/beta-budget.csv\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 200300,
+        "media_time": 0,
+        "prompt_time": 200300,
+        "decode_time": 1439490,
+        "prompt_tokens": 698,
+        "generated_tokens": 105,
+        "prefill_speed": 3484.772840738892,
+        "decoding_speed": 72.94250046891608,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.2003,
+        "total": 1.6412154999561608
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 1660.253
+    },
+    {
+      "id": "heldout_009",
+      "difficulty": "medium",
+      "prompt": "Move the PNG file under assets to archive/photo.png. Leave the SVG where it is.",
+      "expected": {
+        "tool": "move_file",
+        "arguments": {
+          "path": "assets/photo.png",
+          "destination": "archive/photo.png"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "move_paraphrase",
+      "split": "heldout",
+      "tool": "move_file",
+      "action": "move_file",
+      "arguments": {
+        "path": "assets/photo.png",
+        "destination": "archive/photo.png"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 912.118,
+      "expected_tool": "move_file",
+      "case_sha256": "d929db8494b5a9b62ad2c3b31b1338b5a2e234ab0aa2b4c16df3838a9f8617f3",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"assets/photo.png\", \"destination\": \"archive/photo.png\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {\"query\": \"files in archive\"}",
+      "profile": {
+        "ttft": 200351,
+        "media_time": 0,
+        "prompt_time": 200351,
+        "decode_time": 688750,
+        "prompt_tokens": 694,
+        "generated_tokens": 51,
+        "prefill_speed": 3463.92081896272,
+        "decoding_speed": 74.04718693284937,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.200351,
+        "total": 0.8905663997866213
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 972.754
+    },
+    {
+      "id": "heldout_010",
+      "difficulty": "hard",
+      "prompt": "Open plan.md.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "FAILED_TO_CLARIFY"
+      ],
+      "category": "clarify_ambiguous_path",
+      "split": "heldout",
+      "tool": "search_files",
+      "action": "search_files",
+      "arguments": {
+        "query": "plan.md"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": false,
+      "invalid_output": false,
+      "unnecessary_tool_call": true,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": true,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 495.657,
+      "expected_tool": "clarify",
+      "case_sha256": "f33893553cc25e050ab38727b3274966ed335546046325bbf21706eac66e158f",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"search_files\", \"arguments\": {\"query\": \"plan.md\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 197720,
+        "media_time": 0,
+        "prompt_time": 197720,
+        "decode_time": 276285,
+        "prompt_tokens": 680,
+        "generated_tokens": 21,
+        "prefill_speed": 3439.2069593364354,
+        "decoding_speed": 76.00846951517455,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.19772,
+        "total": 0.4753847997635603
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 561.005
+    },
+    {
+      "id": "heldout_011",
+      "difficulty": "easy",
+      "prompt": "Move a file to archive/chosen.txt.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "FAILED_TO_CLARIFY",
+        "WRONG_FINAL_STATE"
+      ],
+      "category": "clarify_missing_source",
+      "split": "heldout",
+      "tool": "move_file",
+      "action": "move_file",
+      "arguments": {
+        "path": "archive/2025-summary.txt",
+        "destination": "archive/chosen.txt"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": false,
+      "invalid_output": false,
+      "unnecessary_tool_call": true,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": true,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 943.496,
+      "expected_tool": "clarify",
+      "case_sha256": "da838f1082a57f47294d2f02559fc09bab679a6e78eca671dd805c45972877c4",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"archive/2025-summary.txt\", \"destination\": \"archive/chosen.txt\"}}\n</tool_call>\n<tool_call>\n{\"name\": \"list_files\", \"arguments\": {\"parameters\": {}}}",
+      "profile": {
+        "ttft": 199707,
+        "media_time": 0,
+        "prompt_time": 199707,
+        "decode_time": 724213,
+        "prompt_tokens": 685,
+        "generated_tokens": 54,
+        "prefill_speed": 3430.024986605377,
+        "decoding_speed": 74.5636988013195,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.199707,
+        "total": 0.9252279996871948
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": false,
+      "error": null,
+      "task_latency_ms": 1003.537
+    },
+    {
+      "id": "heldout_012",
+      "difficulty": "medium",
+      "prompt": "Append the line \"Review complete\" to notes/ideas.txt.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "FAILED_TO_CLARIFY",
+        "EXECUTION_ERROR"
+      ],
+      "category": "clarify_unsupported",
+      "split": "heldout",
+      "tool": "move_file",
+      "action": "move_file",
+      "arguments": {
+        "path": "notes/ideas.txt",
+        "destination": "notes/ideas.txt"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": false,
+      "invalid_output": false,
+      "unnecessary_tool_call": true,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": true,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": null,
+      "latency_ms": 645.551,
+      "expected_tool": "clarify",
+      "case_sha256": "501ab800a5763a72c9c28858f205ad22bb77f58838d2ac3b42d71823a9d13e59",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"move_file\", \"arguments\": {\"path\": \"notes/ideas.txt\", \"destination\": \"notes/ideas.txt\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 198986,
+        "media_time": 0,
+        "prompt_time": 198986,
+        "decode_time": 425285,
+        "prompt_tokens": 689,
+        "generated_tokens": 32,
+        "prefill_speed": 3462.5551546339943,
+        "decoding_speed": 75.24366013379263,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.198986,
+        "total": 0.625660200137645
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": false,
+      "final_state_match": true,
+      "error": "destination already exists: notes/ideas.txt",
+      "task_latency_ms": 704.461
+    },
+    {
+      "id": "heldout_013",
+      "difficulty": "hard",
+      "prompt": "Before moving archive/old-results.csv to reports/old-results.csv, first read archive/old-results.csv. Return only the first action.",
+      "expected": {
+        "tool": "read_file",
+        "arguments": {
+          "path": "archive/old-results.csv"
+        },
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "multistep_first_action",
+      "split": "heldout",
+      "tool": "read_file",
+      "action": "read_file",
+      "arguments": {
+        "path": "archive/old-results.csv"
+      },
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 540.021,
+      "expected_tool": "read_file",
+      "case_sha256": "42522ca46ecea060a677f66e6b43d09102a92c37201ce8f0548fe4d7d5853b79",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"read_file\", \"arguments\": {\"path\": \"archive/old-results.csv\"}}\n</tool_call>",
+      "profile": {
+        "ttft": 201175,
+        "media_time": 0,
+        "prompt_time": 201175,
+        "decode_time": 317724,
+        "prompt_tokens": 704,
+        "generated_tokens": 24,
+        "prefill_speed": 3499.4407853858584,
+        "decoding_speed": 75.53725875287985,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.201175,
+        "total": 0.5203840001486242
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 599.03
+    },
+    {
+      "id": "heldout_014",
+      "difficulty": "medium",
+      "prompt": "Before reading config/settings.json, enumerate every file in the entire workspace. Return only the first action.",
+      "expected": {
+        "tool": "list_files",
+        "arguments": {},
+        "clarification_required": false,
+        "should_act": true
+      },
+      "failure_reasons": [],
+      "category": "multistep_first_action",
+      "split": "heldout",
+      "tool": "list_files",
+      "action": "list_files",
+      "arguments": {},
+      "clarification": false,
+      "should_act": true,
+      "clarification_correct": true,
+      "invalid_output": false,
+      "unnecessary_tool_call": false,
+      "tool_correct": true,
+      "action_correct": true,
+      "arguments_correct": true,
+      "no_action_correct": true,
+      "task_success": true,
+      "parse_error": null,
+      "latency_ms": 428.521,
+      "expected_tool": "list_files",
+      "case_sha256": "9eb2dc38c3ce46f5dad5af5cedf439524b0fd87964a14ebc519321069ce34cee",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}\n</tool_call>",
+      "profile": {
+        "ttft": 198258,
+        "media_time": 0,
+        "prompt_time": 198258,
+        "decode_time": 207819,
+        "prompt_tokens": 696,
+        "generated_tokens": 16,
+        "prefill_speed": 3510.5771267742034,
+        "decoding_speed": 76.99007309245064,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.198258,
+        "total": 0.4074971997179091
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "execution_ok": true,
+      "final_state_match": true,
+      "error": null,
+      "task_latency_ms": 499.529
+    },
+    {
+      "id": "heldout_015",
+      "difficulty": "hard",
+      "prompt": "Read reports/final-results.csv exactly; do not substitute results.csv or old-results.csv if that exact path is absent.",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {},
+        "clarification_required": true,
+        "should_act": false
+      },
+      "failure_reasons": [
+        "PARSE_ERROR"
+      ],
+      "category": "clarify_missing_file",
+      "split": "heldout",
+      "tool": null,
+      "action": null,
+      "arguments": {},
+      "clarification": false,
+      "should_act": false,
+      "clarification_correct": false,
+      "invalid_output": true,
+      "unnecessary_tool_call": false,
+      "tool_correct": false,
+      "action_correct": false,
+      "arguments_correct": false,
+      "no_action_correct": false,
+      "task_success": false,
+      "parse_error": "JSONDecodeError",
+      "latency_ms": 412.643,
+      "expected_tool": "clarify",
+      "case_sha256": "98c604b9cb8f66a6912e908a9c5f8996e474bc7d2201da9efcf5c1f8325e8c78",
+      "execution_error": null,
+      "output_text": "<tool_call>\n{\"name\": \"list_files\", \"arguments\": {}}",
+      "profile": {
+        "ttft": 199248,
+        "media_time": 0,
+        "prompt_time": 199248,
+        "decode_time": 193749,
+        "prompt_tokens": 700,
+        "generated_tokens": 15,
+        "prefill_speed": 3513.209668353007,
+        "decoding_speed": 77.41975442453897,
+        "draft_n_total": 0,
+        "draft_n_accepted": 0,
+        "stop_reason": "eos"
+      },
+      "timings": {
+        "ttft": 0.199248,
+        "total": 0.39438739977777004
+      },
+      "selected_device": "NPU",
+      "selected_route": null,
+      "routing_accuracy": null,
+      "backend_id": "qairt_npu",
+      "runtime": "qairt",
+      "requested_device": "npu",
+      "resolved_device": "NPU",
+      "generation_control": {
+        "stop_after_tool_call": false,
+        "mechanism": null,
+        "delimiter": null,
+        "delimiter_seen": false,
+        "callbacks_after_stop_request": 0,
+        "native_text_modified": false
+      },
+      "task_latency_ms": 412.764
+    }
+  ],
+  "metrics": {
+    "total_prompts": 50,
+    "task_success": 20,
+    "task_accuracy": 40.0,
+    "tool_accuracy": 42.0,
+    "action_accuracy": 42.0,
+    "argument_accuracy": 54.0,
+    "clarification_no_action_accuracy": 52.0,
+    "argument_applicable_prompts": 37,
+    "argument_accuracy_applicable": 54.054054054054056,
+    "avg_task_latency_ms": 854.6028,
+    "median_task_latency_ms": 594.1015,
+    "avg_latency_ms": 810.76248,
+    "median_latency_ms": 524.575,
+    "p95_latency_ms": 1965.833,
+    "latency_samples": 50,
+    "errors": 0,
+    "categories": {
+      "clarify_ambiguous_path": {
+        "total": 3,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_023",
+          "dev_028",
+          "heldout_010"
+        ]
+      },
+      "clarify_conflicting_constraints": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_033"
+        ]
+      },
+      "clarify_missing_destination": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_024"
+        ]
+      },
+      "clarify_missing_file": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "heldout_015"
+        ]
+      },
+      "clarify_missing_path": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_022"
+        ]
+      },
+      "clarify_missing_query": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_025"
+        ]
+      },
+      "clarify_missing_source": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "heldout_011"
+        ]
+      },
+      "clarify_overwrite": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_034"
+        ]
+      },
+      "clarify_unsupported": {
+        "total": 3,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_026",
+          "dev_027",
+          "heldout_012"
+        ]
+      },
+      "list": {
+        "total": 3,
+        "task_success": 3,
+        "task_accuracy": 100.0,
+        "failures": []
+      },
+      "list_exact_path": {
+        "total": 1,
+        "task_success": 1,
+        "task_accuracy": 100.0,
+        "failures": []
+      },
+      "list_paraphrase": {
+        "total": 3,
+        "task_success": 3,
+        "task_accuracy": 100.0,
+        "failures": []
+      },
+      "move": {
+        "total": 3,
+        "task_success": 1,
+        "task_accuracy": 33.333333333333336,
+        "failures": [
+          "dev_018",
+          "heldout_008"
+        ]
+      },
+      "move_exact_path": {
+        "total": 1,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_020"
+        ]
+      },
+      "move_paraphrase": {
+        "total": 2,
+        "task_success": 1,
+        "task_accuracy": 50.0,
+        "failures": [
+          "dev_019"
+        ]
+      },
+      "move_rename": {
+        "total": 1,
+        "task_success": 1,
+        "task_accuracy": 100.0,
+        "failures": []
+      },
+      "multistep_first_action": {
+        "total": 6,
+        "task_success": 3,
+        "task_accuracy": 50.0,
+        "failures": [
+          "dev_029",
+          "dev_030",
+          "dev_032"
+        ]
+      },
+      "read": {
+        "total": 4,
+        "task_success": 1,
+        "task_accuracy": 25.0,
+        "failures": [
+          "dev_002",
+          "dev_006",
+          "heldout_001"
+        ]
+      },
+      "read_exact_path": {
+        "total": 4,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_004",
+          "dev_005",
+          "dev_035",
+          "heldout_002"
+        ]
+      },
+      "read_paraphrase": {
+        "total": 2,
+        "task_success": 0,
+        "task_accuracy": 0.0,
+        "failures": [
+          "dev_003",
+          "heldout_003"
+        ]
+      },
+      "search": {
+        "total": 2,
+        "task_success": 1,
+        "task_accuracy": 50.0,
+        "failures": [
+          "dev_012"
+        ]
+      },
+      "search_exact_query": {
+        "total": 3,
+        "task_success": 3,
+        "task_accuracy": 100.0,
+        "failures": []
+      },
+      "search_paraphrase": {
+        "total": 2,
+        "task_success": 2,
+        "task_accuracy": 100.0,
+        "failures": []
+      }
+    },
+    "failed_tasks": 30,
+    "invalid_output_rate": 0.34,
+    "parse_failure_rate": 0.12,
+    "clarification_prompts": 13,
+    "clarification_accuracy": 0.0,
+    "difficulties": {
+      "easy": {
+        "total": 15,
+        "task_success": 8,
+        "task_accuracy": 53.333333333333336
+      },
+      "hard": {
+        "total": 15,
+        "task_success": 3,
+        "task_accuracy": 20.0
+      },
+      "medium": {
+        "total": 20,
+        "task_success": 9,
+        "task_accuracy": 45.0
+      }
+    },
+    "actions": {
+      "clarify": {
+        "total": 13,
+        "task_success": 0,
+        "task_accuracy": 0.0
+      },
+      "list_files": {
+        "total": 9,
+        "task_success": 8,
+        "task_accuracy": 88.88888888888889
+      },
+      "move_file": {
+        "total": 8,
+        "task_success": 3,
+        "task_accuracy": 37.5
+      },
+      "read_file": {
+        "total": 12,
+        "task_success": 2,
+        "task_accuracy": 16.666666666666668
+      },
+      "search_files": {
+        "total": 8,
+        "task_success": 7,
+        "task_accuracy": 87.5
+      }
+    }
+  },
+  "comparison": {
+    "status": "NOT_COMPARABLE",
+    "reasons": [
+      "Incompatible evaluator_sha256"
+    ]
+  }
+}
