@@ -12,6 +12,7 @@ evaluation is a separate, explicit command, scripts/autotune_final.py.
 import argparse
 import json
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -19,12 +20,37 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from turbo.json_io import read_json
-from turbo.optimizer import (budget as budget_module, console as console_module, grid, guard,
-                             hardware_queue, llm, probe, proposer, report, scheduler as
-                             scheduler_module, search_space as space, selector,
-                             state as state_module, successive_halving)
+from turbo.optimizer import observation as observation_module
+from turbo.optimizer import (advisor as advisor_module, budget as budget_module,
+                             console as console_module, grid, guard, hardware_queue, llm,
+                             probe, proposer, report, scheduler as scheduler_module,
+                             search_space as space, selector, state as state_module,
+                             successive_halving)
 
 DEFAULT_SESSION = state_module.DEFAULT_HOME / 'session.json'
+
+#: What --mock-llm answers. One admissible hypothesis over a declared control and
+#: one that names a control the frozen contract cannot express, so a dry run
+#: exercises both branches: a real candidate being built, and a research idea
+#: staying visible as inadmissible instead of vanishing.
+MOCK_PROPOSAL = {'hypotheses': [
+    {'family': 'output_budget',
+     'mechanism': 'A shorter generation budget truncates runaway output before it becomes a '
+                  'second tool call, which is the dominant structural failure recorded so far',
+     'why_now': 'The control uses the runner default and no shorter budget has been measured',
+     'search_space': {'max_tokens': [32, 48, 64]},
+     'expected_signal': 'Fewer invalid structured outputs at equal or better correctness',
+     'abandon_if': 'Correctness falls while the invalid rate is unchanged'},
+    {'family': 'sampler',
+     'mechanism': 'Explicit greedy decoding would remove sampling as a confound',
+     'why_now': 'Requested temperature zero does not establish greedy decoding on this plugin',
+     'search_space': {'top_k': [1]},
+     'expected_signal': 'Byte-identical output across repeats',
+     'abandon_if': 'Repeated outputs still differ'}]}
+
+MOCK_CRITIQUE = {'findings': [
+    {'kind': 'unsupported_claim', 'candidate_id': None, 'severity': 'warn',
+     'detail': 'A shorter budget changes both truncation and cost; attribute carefully'}]}
 
 
 class VirtualClock:
@@ -73,10 +99,13 @@ def build_llm(mock, cache_dir):
     unavailable rather than pretending no proposal was wanted.
     """
     if mock:
-        return (llm.MockClient({}, model='mock-proposer',
-                               default=json.dumps({'hypotheses': []})),
-                llm.MockClient({}, model='mock-critic',
-                               default=json.dumps({'findings': []})),
+        # The mock answers with a real proposal, not an empty one. A stub that
+        # returns nothing proves only that a client can be constructed, which is
+        # exactly the gap this exists to close: every step after the call,
+        # schema validation, bounded mapping, guard admission and family
+        # selection, has to run in a dry run too.
+        return (llm.MockClient({}, model='mock-proposer', default=json.dumps(MOCK_PROPOSAL)),
+                llm.MockClient({}, model='mock-critic', default=json.dumps(MOCK_CRITIQUE)),
                 {'proposer': 'MOCK', 'critic': 'MOCK'})
     status = {'proposer': llm.credential_status(proposer.ANTHROPIC_KEY_VAR),
               'critic': llm.credential_status('OPENAI_API_KEY')}
@@ -116,14 +145,15 @@ def phase_plan(phase, backend):
     families = space.families(backend)
     if phase == 'explore':
         return {'stages': ('S1', 'S2'), 'families': families, 'breadth': 'wide',
-                'generate': True}
+                'generate': True, 'propose': True}
     if phase == 'focus':
         return {'stages': ('S1', 'S2', 'S3', 'S4'), 'families': families,
-                'breadth': 'productive', 'generate': True}
+                'breadth': 'productive', 'generate': True, 'propose': True}
     if phase == 'confirm_only':
         return {'stages': ('S4', 'S5'), 'families': families, 'breadth': 'best',
-                'generate': False}
-    return {'stages': ('S5',), 'families': families, 'breadth': 'best', 'generate': False}
+                'generate': False, 'propose': False}
+    return {'stages': ('S5',), 'families': families, 'breadth': 'best', 'generate': False,
+            'propose': False}
 
 
 def productive_families(state, fallback):
@@ -198,6 +228,12 @@ def funnel(stage, observations, control_observation, console):
         evaluated[candidate['candidate_id']] = observation
         if control_observation is None and candidate.get('is_control'):
             control_observation = observation
+        if isinstance(control_observation, dict):
+            # The latency gate belongs here, where both observations are in hand
+            # and their boundary labels can be compared. A gate computed against
+            # a differently scoped baseline would be the substitution the
+            # tracking audit ruled out, so annotate_gates returns None instead.
+            observation_module.annotate_gates(observation, control_observation)
         if observation.get('rows') and (control_observation or {}).get('rows'):
             # Case-level deltas are what every stage above S2 actually compares,
             # and a confirmation repeat needs them too, so they are computed once
@@ -258,7 +294,7 @@ def promote_best(state, survivors, console, *, selector_module, evaluated, confi
     return selection
 
 
-def run_session(args, *, clock, executor, session_path, console):
+def run_session(args, *, clock, executor, session_path, console, advisor=None):
     control_config = load_control(args.control_config)
     backend = resolve_backend(control_config, args.backend)
     if args.resume:
@@ -274,6 +310,12 @@ def run_session(args, *, clock, executor, session_path, console):
             search_space_sha256=space.declared_space(backend)['space_sha256'])
         session_budget = budget_module.Budget(args.budget_minutes, clock=clock)
     state['owner_decisions'] = list(args.owner_decision or ())
+    if advisor is not None:
+        # The advisor is built before the session record exists, because the
+        # credential check belongs with the other startup checks. It is bound to
+        # the real state here so its counters land in the session that is saved.
+        advisor.state = state
+        advisor_module.counters(state)
 
     queue = hardware_queue.HardwareQueue()
     if args.resume and state.get('queue_snapshot'):
@@ -309,19 +351,47 @@ def run_session(args, *, clock, executor, session_path, console):
         signature = (state['current_control']['config_hash'], plan['breadth'])
         if plan['generate'] and signature not in generated_signatures:
             generated_signatures.add(signature)
-            if plan['breadth'] == 'wide':
-                # One grid per family rather than one grid over all of them. The
-                # full product across families is tens of thousands of points on
-                # the llama.cpp backends, most of which say nothing that a
-                # within-family grid plus later refinement does not, and a point
-                # that crosses four families explains nothing on its own.
-                candidates = generate_by_family(engine, console, plan['families'],
-                                                 args.max_points)
-            else:
-                candidates = generate_by_family(
-                    engine, console, productive_families(state, plan['families']),
-                    args.max_points)
-            pool['S1'].extend(engine.admit(candidates))
+            control_config = state['current_control']['config']
+            # The model speaks first, off the hardware path, and only ever
+            # decides which declared family gets attention this round. Its
+            # candidates are built by the deterministic mapper and still have to
+            # pass the guard, so nothing it wrote reaches a device unchecked.
+            hypotheses, llm_candidates = [], []
+            if advisor is not None and plan['propose']:
+                hypotheses = advisor.propose(
+                    backend=backend, remaining_minutes=session_budget.remaining_minutes,
+                    phase=phase)
+            if hypotheses:
+                llm_candidates, llm_rejected = advisor.candidates_from(
+                    hypotheses, control_config=control_config, backend=backend,
+                    start_index=state['counters']['generated'] + 1)
+                state['counters']['generated'] += len(llm_candidates)
+                for name, value, reason in llm_rejected:
+                    console.event('LLM', str(name)[:10],
+                                  'rejected ' + repr(value) + ': ' + str(reason)[:70])
+            families = None
+            if hypotheses:
+                families = advisor.families_to_explore(hypotheses, backend=backend,
+                                                       fallback=())
+            # One grid per family rather than one grid over all of them. The
+            # full product across families is tens of thousands of points on the
+            # llama.cpp backends, most of which say nothing that a within-family
+            # grid plus later refinement does not, and a point that crosses four
+            # families explains nothing on its own.
+            if not families:
+                families = (plan['families'] if plan['breadth'] == 'wide'
+                            else productive_families(state, plan['families']))
+            candidates = llm_candidates + generate_by_family(engine, console, families,
+                                                             args.max_points)
+            admitted = engine.admit(candidates)
+            if advisor is not None:
+                advisor.submit_critique(admitted, phase=phase, hypotheses=hypotheses)
+                findings = advisor.collect_critiques()
+                admitted, blocked = advisor.deprioritise(admitted, findings)
+                for candidate in blocked:
+                    state_module.record_rejection(state, candidate,
+                                                  ['Critic raised a blocking finding'])
+            pool['S1'].extend(admitted)
         progressed = False
         for stage in plan['stages']:
             waiting = pool[stage]
@@ -384,6 +454,8 @@ def run_session(args, *, clock, executor, session_path, console):
             if following and following in pool:
                 pool[following].extend(survivors)
 
+    if advisor is not None:
+        advisor.collect_critiques(wait_s=5.0)
     state['queue_snapshot'] = queue.snapshot()
     resume_command = engine.finish(session_path)
     summary = report.session_summary(
@@ -391,6 +463,8 @@ def run_session(args, *, clock, executor, session_path, console):
         initial_control=initial_control, final_control=state['current_control'])
     summary['counts_by_name'] = engine.counts()
     summary['llm_status'] = args.llm_status
+    summary['llm_counters'] = (advisor.report_counters() if advisor is not None
+                               else {name: 0 for name in advisor_module.COUNTERS})
     summary['dry_run'] = bool(args.dry_run)
     directory = state_module.ensure_home(args.session_dir) / 'reports'
     paths = report.write_summary(summary, directory)
@@ -423,6 +497,16 @@ def main(argv=None):
                    choices=sorted(guard.OWNER_DECISIONS),
                    help='Declare an owner decision as implemented; repeatable')
     p.add_argument('--simulated-seconds-per-case', type=float, default=1.0)
+    p.add_argument('--s2-cases', type=int, default=0,
+                   help='Development cases in the S2 diagnostic canary. 0 skips S2 explicitly '
+                        'rather than silently widening it to the full development set.')
+    p.add_argument('--s3-cases', type=int, default=0,
+                   help='Development cases in the S3 diagnostic canary. 0 skips S3 explicitly.')
+    p.add_argument('--canary-seed',
+                   help='Fixes the canary subset before the session so it cannot adapt to results')
+    p.add_argument('--canary-timeout', type=float, default=900.0)
+    p.add_argument('--startup-timeout', type=float, default=180.0)
+    p.add_argument('--llm-timeout', type=float, default=60.0)
     p.add_argument('--diagnostic-dirty', action='store_true')
     p.add_argument('--timeout', type=float, default=600.0)
     args = p.parse_args(argv)
@@ -452,24 +536,55 @@ def main(argv=None):
             clock.advance(seconds)
             return seconds
 
-        executor = scheduler_module.simulated_executor(latency_model=latency, rng=None)
+        simulated = scheduler_module.simulated_executor(latency_model=latency, rng=None)
+        # A dry run exercises the same routing the real path uses, and the S4
+        # and S5 routes go through a real sealed archive so the observation
+        # adapter is exercised too. The archives are written into a throwaway
+        # directory and discarded: they describe nothing that was measured, and
+        # leaving them on disk would be manufacturing evidence.
+        simulated_archives = tempfile.TemporaryDirectory(prefix='turbolab-dry-run-')
+        args._simulated_archives = simulated_archives
+        executor = scheduler_module.staged_executor(
+            probe=simulated, canary=simulated,
+            tracker=scheduler_module.simulated_archive_executor(
+                simulated_archives.name, inner=simulated))
     else:
         clock = time.monotonic
-        root = args.archive_root
+        home = state_module.ensure_home(args.session_dir)
         from turbo.experiments import DEFAULT_ARCHIVES
-        executor = scheduler_module.tracker_executor(
-            root=root or DEFAULT_ARCHIVES, dataset='dev', timeout=args.timeout,
-            diagnostic_dirty=args.diagnostic_dirty,
-            config_directory=state_module.ensure_home(args.session_dir) / 'candidates')
+        # Each stage goes to the executor entitled to answer it. One executor
+        # for all five, as an earlier version had, meant the real path ran the
+        # full development set five times and called the first three cheap.
+        executor = scheduler_module.staged_executor(
+            probe=scheduler_module.startup_probe_executor(
+                repo=ROOT, timeout_s=args.startup_timeout,
+                config_directory=home / 'candidates'),
+            canary=scheduler_module.canary_executor(
+                repo=ROOT, seed_label=args.canary_seed or 'turbolab',
+                sizes={'S2': args.s2_cases, 'S3': args.s3_cases},
+                output_directory=home / 'canaries', timeout_s=args.canary_timeout,
+                config_directory=home / 'candidates'),
+            tracker=scheduler_module.tracker_executor(
+                root=args.archive_root or DEFAULT_ARCHIVES, dataset='dev',
+                timeout=args.timeout, diagnostic_dirty=args.diagnostic_dirty,
+                config_directory=home / 'candidates'))
+
+    advisor = advisor_module.Advisor(
+        {}, proposer_client=proposer_client, critic_client=critic_client,
+        cache=llm.ResponseCache(state_module.ensure_home(args.session_dir) / 'analyses'),
+        console=console, timeout_s=args.llm_timeout)
 
     session_path = args.resume or (state_module.ensure_home(args.session_dir) / 'session.json')
     try:
         summary = run_session(args, clock=clock, executor=executor,
-                              session_path=session_path, console=console)
+                              session_path=session_path, console=console, advisor=advisor)
     except (ValueError, OSError) as exc:
         p.error(str(exc))
         return 2
-    print(json.dumps(summary['counts_by_name'], indent=2))
+    print(json.dumps({**summary['counts_by_name'], **summary['llm_counters']}, indent=2))
+    holder = getattr(args, '_simulated_archives', None)
+    if holder is not None:
+        holder.cleanup()
     return 0
 
 

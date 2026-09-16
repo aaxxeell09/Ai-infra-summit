@@ -35,6 +35,7 @@ def rows(state):
     remaining = (budget_minutes - elapsed / 60.0
                  if budget_minutes is not None and elapsed is not None else None)
     control = state.get('current_control') or {}
+    llm_counters = state.get('llm') or {}
     queued = len(state.get('queue_snapshot', {}).get('entries', [])
                  if isinstance(state.get('queue_snapshot'), dict) else [])
     return [
@@ -56,6 +57,12 @@ def rows(state):
         ('DEV35', str(counters.get('S4', 0))),
         ('CONFIRMATIONS', str(counters.get('S5', 0))),
         ('PROMOTIONS', str(counters.get('promotions', 0))),
+        ('LLM PROPOSER CALLS', str(llm_counters.get('LLM_PROPOSER_CALLS', 0))),
+        ('LLM CRITIC CALLS', str(llm_counters.get('LLM_CRITIC_CALLS', 0))),
+        ('LLM HYPOTHESES', str(llm_counters.get('LLM_HYPOTHESES', 0))),
+        ('LLM ADMISSIBLE', str(llm_counters.get('LLM_ADMISSIBLE_HYPOTHESES', 0))),
+        ('LLM REJECTED', str(llm_counters.get('LLM_REJECTED_HYPOTHESES', 0))),
+        ('LLM API WAIT', _value(llm_counters.get('LLM_API_WAIT_SECONDS'), ' s')),
         ('ENERGY COMMISSIONED', 'yes' if state.get('energy_commissioned') else 'no'),
         ('FINISHED', str(state.get('finished_at') or 'no')),
     ]

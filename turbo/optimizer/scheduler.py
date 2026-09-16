@@ -244,16 +244,22 @@ class Scheduler:
 
 
 def tracker_executor(*, root, dataset='dev', timeout=600, diagnostic_dirty=False,
-                     config_directory=None, runner=None):
+                     config_directory=None, runner=None, verify_archive=True):
     """Executor that runs a candidate through the real experiment tracker.
 
     Every hardware evaluation becomes an ordinary archive: TurboLab adds no
     competing record, and it never writes into an existing one. The candidate's
     config is materialised beside the session so the archive captures the exact
     bytes that were run.
+
+    What comes back is not the tracker's return value dressed up. The archive is
+    re-read through turbo/optimizer/observation.py, read only, so the funnel
+    compares the evidence that was actually sealed rather than whatever this
+    process happened to hold in memory.
     """
     import json
     from turbo.experiments import run as tracker_run
+    from turbo.optimizer import observation as observation_module
 
     directory = Path(config_directory) if config_directory else S.DEFAULT_HOME / 'candidates'
     execute = runner or tracker_run
@@ -272,9 +278,186 @@ def tracker_executor(*, root, dataset='dev', timeout=600, diagnostic_dirty=False
                           change=candidate['treatment'], hypothesis=candidate['hypothesis'],
                           control=candidate.get('control_experiment_id'),
                           diagnostic_dirty=diagnostic_dirty, timeout=timeout)
-        return {'outcome': 'completed', 'archive': str(archive),
-                'hardware_seconds': round(time.monotonic() - started, 3),
-                'stage': stage, 'net_cases': None}
+        elapsed = round(time.monotonic() - started, 3)
+        return observation_module.from_archive(archive, stage=stage, hardware_seconds=elapsed,
+                                               verify_archive=verify_archive)
+
+    return executor
+
+
+def startup_probe_executor(*, repo=ROOT, python=None, timeout_s=180,
+                           config_directory=None, runner=None):
+    """S1: prove the configuration loads and answers once. Nothing more.
+
+    It runs the existing bounded smoke helper, which performs a single short
+    generation through the same native layer the evaluator uses. That answers
+    the only question S1 asks. It writes no archive and makes no benchmark
+    claim, and the record says so, because a liveness result that drifted into a
+    report as a score would be the worst kind of number: cheap, plausible and
+    about nothing.
+    """
+    import json
+    import sys as _sys
+
+    directory = Path(config_directory) if config_directory else S.DEFAULT_HOME / 'candidates'
+    interpreter = python or _sys.executable
+
+    def executor(candidate, *, stage):
+        from turbo.optimizer import probe
+        refusals = probe.config_acceptable(candidate['config'], candidate['config'].get('backend'))
+        if refusals:
+            return dict(probe.startup_observation(loaded=False, outcome=probe.REFUSED,
+                                                  runtime_error='; '.join(refusals),
+                                                  detail='Refused before launch by the static '
+                                                         'pre-check that mirrors the runner'),
+                        stage=stage, simulated=False, hardware_seconds=0.0, archive=None,
+                        qualified=False, promotion_evidence=False)
+        directory.mkdir(parents=True, exist_ok=True)
+        config_path = directory / (candidate['candidate_id'] + '.json')
+        payload = json.dumps(candidate['config'], indent=2, ensure_ascii=False,
+                             allow_nan=False) + '\n'
+        if not config_path.exists():
+            config_path.write_text(payload, encoding='utf-8', newline='\n')
+        command = [interpreter, '-X', 'utf8', str(Path(repo) / 'scripts/backend_smoke.py'),
+                   '--config', str(config_path)]
+        record = probe.run_startup_probe(command, timeout_s=timeout_s, cwd=str(repo),
+                                         runner=runner)
+        record.update(stage=stage, simulated=False, archive=None, qualified=False,
+                      promotion_evidence=False,
+                      hardware_seconds=record.get('startup_seconds') or 0.0,
+                      outcome='survive' if record['outcome'] == probe.LOADED else record['outcome'])
+        return record
+
+    return executor
+
+
+def canary_executor(*, repo=ROOT, python=None, seed_label, sizes, output_directory,
+                    timeout_s=900, config_directory=None, runner=None):
+    """S2 and S3: a fixed development subset, labelled, elimination only.
+
+    ``sizes`` maps a stage to its subset size. A stage with no size declared is
+    explicitly skipped, never silently widened to the full development set:
+    running 35 cases while the log says S2 would make a cheap stage expensive
+    and an expensive comparison look cheap, and nobody reading the session would
+    know which had happened.
+    """
+    import json
+    import subprocess as _subprocess
+    import sys as _sys
+
+    directory = Path(config_directory) if config_directory else S.DEFAULT_HOME / 'candidates'
+    interpreter = python or _sys.executable
+    outputs = Path(output_directory)
+    execute = runner or _subprocess.run
+
+    def executor(candidate, *, stage):
+        size = (sizes or {}).get(stage)
+        if not size:
+            return {'outcome': 'skipped', 'stage': stage, 'simulated': False, 'archive': None,
+                    'qualified': False, 'promotion_evidence': False, 'hardware_seconds': 0.0,
+                    'skip_reason': 'No diagnostic subset size is declared for ' + stage
+                                   + ', and widening it to the full development set would '
+                                     'misreport a cheap stage as an expensive one'}
+        directory.mkdir(parents=True, exist_ok=True)
+        outputs.mkdir(parents=True, exist_ok=True)
+        config_path = directory / (candidate['candidate_id'] + '.json')
+        if not config_path.exists():
+            config_path.write_text(json.dumps(candidate['config'], indent=2, ensure_ascii=False,
+                                              allow_nan=False) + '\n',
+                                   encoding='utf-8', newline='\n')
+        output = outputs / (candidate['candidate_id'] + '-' + stage + '.json')
+        command = [interpreter, '-X', 'utf8', str(Path(repo) / 'scripts/diagnostic_canary.py'),
+                   '--config', str(config_path), '--size', str(size),
+                   '--seed-label', str(seed_label), '--output', str(output)]
+        started = time.monotonic()
+        try:
+            completed = execute(command, cwd=str(repo), timeout=timeout_s,
+                                capture_output=True, text=True)
+        except _subprocess.TimeoutExpired:
+            return {'outcome': 'timed_out', 'stage': stage, 'simulated': False, 'archive': None,
+                    'qualified': False, 'promotion_evidence': False, 'hardware_seconds': None,
+                    'detail': 'Canary exceeded ' + str(timeout_s) + ' s'}
+        elapsed = round(time.monotonic() - started, 3)
+        if completed.returncode != 0 or not output.is_file():
+            return {'outcome': 'failed', 'stage': stage, 'simulated': False, 'archive': None,
+                    'qualified': False, 'promotion_evidence': False, 'hardware_seconds': elapsed,
+                    'runtime_error': (completed.stderr or '').strip()[-2000:] or None}
+        from turbo.json_io import read_json
+        record = read_json(output, require_object=True)
+        record.update(stage=stage, simulated=False, archive=None, hardware_seconds=elapsed,
+                      outcome='survive')
+        return record
+
+    return executor
+
+
+def simulated_archive_executor(root, *, inner):
+    """Wrap a simulated stage result in a real sealed archive, then read it back.
+
+    This exists so a dry run exercises the archive observation adapter rather
+    than handing the funnel a dictionary that the real path would never produce.
+    The archive is written through the tracker's own writers, sealed, verified
+    and read back through turbo/optimizer/observation.py, which is exactly the
+    sequence a tracked run performs.
+
+    ``root`` must be a throwaway directory. These archives describe nothing that
+    was measured, so leaving them beside real evidence would be creating fake
+    evidence; the caller owns a temporary directory and discards it.
+    """
+    import json as _json
+    from turbo.experiments import finish as _finish, initialize as _initialize, reserve as _reserve
+    from turbo.optimizer import observation as observation_module
+
+    root = Path(root)
+
+    def executor(candidate, *, stage):
+        simulated = inner(candidate, stage=stage)
+        rows = simulated.get('rows')
+        if not rows:
+            return simulated
+        path = _reserve(root, 'simulated-' + candidate['candidate_id'] + '-' + stage)
+        _initialize(path, {'name': path.name, 'command': ['simulated'],
+                           'environment': {'system': 'simulated'}},
+                    config_bytes=_json.dumps(candidate['config']).encode('utf-8'))
+        report = {'schema_version': 2, 'status': 'measured',
+                  'benchmark_version': 'secretary-eval-v2',
+                  'results': [{'case_id': row['case_id'], 'task_success': row['task_success'],
+                               'invalid_output': index < simulated.get('invalid', 0),
+                               'expected_tool': 'move_file',
+                               'failure_reasons': [] if row['task_success'] else ['WRONG_ACTION'],
+                               'latency_ms': simulated.get('median_task_latency_ms'),
+                               'warm_task_latency_ms': simulated.get('median_task_latency_ms'),
+                               'profile': {'generated_tokens': 20}}
+                              for index, row in enumerate(rows)]}
+        manifest = _json.loads((path / 'manifest.json').read_text(encoding='utf-8'))
+        _finish(path, dict(manifest), result=report, status='completed_diagnostic')
+        record = observation_module.from_archive(path, stage=stage,
+                                                 hardware_seconds=simulated['hardware_seconds'])
+        record.update(simulated=True, outcome=simulated.get('outcome', record['outcome']),
+                      note='Simulated shape from --dry-run, sealed into a throwaway archive so '
+                           'the observation adapter is exercised. Not a measurement.')
+        return record
+
+    return executor
+
+
+def staged_executor(*, probe=None, canary=None, tracker=None):
+    """Route each stage to the executor that is allowed to answer it.
+
+    S1 is liveness, S2 and S3 are labelled diagnostics, S4 and S5 are tracked
+    measurements. One executor for every stage, as an earlier version had, meant
+    the real path ran the full development set five times and called the first
+    three of them cheap.
+    """
+    routes = {'S1': probe, 'S2': canary, 'S3': canary, 'S4': tracker, 'S5': tracker}
+
+    def executor(candidate, *, stage):
+        route = routes.get(stage)
+        if route is None:
+            return {'outcome': 'skipped', 'stage': stage, 'simulated': False, 'archive': None,
+                    'qualified': False, 'promotion_evidence': False, 'hardware_seconds': 0.0,
+                    'skip_reason': 'No executor is configured for ' + stage}
+        return route(candidate, stage=stage)
 
     return executor
 
@@ -330,7 +513,8 @@ def simulated_executor(*, latency_model, rng=None, effect_model=None):
         observed = sum(1 for row in rows if row['task_success'])
         record.update(attempted=attempted, correct=observed, invalid=invalid,
                       invalid_rate=round(invalid / attempted, 6) if attempted else None,
-                      median_latency_ms=latency, rows=rows,
+                      median_task_latency_ms=latency, median_latency_ms=latency,
+                      latency_boundary='simulated: no boundary was measured', rows=rows,
                       latency_gate_ok=True, deterministic_output=False,
                       outcome='survive')
         return record

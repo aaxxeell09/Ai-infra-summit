@@ -10,8 +10,12 @@ python scripts/autotune_status.py local/autotune/session.json
 python scripts/autotune_final.py local/autotune/session.json --config local/final.json
 ```
 
-`--dry-run` simulates a whole session with no hardware and no API calls.
-`--mock-llm` replaces both model adapters with deterministic stubs.
+`--dry-run` simulates a whole session with no hardware and no API calls, through
+the same stage routing the real path uses. Its S4 and S5 routes seal a real
+archive in a throwaway directory and read it back through the observation
+adapter, so the adapter is exercised rather than bypassed; those archives
+describe nothing that was measured and are discarded when the session ends.
+`--mock-llm` swaps in deterministic clients that answer with a real proposal.
 
 ## What it does not do
 
@@ -67,25 +71,51 @@ every field it moves and records `causal_attribution: False`. A multi-field
 candidate that does not declare itself is refused as a hidden multi-variable
 mutation.
 
-## The funnel
+## The funnel, and which executor answers each stage
 
-S0 static only, no inference. S1 a startup probe, liveness and nothing more.
-S2 a small diagnostic canary, elimination only, never a promotion. S3 a larger
-development subset. S4 the full 35 development cases through the tracker. S5 a
-confirmation repeat. Promotion requires a net improvement of at least two
-development cases, a latency gate that is an explicit pass, and a confirming
-repeat. Determinism, once established empirically, relaxes how many repeats are
-needed; it is not itself a promotion requirement.
+`scheduler.staged_executor` routes every stage to the executor entitled to
+answer it. One executor for all five stages, as the first version had, meant the
+real path ran the full development set five times and logged the first three as
+cheap.
+
+| stage | executor | what it is | writes an archive |
+|---|---|---|---|
+| S0 | none | static admission, zero inference | no |
+| S1 | `startup_probe_executor` | `scripts/backend_smoke.py`, one bounded generation | no |
+| S2 | `canary_executor` | `scripts/diagnostic_canary.py`, `--s2-cases` development cases | no |
+| S3 | `canary_executor` | same, `--s3-cases` development cases | no |
+| S4 | `tracker_executor` | full 35 development cases through `experiment_tracker` | yes |
+| S5 | `tracker_executor` | confirmation repeat, same path | yes |
+
+`--s2-cases` and `--s3-cases` default to 0, which **skips** that stage and says
+so. They are never widened to the full development set behind a label that says
+eight: that would make a cheap stage expensive and an expensive comparison look
+cheap, and the session log would not show which had happened.
+
+S1 is liveness and records `correctness_claim: False`. S2 and S3 produce records
+stamped `DIAGNOSTIC_CANARY` with `qualified: False` and `promotion_evidence:
+False`. `scripts/diagnostic_canary.py` is not a second evaluator: it imports the
+frozen runner's own `execute` and the frozen scoring path unchanged and only
+chooses fewer cases, so a canary and a tracked run cannot disagree about what a
+correct answer is. It can load exactly one dataset file, the development split,
+and takes no argument that could change that.
+
+S4 and S5 go through the tracker and produce ordinary archives. What comes back
+is not the tracker's return value: the sealed archive is re-read through
+`turbo/optimizer/observation.py`, read only and verified first, so the funnel
+compares the evidence that was actually sealed. A missing field there produces
+`evidence_complete: False` with the reason, and every rule above treats that as
+unable to clear its gate rather than as a pass.
+
+Promotion requires a net improvement of at least two development cases, a
+latency gate that is an explicit pass, and a confirming repeat. The latency gate
+refuses to compare two different boundary labels and returns None, which the
+selector treats as a failure to pass. Determinism, once established empirically,
+relaxes how many repeats are needed; it is not itself a promotion requirement.
 
 The control is re-measured at each stage, because an elimination rule with no
 same-stage baseline has nothing to compare against and abstains rather than
 guessing.
-
-S2 and S3 currently need a diagnostic probe, since the frozen runner exposes
-only development, heldout and all. `turbo/optimizer/probe.py` defines that
-interface and labels every result `DIAGNOSTIC_CANARY`, with `qualified: False`
-and `promotion_evidence: False` in the record itself. Until the probe is wired
-to hardware, a session can run with startup probes and dev35 alone.
 
 ## Phases and the device
 
@@ -114,11 +144,38 @@ candidates and elapsed budget, and a completed treatment is never rerun because
 deduplication is by configuration hash. Ctrl-C stops scheduling, lets the
 active evaluation finish, persists, and prints the resume command.
 
-## Model adapters
+## Model adapters, and what they are actually wired to
 
-Anthropic proposes search families and OpenAI criticises, both behind an
-interface, both cached by prompt hash, neither able to execute anything: an LLM
-proposal becomes a bounded deterministic search space, which the guard then
-admits or refuses. A missing credential is a session fact reported as
-`UNAVAILABLE`, not a failure, and no credential value is ever read into a
-variable, logged or cached.
+`turbo/optimizer/advisor.py` is the single place a model influences the loop, and
+`scripts/autotune.py` has exactly one call site for each of `propose` and
+`submit_critique`. There is no separate mock path: `--mock-llm` swaps which
+client answers and nothing else, and it answers with a real proposal rather than
+an empty one, so a dry run exercises schema validation, bounded mapping, guard
+admission and family selection.
+
+During an exploring or focusing round the proposer is asked for hypotheses. What
+a model may change is which **declared** family gets attention this round. It
+cannot invent a family, widen an enumeration or start anything: its parameter
+names and values are looked up in the declared enumerations by
+`mutation.from_llm_space`, anything outside them is rejected with a reason and
+never clamped inward, and what survives is an ordinary candidate that
+`guard.check` still has to admit. The path from a model's words to a device runs
+through two refusals it cannot argue with.
+
+An idea the contract cannot express is labelled inadmissible and kept in the
+session record rather than dropped, which is how the QAIRT sampler question
+stays visible instead of disappearing into a log line.
+
+The critic runs off the hardware path through `concurrent.futures` and is
+harvested between treatments. A blocking finding removes a candidate from the
+round; it can never admit one, because a critic that could wave a candidate
+through would be a second, weaker gate beside the real one.
+
+Counters are reported separately and never merged: `LLM_PROPOSER_CALLS`,
+`LLM_CRITIC_CALLS`, `LLM_HYPOTHESES`, `LLM_ADMISSIBLE_HYPOTHESES`,
+`LLM_REJECTED_HYPOTHESES`, `LLM_API_WAIT_SECONDS`.
+
+A missing credential is a session fact reported as `UNAVAILABLE`, not a failure.
+The deterministic search does not depend on a model, so a session with no
+credentials generates, admits and runs exactly as it otherwise would. No
+credential value is ever read into a variable, logged or cached.

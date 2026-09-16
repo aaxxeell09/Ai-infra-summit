@@ -221,10 +221,25 @@ def _invalid_rate_reasons(observation, control, tolerance, label):
     return reasons
 
 
+def _latency(record):
+    """The task-latency median under either spelling, explicit name first.
+
+    ``median_task_latency_ms`` is the name that says which boundary it belongs
+    to; ``median_latency_ms`` is the shorter name the simulator and early call
+    sites used. Reading both here keeps one definition of the quantity instead
+    of two, which is the substitution the tracking audit ruled out.
+    """
+    for key in ('median_task_latency_ms', 'median_latency_ms'):
+        value = _number((record or {}).get(key))
+        if value is not None:
+            return value
+    return None
+
+
 def _latency_reasons(observation, control, multiple, label):
     reasons = []
-    observed = _number(observation.get('median_latency_ms'))
-    baseline = _number(control.get('median_latency_ms'))
+    observed = _latency(observation)
+    baseline = _latency(control)
     if observed is None:
         reasons.append(label + ': median latency unknown, cannot clear the gate')
     elif baseline is None:

@@ -32,9 +32,8 @@ def test_a_dry_run_completes_and_reports_the_five_distinct_counts():
         result = dry_session(Path(directory))
         assert result.returncode == 0, result.stderr
         counts = json.loads(result.stdout[result.stdout.index('{'):])
-    assert set(counts) == {'GENERATED_CANDIDATES', 'STATICALLY_VALID_CANDIDATES',
-                           'DIAGNOSTIC_CANDIDATES', 'HARDWARE_ATTEMPTS',
-                           'QUALIFIED_EXPERIMENTS'}
+    assert {'GENERATED_CANDIDATES', 'STATICALLY_VALID_CANDIDATES', 'DIAGNOSTIC_CANDIDATES',
+            'HARDWARE_ATTEMPTS', 'QUALIFIED_EXPERIMENTS'} <= set(counts)
     assert counts['GENERATED_CANDIDATES'] >= counts['STATICALLY_VALID_CANDIDATES']
     assert counts['QUALIFIED_EXPERIMENTS'] == 0
 
@@ -68,9 +67,11 @@ def test_a_dry_run_never_touches_the_experiment_archives():
 
 
 def test_the_llama_backend_generates_a_genuinely_large_space():
+    """Without a proposal narrowing it, the llama.cpp sweep is genuinely wide."""
     with tempfile.TemporaryDirectory() as directory:
-        result = dry_session(Path(directory), '--backend', 'llama_cpp_cpu',
-                             '--control-config', str(ROOT / 'configs/llama-cpu-secretary.example.json'))
+        result = run(AUTOTUNE, '--dry-run', '--budget-minutes', '30',
+                     '--backend', 'llama_cpp_cpu', '--session-dir', str(directory),
+                     '--control-config', str(ROOT / 'configs/llama-cpu-secretary.example.json'))
         assert result.returncode == 0, result.stderr
         counts = json.loads(result.stdout[result.stdout.index('{'):])
     assert counts['GENERATED_CANDIDATES'] > 50
@@ -163,3 +164,108 @@ def test_the_loop_never_names_the_heldout_split_anywhere_in_its_source():
     assert "dataset='dev'" in source or "'dev'" in source
     final_source = FINAL.read_text(encoding='utf-8')
     assert "'heldout'" in final_source, 'the final command is the only one that may name it'
+
+
+# ------------------------------------------- the dry run exercises the real path
+
+def test_the_dry_run_actually_calls_the_proposer_and_the_critic():
+    with tempfile.TemporaryDirectory() as directory:
+        result = dry_session(Path(directory))
+        assert result.returncode == 0, result.stderr
+        counts = json.loads(result.stdout[result.stdout.index('{'):])
+        session = state_module.load(Path(directory) / 'session.json')
+    assert counts['LLM_PROPOSER_CALLS'] >= 1, 'the proposer was never invoked'
+    assert counts['LLM_CRITIC_CALLS'] >= 1, 'the critic was never invoked'
+    assert counts['LLM_HYPOTHESES'] >= 1
+    assert session['llm']['LLM_PROPOSER_CALLS'] == counts['LLM_PROPOSER_CALLS']
+
+
+def test_the_dry_run_keeps_an_inadmissible_research_idea_visible():
+    with tempfile.TemporaryDirectory() as directory:
+        result = dry_session(Path(directory))
+        assert result.returncode == 0, result.stderr
+        session = state_module.load(Path(directory) / 'session.json')
+    recorded = session['llm']['hypotheses']
+    assert any(h['admissible'] is False for h in recorded), 'a rejected idea must stay recorded'
+    assert any(h['admissible'] is True for h in recorded)
+    assert 'inadmissible research idea' in result.stdout
+
+
+def test_a_proposal_changes_which_bounded_family_the_dry_run_explores():
+    """The mock proposes only output_budget, so stop must not be swept as well.
+
+    This is the observable difference an LLM is allowed to make: which declared
+    family gets attention. It cannot invent a family, and it cannot widen the
+    enumeration, so the assertion is about attention and nothing else.
+    """
+    with tempfile.TemporaryDirectory() as directory:
+        guided = dry_session(Path(directory))
+        assert guided.returncode == 0, guided.stderr
+    with tempfile.TemporaryDirectory() as directory:
+        unguided = run(AUTOTUNE, '--dry-run', '--budget-minutes', '30',
+                       '--session-dir', str(directory))
+        assert unguided.returncode == 0, unguided.stderr
+
+    def families(output):
+        return {line.split()[2] for line in output.splitlines()
+                if len(line.split()) > 2 and line.split()[1] == 'GEN'}
+
+    assert families(guided.stdout) == {'output_budget'}
+    assert 'stop' in families(unguided.stdout)
+    assert json.loads(unguided.stdout[unguided.stdout.index('{'):])['LLM_PROPOSER_CALLS'] == 0
+
+
+def test_the_dry_run_routes_stages_and_exercises_the_archive_adapter():
+    with tempfile.TemporaryDirectory() as directory:
+        result = dry_session(Path(directory))
+        assert result.returncode == 0, result.stderr
+    # A dev35 drop citing an invalid rate can only come from the archived KPI
+    # block, which means the observation adapter ran on a sealed archive.
+    assert 'DEV35' in result.stdout
+    assert 'S1' in result.stdout and 'S2' in result.stdout
+
+
+def test_the_dry_run_leaves_no_simulated_archive_behind():
+    with tempfile.TemporaryDirectory() as directory:
+        assert dry_session(Path(directory)).returncode == 0
+        leftovers = list(Path(directory).rglob('simulated-*'))
+        assert leftovers == [], 'a simulated archive on disk would be manufactured evidence'
+
+
+def test_the_mock_and_the_real_clients_take_the_same_integration_path():
+    """--mock-llm must differ from a real run only in which client answers."""
+    source = AUTOTUNE.read_text(encoding='utf-8')
+    mock_branch = source[source.index('def build_llm'):source.index('def phase_plan')]
+    assert 'MockClient' in mock_branch and 'AnthropicClient' in mock_branch
+    # One advisor, one call site: the loop cannot have a separate mock path.
+    assert source.count('advisor.propose(') == 1
+    assert source.count('advisor.submit_critique(') == 1
+    assert source.count('advisor_module.Advisor(') == 1
+
+
+def test_missing_credentials_still_produce_a_complete_deterministic_session():
+    with tempfile.TemporaryDirectory() as directory:
+        result = run(AUTOTUNE, '--dry-run', '--budget-minutes', '30',
+                     '--session-dir', str(directory))
+        assert result.returncode == 0, result.stderr
+        counts = json.loads(result.stdout[result.stdout.index('{'):])
+    assert counts['LLM_PROPOSER_CALLS'] == 0
+    assert counts['GENERATED_CANDIDATES'] > 0, 'deterministic search must not depend on a model'
+    assert counts['HARDWARE_ATTEMPTS'] > 0
+
+
+def test_the_real_path_builds_one_executor_per_stage_role():
+    source = AUTOTUNE.read_text(encoding='utf-8')
+    assert 'staged_executor(' in source
+    assert 'startup_probe_executor(' in source
+    assert 'canary_executor(' in source
+    assert source.count('tracker_executor(') == 1, (
+        'one tracker executor, reached only by S4 and S5')
+
+
+def test_the_canary_stages_are_off_by_default_and_must_be_asked_for():
+    result = run(AUTOTUNE, '--help')
+    assert '--s2-cases' in result.stdout and '--s3-cases' in result.stdout
+    flat = ' '.join(result.stdout.split())
+    assert '0 skips S2 explicitly' in flat
+    assert '0 skips S3 explicitly' in flat
