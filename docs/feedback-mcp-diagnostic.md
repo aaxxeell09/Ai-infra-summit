@@ -60,3 +60,25 @@ the wrapper cannot enforce that and does not try.
   task-id checks.
 - MCP surface is minimal (initialize / tools/list / tools/call / ping) with
   line-delimited JSON framing; it is not hardened for untrusted clients.
+
+## Fresh tuner binding integration
+
+`scripts/verify_tuner_loop.py --feedback-mcp` adds an explicit diagnostic path:
+existing MCP tune → measured mode selection → existing MCP apply/native smoke →
+export selected settings → unload the resident model → feedback MCP → native
+fixture execution. It uses a private loopback service instance; stop other
+hardware jobs first. Without the flag the earlier smoke is unchanged.
+
+The export binds model hash, complete SDK runtime identity, plugin, device,
+decode threads and context. The feedback CLI re-hashes artifacts and rejects
+identity/configuration drift before model creation or fixture actions. Batch
+axes and inference overrides unsupported by the current apply contract fail
+closed. Config/response artifacts retain the selected mode, evidence scope and
+`recommendation_binding_verified`. Each round uses a unique export and fixture.
+
+These recommendations remain exploratory microbenchmarks, not a quality gate.
+The feedback grammar and128-token per-turn task budget are separate diagnostic
+controls; the original benchmark profiles did not measure that grammar overhead.
+A matching configuration does not establish task quality or reproduce benchmark
+latency. Existing exact-call verification is returned unchanged. Fast/Efficient
+may select the same configuration; no mode difference may be invented.

@@ -25,6 +25,7 @@ def main():
     p.add_argument('--model-id', required=True)
     p.add_argument('--search-space', required=True, help='Path to JSON tuner axes')
     p.add_argument('--output', required=True, help='New result directory')
+    p.add_argument('--feedback-mcp',action='store_true',help='Separate opt-in bound feedback diagnostic; no v2 quality claim')
     p.add_argument('--rounds', type=int, choices=(1, 2, 3), default=2)
     p.add_argument('--task-id', default='t13', help='Interactive demo fixture, not golden benchmark')
     args = p.parse_args()
@@ -89,7 +90,39 @@ def main():
             round_record['apply'] = tool('local_apply',dict(mode=mode,model_id=args.model_id))
             round_record['inference'] = tool('local_run',dict(mode=mode,model=args.model_id,
                 messages=[{'role':'user','content':'What is two plus three? Reply with just the number.'}],max_tokens=16))
-            round_record['secretary'] = tool('local_secretary',dict(mode=mode,task_id=args.task_id))
+            if args.feedback_mcp:
+                # Batch axes are not represented by the current apply contract.
+                if search.get('batch') is not None or search.get('ubatch') is not None:
+                    raise ValueError('Feedback binding supports device/threads/context axes only')
+                from turbo.feedback_binding import bound_config
+                native_config=bound_config(config,engine.modes(),round_record['apply']['gateway_response'])
+                config_path=out/f'feedback-config-{index}.json'
+                config_path.write_text(json.dumps(native_config,indent=2),encoding='utf-8')
+                for model in engine.loaded.values(): model.close()
+                engine.loaded.clear()
+                alias=args.model_id+'-'+mode
+                request=[dict(jsonrpc='2.0',id=1,method='initialize',params={'protocolVersion':'2025-06-18'}),
+                         dict(jsonrpc='2.0',id=2,method='tools/call',params={'name':'local_feedback_diagnostic',
+                            'arguments':{'task_id':args.task_id,'model_id':alias}})]
+                child=subprocess.run([sys.executable,'-X','utf8','-m','turbo.feedback_mcp','--enable-candidate',
+                    '--model',alias+'='+str(config_path),'--output-root',str(out/f'feedback-{index}')],
+                    input=''.join(json.dumps(r)+'\n' for r in request),capture_output=True,encoding='utf-8',
+                    cwd=ROOT,env=env,timeout=210,creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
+                (out/f'feedback-wire-{index}.jsonl').write_text(child.stdout,encoding='utf-8')
+                (out/f'feedback-stderr-{index}.log').write_text(child.stderr,encoding='utf-8')
+                reply=next(r for r in map(json.loads,child.stdout.splitlines()) if r.get('id')==2)
+                payload=reply.get('result',{}).get('structuredContent',{})
+                round_record['feedback_mcp']=reply
+                round_record['secretary']=payload.get('existing_demo_verification',{})
+                save()
+                if child.returncode or reply.get('error') or reply.get('result',{}).get('isError'):
+                    raise RuntimeError('Bound MCP diagnostic failed; original reply preserved')
+                report=payload.get('report',{})
+                if report.get('recommendation_binding_verified') is not True:
+                    raise RuntimeError('Native diagnostic did not verify recommendation binding')
+                round_record['native_config_binding_verified']=True
+            else:
+                round_record['secretary'] = tool('local_secretary',dict(mode=mode,task_id=args.task_id))
             round_record['elapsed_s'] = time.monotonic()-started
             save()
         record['completed'] = True

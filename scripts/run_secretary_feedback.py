@@ -50,7 +50,13 @@ def main(argv=None):
         from turbo.tuning import _sha256
         record['model_sha256']=_sha256(path)
     def save(): (args.output/'diagnostic.json').write_text(json.dumps(record,indent=2,ensure_ascii=False),encoding='utf-8')
-    save();runtime=NativeRuntime(config['sdk_dir'])
+    save()
+    try:
+        from turbo.feedback_binding import verify_bound_config
+        record['recommendation_binding_verified']=verify_bound_config(config,record['model_sha256'],record['sdk_identity'])
+    except ValueError as exc:
+        record['error']=str(exc);save();return 1
+    runtime=NativeRuntime(config['sdk_dir'])
     try:
         with NativeModel(runtime,config['model_path'],**options) as model:
             if grammar:
