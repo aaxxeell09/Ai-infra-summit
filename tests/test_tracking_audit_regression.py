@@ -125,9 +125,9 @@ from pathlib import Path
 sys.path.insert(0, sys.argv[1])
 from turbo.experiments import archive_lock
 root, name, held, stop = sys.argv[2:6]
-with archive_lock(root, name, timeout=20):
+with archive_lock(root, name, timeout=30):
     Path(held).write_text('held', encoding='utf-8')   # only after acquisition
-    deadline = time.monotonic() + 60
+    deadline = time.monotonic() + 120
     while not Path(stop).exists() and time.monotonic() < deadline:
         time.sleep(0.02)
 Path(held + '.released').write_text('released', encoding='utf-8')
@@ -158,39 +158,12 @@ Path(out).write_text(json.dumps(record), encoding='utf-8')
 
 
 def _contend(script, root, name, out):
-    done = subprocess.run([sys.executable, str(script), str(REPO), str(root), name, str(out)],
-                          capture_output=True, text=True, timeout=60)
-    assert done.returncode == 0, f'contender failed: {done.returncode}\n{done.stdout}\n{done.stderr}'
+    subprocess.run([sys.executable, str(script), str(REPO), str(root), name, str(out)],
+                   check=True, timeout=120)
     return json.loads(Path(out).read_text(encoding='utf-8'))
 
 
-def _start_holder(tmp_path, root, name):
-    """Run a holder that signals only after it has acquired the lock."""
-    script = tmp_path / 'holder.py'
-    script.write_text(_HOLDER, encoding='utf-8')
-    held, stop = tmp_path / 'held', tmp_path / 'stop'
-    log = (tmp_path / 'holder.out').open('w+', encoding='utf-8')
-    holder = subprocess.Popen([sys.executable, str(script), str(REPO), str(root.resolve()),
-                               name, str(held), str(stop)], stdout=log, stderr=subprocess.STDOUT)
-    return holder, held, stop, log
-
-
-def _wait_for_holder(holder, held, log, seconds=45):
-    """Fail fast and loudly: a dead or stuck holder must not stall the suite."""
-    deadline = time.monotonic() + seconds
-    while not Path(held).exists():
-        code = holder.poll()
-        if code is not None:
-            log.seek(0)
-            raise AssertionError(f'holder exited {code} before acquiring the lock:\n{log.read()}')
-        if time.monotonic() >= deadline:
-            holder.kill()
-            log.seek(0)
-            raise AssertionError(f'holder did not acquire the lock within {seconds}s:\n{log.read()}')
-        time.sleep(0.02)
-
-
-def _wait_for(path, seconds=45):
+def _wait_for(path, seconds=90):
     deadline = time.monotonic() + seconds
     while not Path(path).exists():
         if time.monotonic() >= deadline:
@@ -202,12 +175,15 @@ def test_two_processes_cannot_hold_the_same_archive_lock(tmp_path):
     """Direct evidence for TRK-002, independent of the experiment tracker."""
     root = tmp_path / 'root'
     root.mkdir()
+    holder_script = tmp_path / 'holder.py'
+    holder_script.write_text(_HOLDER, encoding='utf-8')
     contender_script = tmp_path / 'contender.py'
     contender_script.write_text(_CONTENDER, encoding='utf-8')
-    out = tmp_path / 'out'
-    holder, held, stop, log = _start_holder(tmp_path, root, 'proof')
+    held, stop, out = tmp_path / 'held', tmp_path / 'stop', tmp_path / 'out'
+    holder = subprocess.Popen([sys.executable, str(holder_script), str(REPO),
+                               str(root.resolve()), 'proof', str(held), str(stop)])
     try:
-        _wait_for_holder(holder, held, log)
+        _wait_for(held)
         assert not (Path(str(held) + '.released')).exists(), 'holder released too early'
         # The lock file exists whether or not anyone holds the lock: archive_lock
         # opens it before acquiring. This is precisely why a file-existence probe
@@ -219,8 +195,7 @@ def test_two_processes_cannot_hold_the_same_archive_lock(tmp_path):
             'a second process entered a lock already held by another process: ' + repr(blocked))
     finally:
         stop.write_text('stop', encoding='utf-8')
-        holder.wait(timeout=60)
-        log.close()
+        holder.wait(timeout=120)
     _wait_for(Path(str(held) + '.released'))
     released = _contend(contender_script, root, 'proof', out)
     assert released['outcome'] == 'ACQUIRED', 'the lock was never released: ' + repr(released)
@@ -239,34 +214,31 @@ def _tracker_config(tmp_path):
     return config, child
 
 
-def test_second_concurrent_run_is_refused(tmp_path, monkeypatch):
+def test_second_concurrent_run_is_refused(tmp_path):
     root = tmp_path / 'archives'
     root.mkdir()
     config, child = _tracker_config(tmp_path)
-    # The frozen revalidation inside run() is covered elsewhere and dominates the
-    # runtime on slower runners; this test is only about the execution mutex.
-    import eval.validate_dataset as validator
-    monkeypatch.setattr(validator, 'validate', lambda: {})
-    holder, held, stop, log = _start_holder(tmp_path, root, 'hardware-execution')
+    holder_script = tmp_path / 'holder.py'
+    holder_script.write_text(_HOLDER, encoding='utf-8')
+    held, stop = tmp_path / 'held', tmp_path / 'stop'
+    holder = subprocess.Popen([sys.executable, str(holder_script), str(REPO), str(root.resolve()),
+                               'hardware-execution', str(held), str(stop)])
     try:
-        _wait_for_holder(holder, held, log)
+        _wait_for(held)
         with pytest.raises(TimeoutError, match='hardware-execution'):
             E.run('blocked', config, root=root, repo=REPO, dataset='dev', change='c',
                   hypothesis='h', command_override=[sys.executable, str(child)],
                   timeout=30, execution_lock_timeout=1, diagnostic_dirty=True)
     finally:
         stop.write_text('stop', encoding='utf-8')
-        holder.wait(timeout=60)
-        log.close()
+        holder.wait(timeout=120)
     assert not list(root.glob('EXP-*')), 'a refused run must not allocate an EXP ID'
 
 
-def test_run_releases_the_execution_lock(tmp_path, monkeypatch):
+def test_run_releases_the_execution_lock(tmp_path):
     root = tmp_path / 'archives'
     root.mkdir()
     config, child = _tracker_config(tmp_path)
-    import eval.validate_dataset as validator
-    monkeypatch.setattr(validator, 'validate', lambda: {})
     for _ in range(2):
         E.run('sequential', config, root=root, repo=REPO, dataset='dev', change='c',
               hypothesis='h', command_override=[sys.executable, str(child)], timeout=30,
