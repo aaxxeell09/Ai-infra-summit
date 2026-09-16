@@ -10,7 +10,7 @@ const provider = createRecordedProvider();
 const latestProvider = createLatestResultsProvider();
 // Replace this provider with a device comparison provider at integration.
 const taskProvider = createPreviewComparisonProvider();
-const state = { snapshot: null, latest: null, latestError: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
+const state = { snapshot: null, latest: null, latestError: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
 let demoGeneration = 0;
 let taskAbort;
 let toastTimer;
@@ -121,11 +121,11 @@ function demoScreen() {
   const busy = state.demo === 'running';
   const scenario = PROMPTS.find(item => item.id === state.scenario);
   let request; let setupError;
-  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, 'preview-layout'); }
+  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, 'speed', state.scenario, 'preview-layout'); }
   catch (error) { setupError = error.message; }
   const descriptions = request ? comparisonLanes(request) : null;
   let evidence;
-  if (state.comparison === 'speed' && !setupError) {
+  if (!setupError) {
     try { evidence = comparisonEvidence(state.snapshot, currentRow()); }
     catch (error) { setupError = error.message; }
   }
@@ -134,9 +134,7 @@ function demoScreen() {
     const lane = state.lanes[key] || { status: 'idle', answer: '' };
     const meta = descriptions?.[key];
     const status = lane.status === 'running' ? 'Writing…' : lane.status === 'completed' ? 'Done' : busy ? 'Queued' : 'Ready';
-    const identity = !meta ? 'Configuration unavailable' : state.comparison === 'speed'
-      ? `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`
-      : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
+    const identity = !meta ? 'Configuration unavailable' : `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`;
     const metrics = evidence?.[key];
     const hasResult = lane.status === 'completed';
     const evidenceFooter = evidence && hasResult ? `<div class="lane-evidence">
@@ -150,7 +148,7 @@ function demoScreen() {
     </article>`;
   }).join('');
   return `<section class="screen comparison-demo">
-    <div class="demo-heading"><div><span class="eyebrow">SAME MODEL. SAME ANSWER.</span><h1>See what tuning changes.</h1></div><div class="comparison-switch" role="group" aria-label="Comparison type"><button data-comparison="speed" aria-pressed="${state.comparison === 'speed'}" ${busy ? 'disabled' : ''}>Speed</button><button data-comparison="routing" aria-pressed="${state.comparison === 'routing'}" ${busy ? 'disabled' : ''}>Model routing</button></div></div>
+    <div class="demo-heading"><div><span class="eyebrow">SAME MODEL. SAME ANSWER.</span><h1>See what tuning changes.</h1></div></div>
     <div class="comparison-workspace">
       <div class="prompt-composer"><div class="prompt-controls"><span class="prompt-label">Prompt</span><details class="prompt-picker" ${busy ? 'inert' : ''}><summary aria-label="Example prompt: ${esc(scenario.label)}">${esc(scenario.label)}<span aria-hidden="true">⌄</span></summary><div class="prompt-options" role="group" aria-label="Example prompts">${PROMPTS.map(item => `<button data-scenario="${item.id}" aria-pressed="${state.scenario === item.id}">${item.label}<span aria-hidden="true">${state.scenario === item.id ? '✓' : ''}</span></button>`).join('')}</div></details></div>
         <p class="prompt-copy">${esc(scenario.prompt)}</p>
@@ -160,7 +158,7 @@ function demoScreen() {
     </div>
     ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
     ${evidence && state.result ? `<p class="demo-evidence-note"><sup>*</sup> Speed and SYS energy come from the recorded screening run. Energy covers one full process interval and is diagnostic, not a confirmed efficiency gain. The scripted answer is presentation copy, not an accuracy score.</p>` : ''}
-    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'The scripted answer makes the presentation repeatable. Its visual pace follows the recorded decode-rate ratio; the speed and energy figures come from the default and selected benchmark rows.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>The animation is normalized, not a live timer. No accuracy percentage is inferred from scripted text.</p></div></details></div>
+    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>The scripted answer makes the presentation repeatable. Its visual pace follows the recorded decode-rate ratio; the speed and energy figures come from the default and selected benchmark rows.</p><p>The animation is normalized, not a live timer. No accuracy percentage is inferred from scripted text.</p></div></details></div>
     <span class="sr-only" role="status" aria-live="polite">${state.result ? 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
   </section>`;
 }
@@ -203,7 +201,7 @@ async function runDemo() {
   if (['preparing', 'running'].includes(state.demo)) return;
   resetDemo(); const generation = demoGeneration;
   let request;
-  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, crypto.randomUUID()); }
+  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, 'speed', state.scenario, crypto.randomUUID()); }
   catch (error) { state.error = error.message; render(); return; }
   const controller = new AbortController(); taskAbort = controller;
   const timer = setTimeout(() => controller.abort(new Error('The device did not finish within two minutes. Its execution status is unknown; check the device before retrying.')), 120000);
@@ -268,7 +266,6 @@ document.addEventListener('click', event => {
   if (target.dataset.select) {
     resetDemo(); state.selected = target.dataset.select; render(); document.querySelector(`[data-select="${CSS.escape(state.selected)}"]`)?.focus({ preventScroll: true }); return;
   }
-  if (target.dataset.comparison) { state.comparison = target.dataset.comparison; resetDemo(); render(); document.querySelector(`[data-comparison="${state.comparison}"]`)?.focus(); return; }
   if (target.dataset.scenario) { state.scenario = target.dataset.scenario; resetDemo(); render(); $('.prompt-picker summary')?.focus({ preventScroll: true }); return; }
   switch (target.dataset.action) {
     case 'metric-help': state.metricHelp = !state.metricHelp; render(); $('.metric-help-button')?.focus({ preventScroll: true }); break;
