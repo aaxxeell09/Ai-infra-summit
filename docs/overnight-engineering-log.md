@@ -64,3 +64,9 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - 128 frozen file hashes unchanged. Frontend syntax passes and all 28 frontend tests pass.
 - Added development-only offline balanced campaign planner with config hash/drift and single-variable checks; 14 tests passed. Added nine synthetic parser/filesystem characterization tests without changing frozen semantics.
 - Runtime experiments still blocked by inaccessible recorded SSH route. Continuing analysis/documentation and CI verification.
+
+## Artifact stability checkpoint — 2026-09-16 UTC
+
+- Campaign/diagnostics checkpoint: `16c5824`.
+- Tuner now freshly verifies model/tokenizer/projector/image/prompt inputs after execution within its deadline; changed, deleted or unverifiable inputs cannot rank or export recommendations. Existing raw trials retained.
+- Focused tuning tests: **57 passed, 1 skipped**, including five artifact mutations and deadline/deletion regressions.

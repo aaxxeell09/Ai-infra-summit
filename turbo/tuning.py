@@ -228,7 +228,8 @@ def _group(row, energy=False):
 
 def _eligible(row):
     n = row.get("repeats")
-    return (row.get("status") == "completed" and type(n) is int and n > 0
+    return (row.get("status") == "completed" and row.get("input_verified", True) is True
+            and type(n) is int and n > 0
             and _positive(row.get("gen_tokens")) and _positive(row.get("prompt_tokens"))
             and row.get("full_length") is True and row.get("run_count") == n
             and row.get("complete_length_runs") == n and _group(row) is not None)
@@ -341,15 +342,18 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
     cells = plan_cells(variants, space)
     out = Path(output_dir).resolve()
     out.mkdir(parents=True, exist_ok=False)
-    deadline, cache = time.monotonic() + budget_s, {}
+    deadline, cache, references = time.monotonic() + budget_s, {}, {}
     record = dict(schema_version="turbo.tuning.v2", objective=objective, constraints=constraints,
-                  variability_penalty=variability_penalty, results=[], cells_planned=len(cells))
+                  variability_penalty=variability_penalty, results=[], cells_planned=len(cells),
+                  input_verification={"status":"pending"})
     def save():
         temp = out / "record.tmp"
         temp.write_text(json.dumps(record, indent=2, allow_nan=False), encoding="utf-8")
         temp.replace(out / "record.json")
     def fingerprint(path):
+        declared = str(Path(path).absolute())
         path = str(Path(path).resolve())
+        references.setdefault(declared, path)
         if path not in cache:
             cache[path] = _sha256(path, deadline)
         return cache[path]
@@ -372,7 +376,8 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
             architecture=variant.architecture, quantization=variant.quantization,
             power_state=power_state, power_scope=str(out) if power_state == "unavailable" else "declared",
             result_path=str(target), log_path=str(log), status="pending", tokens_per_joule=None,
-            energy_valid=False, energy_reason="unavailable: runner does not capture energy")
+            energy_valid=False, energy_reason="unavailable: runner does not capture energy",
+            input_verified=False)
         record["results"].append(row)
         try:
             if cell.unsupported_reason:
@@ -430,6 +435,38 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
             save()
             if progress:
                 progress(i + 1, len(cells))
+    # Fresh reads deliberately bypass fingerprint's per-sweep cache. A failed or
+    # incomplete verification invalidates eligibility, not the retained raw trial.
+    verification={"status":"pending", "before":dict(cache), "after":{},
+                  "resolved_paths":dict(references)}
+    try:
+        for declared, resolved in references.items():
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Input verification exceeded total tuning budget")
+            if str(Path(declared).resolve()) != resolved:
+                raise TuningError("Input artifact path changed during tuning: " + declared)
+        for path, expected_hash in cache.items():
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Input verification exceeded total tuning budget")
+            current_hash = _sha256(path, deadline)
+            verification["after"][path] = current_hash
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Input verification exceeded total tuning budget")
+            if current_hash != expected_hash:
+                raise TuningError("Input artifact changed during tuning: " + path)
+        if not binding_matches(runtime_binding, runtime_identity(bench_exe, deadline=deadline)):
+            raise TuningError("Native SDK changed during tuning; recommendation rejected")
+        if time.monotonic() >= deadline:
+            raise TimeoutError("Input verification exceeded total tuning budget")
+        verification["status"] = "passed"
+    except (OSError, ValueError, TimeoutError, RuntimeError) as exc:
+        verification.update(status="failed", error=str(exc))
+    record["input_verification"] = verification
+    for row in record["results"]:
+        row["input_verified"] = verification["status"] == "passed"
+        if not row["input_verified"]:
+            row["input_verification_error"] = verification["error"]
+    save()
     ranked = rank_results(record["results"], objective, constraints, variability_penalty)
     recommendations = {r["group_id"]: r for r in ranked if r["rank"] == 1}
     record.update(ranking=ranked, pareto_frontier=pareto_frontier(record["results"]),
@@ -439,8 +476,6 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
         and len({_group(r) for r in record["results"] if _eligible(r)}) == 1 else None,
         cells_run=sum("exit_code" in r for r in record["results"]), output_dir=str(out))
     try:
-        if not binding_matches(runtime_binding, runtime_identity(bench_exe, deadline=deadline)):
-            raise TuningError("Native SDK changed during tuning; recommendation rejected")
         record["recommendation"] = recommendation_record(record)
         recpath = out / "recommended.json"
         recpath.write_text(json.dumps(record["recommendation"], indent=2, allow_nan=False), encoding="utf-8")
@@ -453,6 +488,9 @@ def run_tuning(bench_exe, variants, space, output_dir, objective="decode", image
 
 def recommendation_record(record, group_id=None):
     """Parent Engine.modes/apply contract; explicit group selection, no static profiles."""
+    verification=record.get("input_verification", {})
+    if verification.get("status") in ("pending", "failed"):
+        raise TuningError("Input verification failed or incomplete: " + verification.get("error", "pending"))
     # Unsupported/failed trials remain in the audit but must not erase
     # usable recommendations from the successful, comparable trials.
     groups = {_group(r) for r in record["results"] if _eligible(r)}

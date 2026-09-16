@@ -432,3 +432,69 @@ def test_service_export_rejects_unapplyable_plugin_and_requires_explicit_group(s
     rec["results"][0]["model"]["tokenizer_path"] = "explicit-tokenizer.json"
     with pytest.raises(t.TuningError, match="artifact overrides"):
         t.recommendation_record(rec, group)
+
+
+@pytest.mark.parametrize('changed', ['model', 'tokenizer', 'mmproj', 'image', 'prompt'])
+def test_end_verification_rejects_changed_artifacts_and_later_promotion(setup,changed):
+    exe,v,root=setup
+    tokenizer=root/'tokenizer.json';tokenizer.write_text('{}')
+    mmproj=root/'projector.gguf';mmproj.write_bytes(b'fake projector')
+    image=root/'image.png';image.write_bytes(b'fake image')
+    prompt=root/'prompt.txt';prompt.write_text('fake prompt')
+    # The fake benchmark accepts VLM flags; no image/model decoding takes place.
+    v=replace(v,kind='vlm',tokenizer_path=str(tokenizer),mmproj_path=str(mmproj))
+    paths={'model':Path(v.path),'tokenizer':tokenizer,'mmproj':mmproj,'image':image,'prompt':prompt}
+    def mutate(done,total):
+        if done==total:paths[changed].write_bytes(b'changed after measurement')
+    rec=t.run_tuning(exe,[v],t.SearchSpace(),root/'run',image_path=image,prompt_file=prompt,progress=mutate)
+    assert rec['results'][0]['status']=='completed'
+    assert Path(rec['results'][0]['result_path']).is_file()
+    assert rec['input_verification']['status']=='failed'
+    assert not rec['results'][0]['input_verified']
+    assert rec['ranking']==[] and rec['pareto_frontier']==[] and rec['recommendations']=={}
+    assert rec['recommended'] is None and rec['recommendation'] is None
+    assert t.rank_results(rec['results'])==[]
+    with pytest.raises(t.TuningError,match='Input verification'):
+        t.recommendation_record(rec,rec['results'][0]['group_id'])
+    assert not (root/'run'/'recommended.json').exists()
+
+
+def test_end_verification_rejects_deleted_input(setup):
+    exe,v,root=setup
+    prompt=root/'prompt.txt';prompt.write_text('prompt')
+    rec=t.run_tuning(exe,[v],t.SearchSpace(),root/'run',prompt_file=prompt,
+                     progress=lambda *_:prompt.unlink())
+    assert rec['input_verification']['status']=='failed'
+    assert rec['results'][0]['status']=='completed' and rec['ranking']==[]
+
+
+def test_end_verification_budget_failure_keeps_raw_evidence_unranked(setup,monkeypatch):
+    exe,v,root=setup
+    real_sha=t._sha256
+    count=0
+    def bounded_hash(*args,**kwargs):
+        nonlocal count
+        count+=1
+        if count==2: raise TimeoutError('synthetic verification deadline exhausted')
+        return real_sha(*args,**kwargs)
+    monkeypatch.setattr(t,'_sha256',bounded_hash)
+    rec=t.run_tuning(exe,[v],t.SearchSpace(),root/'run')
+    assert rec['input_verification']['status']=='failed'
+    assert 'deadline' in rec['recommendation_error']
+    assert rec['ranking']==[] and rec['recommended'] is None
+    assert rec['results'][0]['status']=='completed'
+    assert Path(rec['results'][0]['result_path']).is_file()
+
+
+def test_unchanged_inputs_freshly_verified_and_remain_eligible(setup,monkeypatch):
+    exe,v,root=setup
+    real_sha=t._sha256;reads=[]
+    def capture(path,*args,**kwargs):
+        reads.append(str(path));return real_sha(path,*args,**kwargs)
+    monkeypatch.setattr(t,'_sha256',capture)
+    rec=t.run_tuning(exe,[v],t.SearchSpace(),root/'run')
+    assert reads.count(str(Path(v.path).resolve()))==2
+    assert rec['input_verification']['status']=='passed'
+    assert rec['input_verification']['before']==rec['input_verification']['after']
+    assert rec['results'][0]['input_verified'] is True
+    assert rec['ranking'] and rec['recommendation']
