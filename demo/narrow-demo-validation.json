@@ -1,0 +1,19 @@
+{
+  "artifact": "local-turbo-narrow-demo-v3.pptx",
+  "sha256": "dc302e8d040858eb151cb6d847f8c9b228ac5f50071924268f519d02ed2800af",
+  "bytes": 24760,
+  "slides": 4,
+  "package_integrity": "pass",
+  "layout_findings": 0,
+  "native_chart_count": 1,
+  "native_chart_workbook_validation": true,
+  "reimport_verified": true,
+  "visual_review": "All four slides re-rendered from final PPTX and visually inspected.",
+  "native_powerpoint_open_verified": false,
+  "sources": [
+    "benchmarks/results/feedback-mcp-1300/result.json",
+    "eval/results/qairt-repeats-0700.md",
+    "eval/results/qwen8b-full-1200/README.md"
+  ],
+  "scope": "Recorded hardware evidence; current live reachability and combined tuner-to-MCP result unverified. No quality or energy-efficiency win."
+}
