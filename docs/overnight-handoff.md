@@ -120,6 +120,17 @@ Next: preserve the two-round result; verify actual task state and applied model/
 SDK identity. A successful invoice example does not erase the failed 50-case gate.
 If tuning fails, preserve its reason rather than fabricating a recommendation.
 
+The integration finished before this checkpoint ended: both rounds completed,
+both applied CPU10/context4096, and both invoice tasks failed. Evidence is in
+`benchmarks/results/qwen4b-mcp-loop-0800/`. The model requested literal search
+`hexagon invoice`, received no matches, and the one-shot Secretary ended without
+another inference turn or a move. This identifies a missing agent feedback loop
+in addition to search/intent errors. Do not patch frozen search/parser semantics
+or score this as success. Any multi-turn harness should be a separate opt-in
+diagnostic contract until its versioned methodology is agreed. The service
+restoration was requested; verify reachability next wake. No benchmark remains
+active from the 08:00 campaign.
+
 ### 07:00 UTC checkpoint — recovery complete; balanced repeats queued
 
 Both recovery campaigns completed. Full 4B scored 37/50 (74%), 4% invalid,
