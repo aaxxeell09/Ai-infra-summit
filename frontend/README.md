@@ -18,22 +18,26 @@ npm test
 
 ## What works
 
-- Three responsive screens: machine identity, recorded configuration comparison, prompt/answer finale.
+- Three responsive screens: machine identity, recorded configuration comparison, verified local-action finale.
 - All ten recorded screening configurations and provisional configuration/evidence export.
 - The Compare screen adds one compact QAIRT before/after finding beneath the original same-model tuning chart. Larger-model milestones remain available in Benchmark evidence; the main presentation labels the result experimental and does not name a qualified winner.
-- The final screen compares **Default setup** with **Local Turbo**, using one shared prompt and launch button.
-- **Speed** carries the recorded default and the selected settings for the same model. **Model routing** illustrates candidate roles for a quick explanation or reasoning question; no calibrated model choice is claimed.
-- Two sequential scripted answers, equal animation pacing, stop/reset and stale-result protection. Per-answer clocks measure browser animation only; inference timings and answer quality remain unavailable, with no fabricated winner.
+- The final screen runs one fixed public-fixture invoice task through the real opt-in MCP runner when the server is configured on the Latitude.
+- The UI reports the physical file result, content hash, backend timing and unchanged exact-call verdict separately. It never turns a successful move into a broader quality pass.
 
-## What is not connected
+## Live runner configuration
 
-The answer comparison is a preview. It does not call inference, execute a calibrated router, apply settings or grade answers. The single provider in `public/app.mjs` is `createPreviewComparisonProvider()` from `public/comparison.mjs`. The live request/result handoff is specified in [comparison-contract.md](comparison-contract.md); a live bridge and its rendering bindings are still needed.
+Run the frontend server from the same clean checkout as the native SDK/model configuration:
 
-The earlier `public/demo.mjs`, its tests and `task-contract.md` preserve the previous file-task adapter for reference. They are **not used by the current screen**. File operations are no longer the presentation workflow.
+```powershell
+$env:LOCAL_TURBO_DEMO_CONFIG = "local/qwen4b-cpu10-config.json"
+npm --prefix frontend run dev
+```
+
+`LOCAL_TURBO_DEMO_CONFIG` resolves from the repository root. `LOCAL_TURBO_DEMO_PYTHON` can select the native ARM64 Python executable. Without a valid config, the finale remains visibly offline and the run endpoint returns 503; there is no scripted or recorded fallback. Every attempt writes a fresh ignored directory under `local/ui-demo-runs/`.
 
 ## Backend boundary
 
-Implemented server endpoints remain read-only: `GET /api/health` reports recorded mode; `GET /api/recorded` reads sanitized `screen-01` records; `GET /api/latest-results` summarizes the published QAIRT, 4B and 8B evaluation artifacts without exposing task contents. No live execution endpoint is claimed. `public/data.mjs` normalizes recorded tuning evidence, `public/latest.mjs` validates the latest study, and `public/comparison.mjs` owns the prompt comparison preview.
+`GET /api/health`, `GET /api/recorded` and `GET /api/latest-results` serve recorded evidence. `GET /api/demo/status` reports only whether the fixed runner is ready. `POST /api/demo/invoice` launches `scripts/demo_invoice_mcp.py` with fixed model/task identities, a server-owned config path and a fresh server-owned output directory. The browser cannot provide paths, commands, prompts or model IDs. The response omits private device paths and returns only the verified move, safe configuration fields, timing scopes and the original exact-call flags.
 
 ### Recorded response
 
@@ -68,6 +72,6 @@ Rank only completed, full-length comparable trials with valid provenance. Keep t
 
 ### Live integration
 
-See [comparison-contract.md](comparison-contract.md). Keep device addresses/credentials on the local server. Configuration tuning must use identical model weights; multi-model routing is a separate experiment. Never silently replace failed live runs with scripted answers.
+Keep device addresses and credentials outside the browser and repository. The current endpoint is intentionally colocated with the Latitude runner; remote transport can be added behind the server without changing the browser contract. Never silently replace failed live runs with scripted answers.
 
 `ux-spec.json` is the current versioned UX source. The initial file-task quality review is historical; the prompt comparison has five additional tests covering baseline identity, illustrative routing, sequential preview events, abort and unsupported prompts.

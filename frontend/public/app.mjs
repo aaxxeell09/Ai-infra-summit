@@ -1,6 +1,6 @@
 import { createRecordedProvider, METRICS, rankRows, exportConfiguration } from './data.mjs';
 import { createLatestResultsProvider } from './latest.mjs';
-import { PROMPTS, createComparisonRequest, comparisonLanes, createPreviewComparisonProvider } from './comparison.mjs';
+import { createInvoiceDemoProvider, INVOICE_TASK } from './live-demo.mjs';
 
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -8,27 +8,11 @@ const number = (value, digits = 2) => value === null || value === undefined ? 'U
 const arrow = '<span aria-hidden="true">↗</span>';
 const provider = createRecordedProvider();
 const latestProvider = createLatestResultsProvider();
-// Replace this provider with a device comparison provider at integration.
-const taskProvider = createPreviewComparisonProvider();
-const state = { snapshot: null, latest: null, latestError: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
+const taskProvider = createInvoiceDemoProvider();
+const state = { snapshot: null, latest: null, latestError: null, demoStatus: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, demo: 'idle', result: null, error: null, reveal: false };
 let demoGeneration = 0;
 let taskAbort;
 let toastTimer;
-let clockTick;
-let laneClocks = {};
-
-// Browser animation clocks stay separate from authoritative device measurements.
-function clockText(key) {
-  const clock = laneClocks[key];
-  if (!clock) return '—';
-  return `${((clock.elapsed ?? (performance.now() - clock.started)) / 1000).toFixed(1)} s`;
-}
-function updateClocks() {
-  for (const key of ['default', 'turbo']) {
-    const output = document.querySelector(`[data-clock="${key}"]`);
-    if (output) output.textContent = clockText(key);
-  }
-}
 
 function notify(message) {
   clearTimeout(toastTimer); $('#toast').textContent = message; $('#toast').classList.add('visible');
@@ -119,51 +103,52 @@ function calibrationScreen() {
 
 function demoScreen() {
   const busy = state.demo === 'running';
-  const scenario = PROMPTS.find(item => item.id === state.scenario);
-  let request; let setupError;
-  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, 'preview-layout'); }
-  catch (error) { setupError = error.message; }
-  const descriptions = request ? comparisonLanes(request) : null;
-  const lanes = ['default', 'turbo'].map(key => {
-    const lane = state.lanes[key] || { status: 'idle', answer: '' };
-    const meta = descriptions?.[key];
-    const status = lane.status === 'running' ? 'Writing…' : lane.status === 'completed' ? 'Done' : busy ? 'Queued' : 'Ready';
-    const identity = !meta ? 'Configuration unavailable' : state.comparison === 'speed'
-      ? `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`
-      : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
-    return `<article class="response-column ${key === 'turbo' ? 'response-turbo' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
-      <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p></header>
-      <div class="response-text ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${esc(lane.answer)}</div>
-      <div class="response-timing"><span>Animation time</span><strong data-clock="${key}">${clockText(key)}</strong></div>
-    </article>`;
-  }).join('');
-  return `<section class="screen comparison-demo">
-    <div class="demo-heading"><h1>Compare answers</h1><div class="comparison-switch" role="group" aria-label="Comparison type"><button data-comparison="speed" aria-pressed="${state.comparison === 'speed'}" ${busy ? 'disabled' : ''}>Speed</button><button data-comparison="routing" aria-pressed="${state.comparison === 'routing'}" ${busy ? 'disabled' : ''}>Model routing</button></div></div>
-    <div class="comparison-workspace">
-      <div class="prompt-composer"><div class="prompt-controls"><span class="prompt-label">Prompt</span><details class="prompt-picker" ${busy ? 'inert' : ''}><summary aria-label="Example prompt: ${esc(scenario.label)}">${esc(scenario.label)}<span aria-hidden="true">⌄</span></summary><div class="prompt-options" role="group" aria-label="Example prompts">${PROMPTS.map(item => `<button data-scenario="${item.id}" aria-pressed="${state.scenario === item.id}">${item.label}<span aria-hidden="true">${state.scenario === item.id ? '✓' : ''}</span></button>`).join('')}</div></details></div>
-        <p class="prompt-copy">${esc(scenario.prompt)}</p>
-        <button class="button primary run-comparison" data-action="${busy ? 'reset-demo' : 'run-demo'}" ${setupError ? 'disabled' : ''}>${busy ? '<span aria-hidden="true">■</span> Stop' : state.result ? '↻ Replay' : 'Run preview <span aria-hidden="true">→</span>'}</button>
+  const available = state.demoStatus?.available === true;
+  const result = state.result;
+  const moved = result?.file_move?.verified === true;
+  const configuration = result?.configuration;
+  const configurationLabel = configuration
+    ? `${configuration.runtime} · ${configuration.device.toUpperCase()}${configuration.threads ? ` · ${configuration.threads} threads` : ''}`
+    : 'Qwen3-4B · GenieX · CPU';
+  const outcome = busy
+    ? `<div class="live-outcome running"><span class="live-spinner" aria-hidden="true"></span><div><span>RUNNING ON THE LATITUDE</span><h2>Executing the local task…</h2><p>The result stays pending until the filesystem is independently checked.</p></div></div>`
+    : result
+      ? `<div class="live-outcome ${moved ? 'verified' : 'rejected'}"><span class="outcome-mark" aria-hidden="true">${moved ? '✓' : '×'}</span><div><span>${moved ? 'FILESYSTEM VERIFIED' : 'VERIFICATION FAILED'}</span><h2>${moved ? 'Move verified.' : 'The requested move was not verified.'}</h2><p>${moved ? 'The destination has the same content hash. Every unrelated fixture file is unchanged.' : esc(result.file_move.reason || 'Inspect the device evidence before retrying.')}</p></div></div>`
+      : `<div class="live-outcome ready"><span class="outcome-mark" aria-hidden="true">◇</span><div><span>DISPOSABLE WORKSPACE</span><h2>Ready for one bounded action.</h2><p>No personal files are used. Success requires the requested move and matching bytes.</p></div></div>`;
+  return `<section class="screen live-demo">
+    <header class="live-demo-heading"><div><span class="eyebrow">LIVE LOCAL ACTION</span><h1>One request. One verified move.</h1></div><span class="device-state ${available ? 'connected' : 'offline'}"><i></i>${available ? 'Latitude ready' : 'Latitude not connected'}</span></header>
+    <div class="live-workspace">
+      <div class="live-prompt"><div><span class="prompt-label">TASK ${esc(INVOICE_TASK.id)}</span><p>${esc(INVOICE_TASK.prompt)}</p></div><button class="button primary run-live" data-action="run-demo" ${!available || busy ? 'disabled' : ''}>${busy ? 'Running…' : result ? 'Run again ↗' : 'Run on Latitude →'}</button></div>
+      <div class="live-run-grid">
+        <div class="live-evidence">
+          <div class="live-config"><span>ACTIVE CONFIGURATION</span><strong>${esc(configurationLabel)}</strong></div>
+          <ol class="verification-list">
+            <li class="${result ? 'done' : busy ? 'active' : ''}"><span>01</span><div><strong>Native inference</strong><small>Local 4B model through the MCP runner</small></div></li>
+            <li class="${result ? 'done' : ''}"><span>02</span><div><strong>Protected file action</strong><small>${esc(INVOICE_TASK.source)}</small></div></li>
+            <li class="${result ? (moved ? 'done' : 'failed') : ''}"><span>03</span><div><strong>Independent verification</strong><small>Destination, content hash and unrelated files</small></div></li>
+          </ol>
+        </div>
+        <div class="live-result">${outcome}
+          ${result ? `<div class="move-path"><span>${esc(result.file_move.source)}</span><i aria-hidden="true">→</i><strong>${esc(result.file_move.destination)}</strong></div><div class="result-facts"><div><span>Task loop</span><strong>${result.timing.loop_seconds == null ? 'Unavailable' : `${number(result.timing.loop_seconds, 1)} s`}</strong></div><div><span>Content hash</span><strong class="hash-short">${result.file_move.sha256 ? esc(result.file_move.sha256.slice(0, 10)) + '…' : 'Unavailable'}</strong></div></div>` : ''}
+        </div>
       </div>
-      <div class="response-grid">${lanes}</div>
     </div>
-    ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
-    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential.</p></div></details></div>
-    <span class="sr-only" role="status" aria-live="polite">${state.result ? 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
+    ${state.error ? `<p class="live-error" role="alert">${esc(state.error)}</p>` : !available ? `<p class="live-error muted">${esc(state.demoStatus?.reason || 'Checking the Latitude runner…')}</p>` : ''}
+    ${result ? `<details class="live-disclosure"><summary>Verification details</summary><div><p><strong>Physical result:</strong> ${moved ? 'source removed, destination added, bytes preserved.' : 'not verified.'}</p><p><strong>Exact-call check:</strong> ${result.exact_call.passed ? 'passed.' : 'failed because the model used extra search/list calls.'}</p><p>This public-fixture diagnostic is not a production quality pass.</p></div></details>` : ''}
+    <span class="sr-only" role="status" aria-live="polite">${busy ? 'The task is running on the Latitude.' : result ? (moved ? 'The file move was verified.' : 'The file move was not verified.') : ''}</span>
   </section>`;
 }
 
 function render({ focus = false } = {}) {
   if (!state.snapshot) return;
-  const keepRunFocus = document.activeElement?.classList.contains('run-comparison');
-  const keepExplanationOpen = document.querySelector('.comparison-info')?.open;
+  const keepRunFocus = document.activeElement?.classList.contains('run-live');
   document.querySelectorAll('[data-step]').forEach(link => {
     if (link.dataset.step === state.page) link.setAttribute('aria-current', 'step');
     else link.removeAttribute('aria-current');
   });
-  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Preview · scripted answers' : 'Device task' : 'Recorded results'}`;
+  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? state.demoStatus?.available ? 'Device task · ready' : 'Device task · offline' : 'Recorded results'}`;
   $('#main').innerHTML = state.page === 'device' ? deviceScreen() : state.page === 'calibration' ? calibrationScreen() : demoScreen();
-  if (keepExplanationOpen && $('#main .comparison-info')) $('#main .comparison-info').open = true;
-  if (!focus && keepRunFocus) $('#main .run-comparison')?.focus({ preventScroll: true });
+  if (!focus && keepRunFocus) $('#main .run-live')?.focus({ preventScroll: true });
   if (!focus && !state.reveal) $('#main .screen')?.classList.add('static-screen');
   if (focus) { $('#main').focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
   state.reveal = false;
@@ -173,55 +158,34 @@ function navigate() {
   const next = location.hash.slice(1);
   const page = ['device', 'calibration', 'demo'].includes(next) ? next : 'device';
   if (state.page !== page && ['preparing', 'running'].includes(state.demo)) {
-    if (taskProvider.mode === 'live') { location.hash = 'demo'; notify('Wait for the device result before leaving this task.'); return; }
-    resetDemo();
+    location.hash = 'demo'; notify('Wait for the device result before leaving this task.'); return;
   }
   state.page = page; render({ focus: true });
 }
 
 function resetDemo() {
   taskAbort?.abort();
-  clearInterval(clockTick); laneClocks = {};
-  demoGeneration++; state.demo = 'idle'; state.lanes = {};
+  demoGeneration++; state.demo = 'idle';
   state.result = null; state.error = null;
 }
 
 async function runDemo() {
   if (['preparing', 'running'].includes(state.demo)) return;
   resetDemo(); const generation = demoGeneration;
-  let request;
-  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, crypto.randomUUID()); }
-  catch (error) { state.error = error.message; render(); return; }
   const controller = new AbortController(); taskAbort = controller;
-  const timer = setTimeout(() => controller.abort(new Error('The device did not finish within two minutes. Its execution status is unknown; check the device before retrying.')), 120000);
+  const timer = setTimeout(() => controller.abort(new Error('The device did not finish within four and a half minutes. Its execution status is unknown; check the device before retrying.')), 270000);
   let rejectOnAbort;
   const interrupted = new Promise((_, reject) => { rejectOnAbort = () => reject(controller.signal.reason); controller.signal.addEventListener('abort', rejectOnAbort, { once: true }); });
   state.demo = 'running'; render();
-  clockTick = setInterval(updateClocks, 100);
   try {
-    const result = await Promise.race([interrupted, taskProvider.execute(request, { signal: controller.signal, onEvent(event) {
-      if (generation !== demoGeneration) return;
-      if (event.type === 'text') {
-        state.lanes[event.lane].answer = event.answer;
-        const output = document.querySelector(`[data-answer="${event.lane}"]`);
-        if (output) output.textContent = event.answer;
-      } else {
-        if (event.type === 'start') laneClocks[event.lane] = { started: performance.now() };
-        if (event.type === 'complete' && laneClocks[event.lane]) {
-          laneClocks[event.lane].elapsed = performance.now() - laneClocks[event.lane].started;
-        }
-        state.lanes[event.lane] = event.type === 'complete' ? event.result : { status: 'running', answer: '' };
-        render();
-      }
-    } })]);
+    const result = await Promise.race([interrupted, taskProvider.execute({ signal: controller.signal })]);
     if (generation !== demoGeneration) return;
-    state.result = result; state.lanes = result.lanes; state.demo = 'complete'; render();
+    state.result = result; state.demo = 'complete'; render();
   } catch (error) {
     if (generation !== demoGeneration) return;
     state.error = error.message || 'The device run could not be verified. Check its status before retrying.';
-    for (const clock of Object.values(laneClocks)) clock.elapsed ??= performance.now() - clock.started;
     state.demo = 'failed'; render();
-  } finally { if (generation === demoGeneration) clearInterval(clockTick); clearTimeout(timer); controller.signal.removeEventListener('abort', rejectOnAbort); }
+  } finally { clearTimeout(timer); controller.signal.removeEventListener('abort', rejectOnAbort); }
 }
 
 function download(data, filename) {
@@ -243,8 +207,6 @@ function showEvidence() {
 
 document.addEventListener('click', event => {
   if (event.target.closest('.skip')) { event.preventDefault(); $('#main').focus(); return; }
-  const picker = $('.prompt-picker');
-  if (picker && !picker.contains(event.target)) picker.open = false;
   const target = event.target.closest('button'); if (!target) return;
   const metric = target.dataset.metric;
   if (metric) {
@@ -255,8 +217,6 @@ document.addEventListener('click', event => {
   if (target.dataset.select) {
     resetDemo(); state.selected = target.dataset.select; render(); document.querySelector(`[data-select="${CSS.escape(state.selected)}"]`)?.focus({ preventScroll: true }); return;
   }
-  if (target.dataset.comparison) { state.comparison = target.dataset.comparison; resetDemo(); render(); document.querySelector(`[data-comparison="${state.comparison}"]`)?.focus(); return; }
-  if (target.dataset.scenario) { state.scenario = target.dataset.scenario; resetDemo(); render(); $('.prompt-picker summary')?.focus({ preventScroll: true }); return; }
   switch (target.dataset.action) {
     case 'metric-help': state.metricHelp = !state.metricHelp; render(); $('.metric-help-button')?.focus({ preventScroll: true }); break;
     case 'explore': state.reveal = true; location.hash = 'calibration'; break;
@@ -268,16 +228,10 @@ document.addEventListener('click', event => {
     }
     case 'evidence': showEvidence(); break;
     case 'download-evidence': download(state.snapshot.raw, 'local-turbo-recorded-evidence.json'); break;
-    case 'download-task': if (state.result?.mode === 'live') download(state.result, `local-turbo-task-${state.result.request_id}.json`); break;
+    case 'download-task': if (state.result?.mode === 'live') download(state.result, `local-turbo-task-${state.result.run_id}.json`); break;
     case 'run-demo': runDemo(); break;
-    case 'reset-demo': resetDemo(); render(); break;
     case 'retry': load(); break;
   }
-});
-document.addEventListener('keydown', event => {
-  if (event.key !== 'Escape') return;
-  const picker = $('.prompt-picker');
-  if (picker?.open) { picker.open = false; picker.querySelector('summary').focus(); }
 });
 $('#evidence-button').addEventListener('click', showEvidence);
 $('#close-dialog').addEventListener('click', () => $('#evidence-dialog').close());
@@ -287,14 +241,20 @@ window.addEventListener('hashchange', navigate);
 async function load() {
   $('#main').innerHTML = '<div class="loading-state"><span class="spinner"></span><p>Opening recorded results…</p></div>';
   try {
-    const [snapshotResult, latestResult] = await Promise.allSettled([
+    const [snapshotResult, latestResult, demoStatusResult] = await Promise.allSettled([
       provider.load({ signal: AbortSignal.timeout(10000) }),
       latestProvider.load({ signal: AbortSignal.timeout(10000) }),
+      taskProvider.status({ signal: AbortSignal.timeout(10000) }),
     ]);
     if (snapshotResult.status === 'rejected') throw snapshotResult.reason;
     state.snapshot = snapshotResult.value;
     state.latest = latestResult.status === 'fulfilled' ? latestResult.value : null;
     state.latestError = latestResult.status === 'rejected' ? latestResult.reason?.message : null;
+    state.demoStatus = demoStatusResult.status === 'fulfilled' ? demoStatusResult.value : {
+      schema_version: 'local-turbo.invoice-demo-status.v1', available: false, running: false,
+      task_id: 't13', device: 'Dell Latitude 7455', model: 'Qwen3-4B-Instruct-2507 Q4_0',
+      reason: demoStatusResult.reason?.message || 'The Latitude runner is unavailable.',
+    };
     resetDemo();
     state.selected = rankRows(state.snapshot).leaders[0] ?? null;
     navigate();
