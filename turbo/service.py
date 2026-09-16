@@ -161,7 +161,19 @@ class Engine:
                 max_eff = max(v['metrics']['tokens_per_joule'] for v in candidates)
                 selected = max(candidates, key=lambda v: 2/(max_speed/v['metrics']['decode_tps']+max_eff/v['metrics']['tokens_per_joule']))
                 modes['balanced'] = dict(selected, selection_rule='equal-weight harmonic mean of normalized decode speed and full-trial tokens/J')
-        return {**record, 'modes': modes}
+        # These profiles rank microbenchmarks, not validated Secretary outcomes.
+        qualification = {
+            'kind': 'exploratory_benchmark_recommendation',
+            'secretary_qualified': False,
+            'product_policy': 'owner_thresholds_required',
+            'objectives': {'fast': 'decode_tokens_per_second',
+                           'efficient': 'full_trial_tokens_per_joule',
+                           'balanced': 'exploratory_tradeoff_not_product_policy'},
+            'product_objectives': {'fast': 'task_latency_among_quality_eligible',
+                                   'efficient': 'gross_sys_j_per_correct_task_among_quality_eligible',
+                                   'balanced': None},
+        }
+        return {**record, 'modes': modes, 'qualification': qualification}
 
     def apply(self, mode, model_id=None):
         if mode == 'turbo':
@@ -207,7 +219,7 @@ class Engine:
                 if not binding_matches(record.get('runtime_binding'), current):
                     raise ValueError('Runtime identity differs from measurements; rerun the tuner')
                 cfg = {k: record['modes'][mode][k] for k in ('device', 'threads', 'context')}
-                evidence = {'source': record['scope']['evidence'], 'scope': record['scope'], 'metrics': record['modes'][mode]['metrics']}
+                evidence = {'source': record['scope']['evidence'], 'scope': record['scope'], 'metrics': record['modes'][mode]['metrics'], 'qualification': record['qualification']}
                 if mode == 'efficient':
                     metrics = evidence['metrics']
                     efficiency = metrics.get('tokens_per_joule')

@@ -44,3 +44,9 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Decision outputs cannot overwrite inputs or existing companions; exact ties expose co-winners. Imported identity/energy evidence validated, incomplete nested inputs fail closed, measurement/report/reference commits separated.
 - Added four identity evidence states; requested placement never independently proves dispatch. Descriptive backend comparison remains energy-optional and selects no overall winner.
 - Focused validation: **102 passed**.
+
+## Product evidence contract checkpoint — 2026-09-16 UTC
+
+- Report validation checkpoint: `8db69f1`.
+- Added explicit exploratory versus Secretary-qualified mode metadata, without changing selection/inference settings or frontend design. Product BALANCED remains owner-dependent.
+- Focused service/tuning suite: **56 passed, 1 skipped**. Application provenance change documented.

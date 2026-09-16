@@ -17,3 +17,7 @@ Descriptive reporting now checks configuration, top-level backend identity, and 
 ## Hardware follow-up
 
 Fresh CPU, llama_cpp HTP, and QAIRT measurements require the Snapdragon target. Energy commissioning, actual power-mode observation, counter cadence, and stop-candidate runtime behavior still require hardware validation. Unit-test evidence is not a hardware performance measurement.
+
+## Service mode contract
+
+`Engine.modes()` and applied recommendation evidence now expose an additive qualification contract: existing FAST/EFFICIENT/BALANCED profiles are exploratory microbenchmark recommendations, not Secretary-qualified product modes. Ranking and inference settings remain unchanged. Product BALANCED stays undefined pending owner policy. This changes `turbo/service.py` source identity; its `parse_calls` implementation is untouched. Fresh comparisons must retain the changed application source hash.

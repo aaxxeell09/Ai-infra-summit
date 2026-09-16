@@ -150,3 +150,17 @@ def test_qairt_bundle_apply_and_baseline_keep_compiled_context(tmp_path, monkeyp
     assert captured['plugin']=='qairt' and captured['context']==2048 and captured['threads']==0
     (bundle/'weights.bin').write_bytes(b'replaced weights')
     with pytest.raises(ValueError,match='different model weights'): e.apply('fast')
+
+
+def test_benchmark_modes_never_imply_secretary_qualification(tmp_path):
+    e=make_engine(tmp_path)
+    # Even an untrusted recommendation claiming qualification cannot confer it.
+    path=Path(e.config['recommendation_file'])
+    record=json.loads(path.read_text());record['qualification']={'secretary_qualified':True}
+    path.write_text(json.dumps(record))
+    contract=e.modes()['qualification']
+    assert contract['secretary_qualified'] is False
+    assert contract['kind']=='exploratory_benchmark_recommendation'
+    assert contract['objectives']['efficient']=='full_trial_tokens_per_joule'
+    assert contract['product_objectives']['balanced'] is None
+    assert e.apply('fast')['evidence']['qualification']==contract
