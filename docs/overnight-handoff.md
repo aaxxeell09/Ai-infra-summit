@@ -34,7 +34,13 @@ when producing the final morning handoff.
   It initializes MCP, lists tools, and delegates public invoice t13 to4B with
   grammar. Status/reply/wire in `mcp-1300/local/mcp-smoke-1300/`; full native
   reports in `mcp-1300/local/mcp-fixtures-1300/`. Gateway restoration is automatic.
-- Inspect that result next; do not call it a live success until verified.
+- The real MCP test completed: isError=false, completed=true, five turns,
+  matching final state and execution_ok=true; exact-call grade remainsfalse.
+  Owner independently compared every file hash and checked both MCP payloads
+  agree. Loop20.492s, broader diagnostic31.534s. Gateway restored/runtimeavailable.
+  Published `benchmarks/results/feedback-mcp-1300/`; raw reply/status copied to
+  main ignored `local/overnight-results-1300/mcp/`. This proves the fixture action
+  through MCP, not a production qualityPASS.
   The opt-in wrapper currently takes a configured model/task, not a live mode
   or fresh tuner recommendation. Its config identity is recorded, but the full
   tune→apply→feedback→MCP loop and default product quality remain unfinished.
