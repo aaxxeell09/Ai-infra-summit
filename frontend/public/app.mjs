@@ -43,21 +43,16 @@ function currentRow() {
 function latestEvidence() {
   if (!state.latest) return state.latestError ? `<p class="latest-unavailable">Latest model study unavailable. The configuration comparison above is unchanged.</p>` : '';
   const q = state.latest.qairt;
-  const models = state.latest.candidates.map(candidate => `<article class="frontier-model">
-    <div class="frontier-title"><div><strong>${esc(candidate.label)}</strong><span>${esc(candidate.runtime)}</span></div><span>${number(candidate.accuracy_pct, 0)}%</span></div>
-    <span class="frontier-track"><span style="--accuracy:${candidate.accuracy_pct}%"></span></span>
-    <div class="frontier-meta"><span>${candidate.correct}/${candidate.total} tasks</span><span>${number(candidate.median_inference_ms / 1000, 2)} s median</span></div>
-  </article>`).join('');
   return `<section class="latest-evidence" aria-labelledby="latest-evidence-title">
-    <div class="latest-head"><div><span class="eyebrow">LATEST DEVICE FINDING · QAIRT / NPU</span><h2 id="latest-evidence-title">Stop when the work is done.</h2><p>On the same 0.6B QAIRT bundle, ending generation after the first complete tool call removed trailing output and improved the full 50-task run.</p></div><span class="gate-status"><span></span>Experimental · below quality gate</span></div>
+    <div class="latest-label"><span>NPU OPTIMIZATION · 50 TASKS</span><span><i></i>Experimental</span></div>
     <div class="latest-body">
-      <article class="optimization-result">
-        <div class="optimization-number"><strong>+${number(q.accuracyGainPoints, 0)}</strong><span>points</span></div>
-        <div class="optimization-copy"><span>Task success</span><strong>${number(q.control.accuracy_pct, 0)}% <i>→</i> ${number(q.optimized.accuracy_pct, 0)}%</strong><small>${q.control.correct}/${q.control.total} → ${q.optimized.correct}/${q.optimized.total} correct actions</small></div>
-        <dl class="optimization-metrics"><div><dt>Mean inference</dt><dd>−${number(q.latencyReductionPct, 0)}%</dd><small>${number(q.control.average_inference_ms, 0)} → ${number(q.optimized.average_inference_ms, 0)} ms</small></div><div><dt>Invalid output</dt><dd>−${number(q.invalidReductionPoints, 0)} points</dd><small>${number(q.control.invalid_rate * 100, 0)}% → ${number(q.optimized.invalid_rate * 100, 0)}%</small></div></dl>
-      </article>
-      <div class="frontier-panel"><div class="frontier-head"><div><span class="eyebrow">MODEL TRADE-OFF</span><h3>More accuracy costs time.</h3></div><span>No qualified winner</span></div>${models}<p class="frontier-note">Separate model runs. Useful direction, not a native speedup comparison.</p></div>
+      <div class="latest-message"><h2 id="latest-evidence-title">Stop after the tool call.</h2><p>The model ends generation as soon as the action is complete.</p></div>
+      <div class="latest-outcomes">
+        <div class="latest-outcome"><span>Task success</span><div><s>${number(q.control.accuracy_pct, 0)}%</s><i>→</i><strong>${number(q.optimized.accuracy_pct, 0)}%</strong></div><small>${q.control.correct} → ${q.optimized.correct} correct tasks</small></div>
+        <div class="latest-outcome"><span>Mean inference</span><div><s>${number(q.control.average_inference_ms, 0)}</s><i>→</i><strong>${number(q.optimized.average_inference_ms, 0)}</strong><em>ms</em></div><small>${number(q.latencyReductionPct, 0)}% less time</small></div>
+      </div>
     </div>
+    <div class="latest-foot"><span>Qwen3 0.6B · QAIRT · NPU</span><span>Quality gate not passed</span></div>
   </section>`;
 }
 

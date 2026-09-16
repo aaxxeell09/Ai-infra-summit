@@ -20,7 +20,7 @@ npm test
 
 - Three responsive screens: machine identity, recorded configuration comparison, prompt/answer finale.
 - All ten recorded screening configurations and provisional configuration/evidence export.
-- The Compare screen now adds a compact latest-device study sourced from the published QAIRT full runs and the 4B/8B model milestones. It keeps the original same-model tuning chart intact, labels the study experimental and does not name a qualified winner.
+- The Compare screen adds one compact QAIRT before/after finding beneath the original same-model tuning chart. Larger-model milestones remain available in Benchmark evidence; the main presentation labels the result experimental and does not name a qualified winner.
 - The final screen compares **Default setup** with **Local Turbo**, using one shared prompt and launch button.
 - **Speed** carries the recorded default and the selected settings for the same model. **Model routing** illustrates candidate roles for a quick explanation or reasoning question; no calibrated model choice is claimed.
 - Two sequential scripted answers, equal animation pacing, stop/reset and stale-result protection. Per-answer clocks measure browser animation only; inference timings and answer quality remain unavailable, with no fabricated winner.
