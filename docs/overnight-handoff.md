@@ -5,6 +5,44 @@ Save results and a morning handoff at the cutoff. Scheduled hourly continuation
 is installed in the current task, ending at the cutoff. Pause that automation
 when producing the final morning handoff.
 
+## 13:00 UTC checkpoint — full 8B result and native MCP test
+
+- Full50 8B result:38/50 (76%), moves8/8, clarify2/13, invalid2/50 (4%).
+  Median recorded task12,946.676ms; mean inference19,896.854ms. No qualityPASS;
+  NOT_COMPARABLE guard retained. `eval/results/qwen8b-full-1200/` holds the public
+  report/config/command/telemetry; held-out row prompts/answers/arguments/output
+  are omitted with explicit publication metadata. Complete original EXP-003
+  archive is retained privately and passed integrity verification. No held-out
+  answers were used for tuning. Energy remains diagnostic/uncommissioned.
+- Two further4B constrained invoice runs moved the correct file, so three of
+  three trials have matching final state. Every existing exact-call grade still
+  fails. Loop times18.142/21.150/61.174seconds show substantial variation; no
+  speedup or dependable latency claim. 20B canary passed and initial tool output
+  parsed, but later output failed strict decoding; no move. All diagnostics are
+  published in `benchmarks/results/grammar-repeats-1200/` without rescoring.
+- The MCP worker's c1b9f2a was reviewed; request-name validation, model-ID type,
+  timeout bytes, Windows headless/UTF8, lock race, child launch failures,
+  absolute output path and duplicate aliases were fixed in38ee27a. Integrated
+  as57bb9fb andbf0b317, pushed. Owner focused tests30passed. Worker's broader
+  suite reported705passed/17subtests. No default MCP/service or frozen semantic
+  dependency changed.
+- New clean Latitude checkout `mcp-1300` is pinned to
+  `bf0b317545564d2b59bd5c6b96b1cf78597df70a`. Initial bundle clone with --branchHEAD
+  failed before changing hardware; default bundle clone succeeded. The actual
+  MCP test runs as task `Qualcomm-MCP-1300`, with supervisor
+  `overnight_mcp_1300.py`, 180s native child limit,240s MCP watchdog,6min task cap.
+  It initializes MCP, lists tools, and delegates public invoice t13 to4B with
+  grammar. Status/reply/wire in `mcp-1300/local/mcp-smoke-1300/`; full native
+  reports in `mcp-1300/local/mcp-fixtures-1300/`. Gateway restoration is automatic.
+- Inspect that result next; do not call it a live success until verified.
+  The opt-in wrapper currently takes a configured model/task, not a live mode
+  or fresh tuner recommendation. Its config identity is recorded, but the full
+  tune→apply→feedback→MCP loop and default product quality remain unfinished.
+  Next step is binding a fresh measured export to this actual execution path,
+  preserving honest verifier failure and external hardware exclusivity.
+- Last results commit8685ac5; implementationbf0b317. Workers finished, no agent
+  needs polling. Preserve the main checkout's edits. Stop by16:00UTC.
+
 ## 12:00 UTC checkpoint — larger models measured, milestone queued
 
 - Both development archives completed and passed integrity verification at source
