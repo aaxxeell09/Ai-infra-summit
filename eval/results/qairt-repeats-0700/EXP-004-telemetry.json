@@ -1,0 +1,182 @@
+{
+  "measurement_scope": "full_process_energy",
+  "raw_before": {
+    "monotonic_s": 2448580.5242711,
+    "channels_pwh": {
+      "SYS": 102164415173257,
+      "GPU": 154693714075,
+      "CPU_CLUSTER_0": 18239612590671,
+      "CPU_CLUSTER_1": 6678521297181,
+      "CPU_CLUSTER_2": 5330265335809
+    },
+    "error": null,
+    "host_collection_start_s": 2448580.5239151,
+    "host_collection_end_s": 2448580.5242713,
+    "pdh_collect_status": 0,
+    "raw_counters": {
+      "SYS": {
+        "read_status": 0,
+        "counter_status": 0,
+        "counter_type": 65792,
+        "source_timestamp_filetime_100ns": 134339909256442264,
+        "first_value": 102164415173257,
+        "second_value": 0,
+        "multi_count": 1
+      },
+      "GPU": {
+        "read_status": 0,
+        "counter_status": 0,
+        "counter_type": 65792,
+        "source_timestamp_filetime_100ns": 134339909256442264,
+        "first_value": 154693714075,
+        "second_value": 0,
+        "multi_count": 1
+      },
+      "CPU_CLUSTER_0": {
+        "read_status": 0,
+        "counter_status": 0,
+        "counter_type": 65792,
+        "source_timestamp_filetime_100ns": 134339909256442264,
+        "first_value": 18239612590671,
+        "second_value": 0,
+        "multi_count": 1
+      },
+      "CPU_CLUSTER_1": {
+        "read_status": 0,
+        "counter_status": 0,
+        "counter_type": 65792,
+        "source_timestamp_filetime_100ns": 134339909256442264,
+        "first_value": 6678521297181,
+        "second_value": 0,
+        "multi_count": 1
+      },
+      "CPU_CLUSTER_2": {
+        "read_status": 0,
+        "counter_status": 0,
+        "counter_type": 65792,
+        "source_timestamp_filetime_100ns": 134339909256442264,
+        "first_value": 5330265335809,
+        "second_value": 0,
+        "multi_count": 1
+      }
+    }
+  },
+  "raw_after": {
+    "monotonic_s": 2448626.6244767,
+    "channels_pwh": {
+      "SYS": 102365692529348,
+      "GPU": 154716132728,
+      "CPU_CLUSTER_0": 18290826051630,
+      "CPU_CLUSTER_1": 6685824941442,
+      "CPU_CLUSTER_2": 5332046871426
+    },
+    "error": null,
+    "host_collection_start_s": 2448626.6241893,
+    "host_collection_end_s": 2448626.6244775,
+    "pdh_collect_status": 0,
+    "raw_counters": {
+      "SYS": {
+        "read_status": 0,
+        "counter_status": 0,
+        "counter_type": 65792,
+        "source_timestamp_filetime_100ns": 134339909717406223,
+        "first_value": 102365692529348,
+        "second_value": 0,
+        "multi_count": 1
+      },
+      "GPU": {
+        "read_status": 0,
+        "counter_status": 0,
+        "counter_type": 65792,
+        "source_timestamp_filetime_100ns": 134339909717406223,
+        "first_value": 154716132728,
+        "second_value": 0,
+        "multi_count": 1
+      },
+      "CPU_CLUSTER_0": {
+        "read_status": 0,
+        "counter_status": 0,
+        "counter_type": 65792,
+        "source_timestamp_filetime_100ns": 134339909717406223,
+        "first_value": 18290826051630,
+        "second_value": 0,
+        "multi_count": 1
+      },
+      "CPU_CLUSTER_1": {
+        "read_status": 0,
+        "counter_status": 0,
+        "counter_type": 65792,
+        "source_timestamp_filetime_100ns": 134339909717406223,
+        "first_value": 6685824941442,
+        "second_value": 0,
+        "multi_count": 1
+      },
+      "CPU_CLUSTER_2": {
+        "read_status": 0,
+        "counter_status": 0,
+        "counter_type": 65792,
+        "source_timestamp_filetime_100ns": 134339909717406223,
+        "first_value": 5332046871426,
+        "second_value": 0,
+        "multi_count": 1
+      }
+    }
+  },
+  "energy": {
+    "duration_s": 46.10020560026169,
+    "channels": {
+      "SYS": {
+        "energy_j": 724.5984819276,
+        "average_power_w": 15.717901308524464,
+        "tokens_per_joule": null
+      },
+      "GPU": {
+        "energy_j": 0.0807071508,
+        "average_power_w": 0.0017506896064589756,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_0": {
+        "energy_j": 184.3684594524,
+        "average_power_w": 3.9992979868912655,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_1": {
+        "energy_j": 26.2931193396,
+        "average_power_w": 0.5703471166178649,
+        "tokens_per_joule": null
+      },
+      "CPU_CLUSTER_2": {
+        "energy_j": 6.4135282212,
+        "average_power_w": 0.13912146676334114,
+        "tokens_per_joule": null
+      }
+    },
+    "unit": "picowatt-hours",
+    "scope": "full process trial including model initialization and any warmup",
+    "error": null
+  },
+  "power_before": {
+    "ac_line_status": "ac",
+    "battery_percent": 100,
+    "battery_flag": 1,
+    "battery_saver": false,
+    "active_scheme_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "power_mode": null,
+    "observed_power_mode": null,
+    "observed_power_mode_unavailable_reason": "Windows power-mode overlay is not queried; active scheme is not the overlay"
+  },
+  "power_after": {
+    "ac_line_status": "ac",
+    "battery_percent": 100,
+    "battery_flag": 1,
+    "battery_saver": false,
+    "active_scheme_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "power_mode": null,
+    "observed_power_mode": null,
+    "observed_power_mode_unavailable_reason": "Windows power-mode overlay is not queried; active scheme is not the overlay"
+  },
+  "declared_counter_resolution_s": null,
+  "hardware_resolution_s": null,
+  "energy_qualification": "diagnostic_uncommissioned",
+  "energy_comparable": false
+}

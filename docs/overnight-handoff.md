@@ -88,6 +88,38 @@ manifests describe the committed configurations and exact runner commands.
 
 ## Next bounded work
 
+### 08:00 UTC checkpoint — six trials complete; 4B integration queued
+
+Six rotated development trials completed and their seals verified after transfer.
+Control: 45/105 attempts correct; stop: 58/105. Mean inference 788.680 versus
+516.741 ms. Stop invalid rate remains 9.52%; all six trials have 0/9 clarification
+success. Provenance-qualified measurements are not product qualification.
+Public evidence and exact boundaries: `eval/results/qairt-repeats-0700.md`.
+Private original archives/status are under the main Mac checkout's
+`local/overnight-results-0800/`. Energy remains diagnostic, not comparable.
+
+Gateway restoration completed. Actual HTP inference answered arithmetic correctly
+but failed the only-number formatting instruction. Preserve that limitation.
+
+Current hardware owner: `Qualcomm-4B-MCP-0800`, pinned clean Windows checkout
+`roadmap-33c7edd`, source `33c7edd8f2013a5963d99cc321703efa3967408d`.
+The driver uses console-free normal Python so MCP has working stdio without an
+interactive window. Its MCP child also requests CREATE_NO_WINDOW on Windows.
+Twenty-nine MCP tests passed before dispatch; the smoke now rejects dirty source.
+
+The bounded integration runs `scripts/verify_tuner_loop.py` for model `qwen4b`,
+two rounds, demo task `t13`. Tuner axes: CPU threads 6/10, context 4096, prefill
+128, output 32, two repeats, no warmup; each sweep has a 240-second budget.
+This is an integration smoke, not an official correctness/performance campaign.
+Inspect `roadmap-33c7edd/local/mcp-0800-supervisor/status.json` and
+`local/qwen4b-mcp-loop-0800/integration.json`. The supervisor limits the whole
+run to 780 seconds and requests restoration of the existing service afterward.
+Do not overlap inference or modify its source/config while running.
+
+Next: preserve the two-round result; verify actual task state and applied model/
+SDK identity. A successful invoice example does not erase the failed 50-case gate.
+If tuning fails, preserve its reason rather than fabricating a recommendation.
+
 ### 07:00 UTC checkpoint — recovery complete; balanced repeats queued
 
 Both recovery campaigns completed. Full 4B scored 37/50 (74%), 4% invalid,

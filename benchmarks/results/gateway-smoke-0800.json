@@ -1,0 +1,111 @@
+{
+  "id": "chatcmpl-13e4fa7001b14d91899d572b044ecb98",
+  "object": "chat.completion",
+  "model": "qwen06",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "2 + 3 = 5"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 23,
+    "completion_tokens": 7
+  },
+  "turbo": {
+    "text": "2 + 3 = 5",
+    "generation_control": {
+      "stop_after_tool_call": false,
+      "mechanism": null,
+      "delimiter": null,
+      "delimiter_seen": false,
+      "callbacks_after_stop_request": 0,
+      "native_text_modified": false
+    },
+    "sampling": {
+      "requested_temperature": 0.0,
+      "sdk_top_k": 0,
+      "greedy_via_top_k": false,
+      "sdk_zero_temperature_uses_default": true,
+      "zero_temperature_default_source": "plugin"
+    },
+    "profile": {
+      "ttft": 63786,
+      "media_time": 0,
+      "prompt_time": 63607,
+      "decode_time": 160767,
+      "prompt_tokens": 23,
+      "generated_tokens": 7,
+      "prefill_speed": 361.5954218875281,
+      "decoding_speed": 43.54127401767776,
+      "draft_n_total": 0,
+      "draft_n_accepted": 0,
+      "stop_reason": "eos"
+    },
+    "timings": {
+      "ttft": 0.063786,
+      "total": 0.22459240024909377
+    },
+    "backend_id": "llama_cpp_htp",
+    "runtime": "llama_cpp",
+    "requested_device": "auto",
+    "resolved_device": "HTP0",
+    "device_resolution_warning": null,
+    "model_artifact_type": "GGUF",
+    "model_path_or_id": "<USER_HOME>\\AppData\\Local\\QualcommTools\\Qwen3-0.6B-Q4_0.gguf",
+    "geniex_version": "0.6.1",
+    "qairt_version": null,
+    "dispatch_verified": false,
+    "context_source": "model_config",
+    "effective_compiled_context": null,
+    "backend": "geniex",
+    "device": "HTP0",
+    "version": "0.6.1",
+    "config": {
+      "threads": 0,
+      "context": 4096,
+      "spec_type": "none",
+      "draft_tokens": 8,
+      "threads_batch": 0,
+      "ubatch": 0,
+      "n_batch": 0,
+      "plugin": "llama_cpp",
+      "stop_after_tool_call": false
+    },
+    "elapsed_s": 1.8338100998662412,
+    "model": "qwen06",
+    "route": {
+      "reason": "stock auto baseline",
+      "model": "qwen06",
+      "mode": "baseline",
+      "config": {
+        "device": "auto",
+        "threads": 0,
+        "context": 4096
+      },
+      "evidence": {
+        "source": "GenieX default automatic placement",
+        "quality_calibrated": false
+      }
+    },
+    "mode": "baseline",
+    "tool_calls": [],
+    "applied": {
+      "model": "qwen06",
+      "mode": "baseline",
+      "config": {
+        "device": "auto",
+        "threads": 0,
+        "context": 4096
+      },
+      "evidence": {
+        "source": "GenieX default automatic placement",
+        "quality_calibrated": false
+      }
+    }
+  }
+}
