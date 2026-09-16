@@ -4,12 +4,11 @@ import { PROMPTS, createComparisonRequest, comparisonLanes, createPreviewCompari
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const number = (value, digits = 2) => value === null || value === undefined ? 'Unavailable' : value.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: digits });
-const date = value => new Date(value).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 const arrow = '<span aria-hidden="true">↗</span>';
 const provider = createRecordedProvider();
 // Replace this provider with a device comparison provider at integration.
 const taskProvider = createPreviewComparisonProvider();
-const state = { snapshot: null, page: 'device', metric: 'decode', selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
+const state = { snapshot: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
 let demoGeneration = 0;
 let taskAbort;
 let toastTimer;
@@ -45,9 +44,8 @@ function deviceScreen() {
   return `<section class="screen device-screen">
     <div class="device-copy"><div class="eyebrow"><span class="tiny-line"></span> LOCAL INFERENCE TUNING</div>
       <h1><span>Tune your model.</span> <em>For this machine.</em></h1>
-      <p class="lead">${s.rows.length} configurations tested on the same model.<br>Compare the measurements. Choose how it runs.</p>
+      <p class="lead">Compare the measurements. Choose how it runs.</p>
       <button class="button primary large" data-action="explore">Compare configurations ${arrow}</button>
-      <p class="quiet provenance">Recorded on the Latitude · ${esc(date(s.recordedAt))}</p>
     </div>
     <div class="machine-stage">
       <div class="stage-label"><span class="mono">TARGET MACHINE</span><span class="chip-status">Windows ARM64</span></div>
@@ -86,14 +84,14 @@ function calibrationScreen() {
     <div class="section-heading"><div><div class="eyebrow">SAME MODEL. SAME WORKLOAD.</div><h1>Choose how it runs.</h1></div><span class="record-label">${esc(s.model.replace(/\.gguf$/, ''))}</span></div>
     <div class="calibration-layout"><div class="chart-panel">
       <div class="chart-toolbar"><div class="metric-tabs" role="group" aria-label="Measurement to compare" aria-describedby="metric-explanation">${['prefill', 'ttft', 'decode'].map(key => `<button data-metric="${key}" aria-pressed="${state.metric === key}" class="${state.metric === key ? 'active' : ''}">${METRICS[key].tab}</button>`).join('')}</div><span class="chart-unit">${metric.unit} · ${metric.hint}</span></div>
-      <div class="metric-explanation" id="metric-explanation"><p>${metric.description}</p><span>${metric.units}</span></div>
+      <div class="metric-explanation" id="metric-explanation"><p>${metric.description}</p><button class="metric-help-button" data-action="metric-help" aria-label="About ${metric.unit === 'tok/s' ? 'tokens per second' : 'milliseconds'}" aria-expanded="${state.metricHelp}" aria-controls="metric-unit-help"><span aria-hidden="true">ⓘ</span></button><span id="metric-unit-help" ${state.metricHelp ? '' : 'hidden'}>${metric.units}</span></div>
       <div class="chart" aria-label="${esc(metric.label)} comparison">${chartRows}</div>
       <div class="chart-foot"><span>${baseline?.params ? `Median of ${baseline.params.repetitions} repetitions · ${baseline.params.n_prompt} input / ${baseline.params.n_gen} output tokens` : 'No comparable workload available'}</span></div>
     </div><aside class="selection-panel">
       <div class="selection-top"><span class="eyebrow">SELECTED CONFIGURATION</span><span class="selection-icon" aria-hidden="true">${isLeader ? '↗' : '◇'}</span></div>
       <h2>${chosen ? esc(chosen.label.replace(' · ', '<|>').split('<|>')[0]) : 'No result'}<span>${chosen?.device === 'cpu' ? esc(chosen.threads === 0 ? 'Automatic threads' : `${chosen.threads} threads`) : 'Recorded configuration'}</span></h2>
-      <p class="selection-caption">${isEligible ? (isLeader ? `${leaders.length > 1 ? 'Tied for fastest' : 'Fastest'} at ${metric.best} in this recorded run.` : 'Selected for the answer comparison. Other settings may be faster.') : esc(chosen?.reason || 'No comparable result available.')}</p>
-      <p class="ranking-scope">Each tab ranks a different measure. There is no overall winner yet.</p>
+      <p class="selection-caption">${isEligible ? (isLeader ? `${leaders.length > 1 ? 'Tied for fastest' : 'Fastest'} ${{ decode: 'answer generation', prefill: 'prompt processing', ttft: 'first response' }[state.metric]} in this run.` : 'Selected for the answer comparison. Other settings may be faster.') : esc(chosen?.reason || 'No comparable result available.')}</p>
+      <p class="ranking-scope">No overall winner yet.</p>
       <div class="selection-metrics"><div><span>${secondaryMetric[0]}</span><strong>${number(secondaryMetric[1])}<small>${secondaryMetric[1] == null ? '' : secondaryMetric[2]}</small></strong></div><div><span>Peak process memory</span><strong>${chosen?.memory_mb == null ? 'Unavailable' : number(chosen.memory_mb / 1024, 2)}<small>${chosen?.memory_mb == null ? '' : 'GiB'}</small></strong></div></div>
       <div class="evidence-note"><span class="note-dot"></span><p>Preliminary measurements.<br>Repeat comparison and task checks pending.${chosen && ['npu', 'hybrid'].includes(chosen.device) ? '<br>NPU execution is not yet verified.' : ''}</p></div>
       <button class="button primary" data-action="try" ${!isEligible ? 'disabled' : ''}>Continue to demo ${arrow}</button>
@@ -118,7 +116,7 @@ function demoScreen() {
       : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
     return `<article class="response-column ${key === 'turbo' ? 'response-turbo' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
       <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p></header>
-      <div class="response-text ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${lane.answer ? esc(lane.answer) : '<span class="answer-placeholder">No answer yet</span>'}</div>
+      <div class="response-text ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${esc(lane.answer)}</div>
       <div class="response-timing"><span>Animation time</span><strong data-clock="${key}">${clockText(key)}</strong></div>
     </article>`;
   }).join('');
@@ -132,7 +130,7 @@ function demoScreen() {
       <div class="response-grid">${lanes}</div>
     </div>
     ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
-    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>These are scripted answers at the same animation pace. Each clock measures only its answer animation, excluding the wait for the other answer. No inference speed or answer quality is measured. Live trials will run one at a time to avoid competing for resources.</p></div></details></div>
+    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential.</p></div></details></div>
     <span class="sr-only" role="status" aria-live="polite">${state.result ? 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
   </section>`;
 }
@@ -219,7 +217,7 @@ function showEvidence() {
   if (!state.snapshot) return;
   const s = state.snapshot; const row = currentRow();
   $('#evidence-content').innerHTML = `<div class="evidence-summary"><span class="mode-tag">Recorded screening</span><p>Measurements from the Dell Latitude, not this browser’s host. These observations do not establish a confirmed speedup or answer quality.</p></div>
-    <dl class="evidence-list"><div><dt>Recorded</dt><dd>${esc(new Date(s.recordedAt).toUTCString())}</dd></div><div><dt>Timing source</dt><dd>${esc(s.timingSource)}</dd></div><div><dt>Source</dt><dd>${esc(s.source)}</dd></div><div><dt>Model SHA-256</dt><dd class="mono hash">${esc(s.modelHash)}</dd></div><div><dt>Runtime SHA-256</dt><dd class="mono hash">${esc(s.runtimeHash)}</dd></div><div><dt>Workload</dt><dd>${row?.params ? `${row.params.n_prompt} input · ${row.params.n_gen} output · ${row.params.n_ctx} context · ${row.params.warmup} warmup · ${row.params.repetitions} repetitions` : 'Unavailable'}</dd></div><div><dt>Reported device</dt><dd>${esc(row?.resolvedDevice || 'Not reported')} · ${esc(row?.dispatch)}</dd></div><div><dt>Energy scope</dt><dd>SYS channel, full process including initialization and warmup. Energy efficiency unavailable: warmup token counts are missing.</dd></div></dl>
+    <dl class="evidence-list"><div><dt>Machine</dt><dd>${esc(s.device.name)}</dd></div><div><dt>Recorded</dt><dd>${esc(new Date(s.recordedAt).toUTCString())}</dd></div><div><dt>Timing source</dt><dd>${esc(s.timingSource)}</dd></div><div><dt>Source</dt><dd>${esc(s.source)}</dd></div><div><dt>Model SHA-256</dt><dd class="mono hash">${esc(s.modelHash)}</dd></div><div><dt>Runtime SHA-256</dt><dd class="mono hash">${esc(s.runtimeHash)}</dd></div><div><dt>Workload</dt><dd>${row?.params ? `${row.params.n_prompt} input · ${row.params.n_gen} output · ${row.params.n_ctx} context · ${row.params.warmup} warmup · ${row.params.repetitions} repetitions` : 'Unavailable'}</dd></div><div><dt>Reported device</dt><dd>${esc(row?.resolvedDevice || 'Not reported')} · ${esc(row?.dispatch)}</dd></div><div><dt>Energy scope</dt><dd>SYS channel, full process including initialization and warmup. Energy efficiency unavailable: warmup token counts are missing.</dd></div></dl>
     <details><summary>Inspect selected raw result</summary><pre>${esc(JSON.stringify(row?.raw ?? {}, null, 2))}</pre></details><button class="button ghost" data-action="download-evidence">Download recorded evidence ↓</button>`;
   $('#evidence-dialog').showModal();
 }
@@ -232,7 +230,7 @@ document.addEventListener('click', event => {
   const metric = target.dataset.metric;
   if (metric) {
     resetDemo();
-    state.metric = metric; state.selected = rankRows(state.snapshot, metric).leaders[0] ?? null;
+    state.metric = metric; state.metricHelp = false; state.selected = rankRows(state.snapshot, metric).leaders[0] ?? null;
     render(); document.querySelector(`[data-metric="${metric}"]`)?.focus({ preventScroll: true }); return;
   }
   if (target.dataset.select) {
@@ -241,6 +239,7 @@ document.addEventListener('click', event => {
   if (target.dataset.comparison) { state.comparison = target.dataset.comparison; resetDemo(); render(); document.querySelector(`[data-comparison="${state.comparison}"]`)?.focus(); return; }
   if (target.dataset.scenario) { state.scenario = target.dataset.scenario; resetDemo(); render(); $('.prompt-picker summary')?.focus({ preventScroll: true }); return; }
   switch (target.dataset.action) {
+    case 'metric-help': state.metricHelp = !state.metricHelp; render(); $('.metric-help-button')?.focus({ preventScroll: true }); break;
     case 'explore': state.reveal = true; location.hash = 'calibration'; break;
     case 'try': resetDemo(); location.hash = 'demo'; break;
     case 'back': location.hash = 'calibration'; break;

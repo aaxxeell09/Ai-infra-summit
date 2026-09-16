@@ -60,7 +60,7 @@
 .response-status.active{color:var(--blue)}
 .response-header>p{font-size:12px;line-height:1.5;color:var(--muted);margin-top:8px;overflow-wrap:anywhere}
 .response-text{padding:24px 26px 30px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:16px;line-height:1.8;min-height:190px;flex:1}
-.answer-placeholder{display:block;color:#8490a1;font-size:14px;padding-top:4px}
+
 .response-text.writing:after{content:'';display:inline-block;height:16px;width:2px;background:var(--blue);margin-left:3px;vertical-align:middle;animation:cursor-pulse .7s steps(2,start) infinite}
 
 
@@ -91,3 +91,10 @@
 .response-timing strong{font:500 22px var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.8px}
 @media(max-width:850px){.response-timing{margin:0 20px}}
 @media(max-width:600px){.response-timing{margin:0 18px}.prompt-controls{gap:8px}}
+
+/* Unit definitions are available on request; the metric explanation stays visible. */
+.metric-explanation{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:center;gap:0 12px}
+.metric-help-button{display:grid;place-items:center;width:44px;min-height:44px;border-radius:8px;background:transparent;color:var(--muted);font-size:19px}
+.metric-help-button:hover,.metric-help-button[aria-expanded=true]{background:var(--blue-soft);color:var(--blue)}
+.metric-explanation>span{grid-column:1/-1}
+.metric-explanation>span[hidden]{display:none}

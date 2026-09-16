@@ -22,7 +22,7 @@ npm test
 - All ten recorded screening configurations and provisional configuration/evidence export.
 - The final screen compares **Default setup** with **Local Turbo**, using one shared prompt and launch button.
 - **Speed** carries the recorded default and the selected settings for the same model. **Model routing** illustrates candidate roles for a quick explanation or reasoning question; no calibrated model choice is claimed.
-- Two sequential scripted answers, equal animation pacing, stop/reset and stale-result protection. Timings and quality remain unavailable; no fabricated winner.
+- Two sequential scripted answers, equal animation pacing, stop/reset and stale-result protection. Per-answer clocks measure browser animation only; inference timings and answer quality remain unavailable, with no fabricated winner.
 
 ## What is not connected
 
