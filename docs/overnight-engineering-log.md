@@ -50,3 +50,10 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Report validation checkpoint: `8db69f1`.
 - Added explicit exploratory versus Secretary-qualified mode metadata, without changing selection/inference settings or frontend design. Product BALANCED remains owner-dependent.
 - Focused service/tuning suite: **56 passed, 1 skipped**. Application provenance change documented.
+
+## Phase A/C — immutable tracker — 2026-09-16 UTC
+
+- Mode evidence checkpoint: `1f07363`.
+- Unique OS-locked EXP allocation, single-snapshot historical import, exclusive sealed inventories, retained failures/timeouts, source/model/config pre/post checks and explicit dirty diagnostics implemented. All attempts contribute block energy; incomplete denominators suppress J/correct.
+- Tracker/hardening/report integration: **55 passed**. Required archive structure, crash-release locks, forged identities, Unicode/BOM, timeout cleanup and concurrency covered.
+- Rules/protocol and pending owner decisions recorded. Proceeding immediately to historical import and reporting; no new hardware run.
