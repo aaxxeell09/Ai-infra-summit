@@ -101,3 +101,9 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - GGUF checkpoint: `19f99ee`, pushed.
 - Campaign configuration parsing and hashes now use a single byte snapshot; malformed treatment objects fail clearly. 27 focused planner tests pass.
 - Integrated local checkpoint: **642 passed, 1 skipped, 13 subtests passed**. This precedes final CI verification. Second bounded SSH check also timed out; no hardware job launched.
+
+## Final adversarial review checkpoint — 2026-09-16 UTC
+
+- Campaign snapshot checkpoint: `ef0052c`.
+- Review found tracker JSON overflow/duplicate-key acceptance and relative-path child mismatch. Shared strict captured-byte parser now rejects these before archival; child/config/output paths and relative model/SDK binding are explicit. Qualified timing evidence must be complete/finite/nonnegative.
+- Focused integration: **97 passed**. No numeric product thresholds or frozen semantics changed. Preparing final broad tests and second hosted CI review.

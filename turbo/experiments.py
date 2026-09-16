@@ -26,6 +26,8 @@ import sys
 import tempfile
 import time
 
+from .json_io import parse_json
+
 SCHEMA = 'local-turbo.experiment.v1'
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ARCHIVES = ROOT / 'local/experiments'
@@ -39,13 +41,6 @@ APPLICATION_FILES = ('turbo/secretary.py','turbo/service.py','turbo/native.py',
 
 def now():
     return datetime.now(timezone.utc).isoformat()
-
-
-def parse_json(raw):
-    """Parse one captured byte snapshot; reject NaN/Infinity."""
-    def invalid(value):
-        raise ValueError('Non-finite JSON constant: ' + value)
-    return json.loads(raw.decode('utf-8-sig'), parse_constant=invalid)
 
 
 def read_json(path):
@@ -569,6 +564,7 @@ def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', c
         control=None, diagnostic_dirty=False, timeout=600, command_override=None, capture_energy=False,
         counter_resolution=None):
     """Bounded child supervisor. Exit2 from evaluator is a recorded quality outcome."""
+    root=Path(root).resolve();repo=Path(repo).resolve()
     if dataset not in ('dev','all'):raise ValueError('Only dev or explicitly requested all milestones')
     if not change.strip() or not hypothesis.strip():raise ValueError('change and hypothesis required')
     if not finite(timeout) or timeout<=0:raise ValueError('timeout must be positive')
@@ -588,7 +584,16 @@ def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', c
     if os.environ.get('GENIEX_QAIRT_LIB'):raise ValueError('Untracked GENIEX_QAIRT_LIB override refused')
     from eval.validate_dataset import validate
     frozen=validate()
-    model=config.get('model_path');sdk=config.get('sdk_dir')
+    def artifact_path(key):
+        value=config.get(key)
+        if value is None: return None
+        if not isinstance(value,str) or not value:
+            raise ValueError(key+' must be a nonempty path string')
+        path=Path(value)
+        # The unchanged runner resolves relative configuration paths against its
+        # cwd. Bind the supervisor to that same directory, not its caller's cwd.
+        return (path if path.is_absolute() else repo/path).resolve()
+    model=artifact_path('model_path');sdk=artifact_path('sdk_dir')
     pre={key:artifact_identity(value) for key,value in [('model',model),('sdk',sdk)] if value}
     runner_before=captured_runner_identity(repo,model,pre)
     if command_override is None and (not model or not sdk):raise ValueError('Configured local model and SDK required')
@@ -598,6 +603,7 @@ def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', c
                '--config',str(path/'config.json'),'--output-dir',str(out)]
     metadata=initialize(path,{**state,'timestamp':now(),'change':change,'hypothesis':hypothesis,
                  'control_experiment':control,'dataset':dataset,'benchmark':frozen,'command':command,
+                 'execution_cwd':str(repo),'resolved_artifact_paths':{'model_path':str(model) if model else None,'sdk_dir':str(sdk) if sdk else None},
                  'qualification_status':'diagnostic_dirty' if state['dirty'] else 'pending_validation',
                  'environment':capture_environment(),'artifact_identity_before':pre,
                  'runner_identity_before':runner_before,'case_set_complete':False,
@@ -642,6 +648,11 @@ def run(name, config_path, *, root=DEFAULT_ARCHIVES, repo=ROOT, dataset='dev', c
             for key in ('benchmark_version','fixture_sha256','action_schema_sha256','system_prompt_sha256'):
                 if result.get(key)!=frozen.get(key): reasons.append('Frozen provenance mismatch: '+key)
             if result.get('dataset_sha256')!=digest(expected_cases): reasons.append('Dataset hash mismatch')
+            if not all(finite(row.get('task_latency_ms')) for row in result['results']):
+                reasons.append('Incomplete/nonfinite/negative task_latency_ms; task timing cannot qualify')
+            if any('warm_task_latency_ms' in row for row in result['results']) and not all(
+                    finite(row.get('warm_task_latency_ms')) for row in result['results']):
+                reasons.append('Incomplete/nonfinite/negative warm_task_latency_ms; warm timing cannot qualify')
             reasons+=runner_identity_errors(result,runner_before)
             if runner_before!=runner_after: reasons.append('Runner source bytes changed during run')
             try:

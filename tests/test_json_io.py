@@ -40,3 +40,17 @@ def test_runner_keeps_sampler_evidence_additive():
     rows = execute([case], SecretaryAdapter.from_files([]), lambda messages: {
         'text': '{"name":"list_files","arguments":{}}', 'sampling': sampling})
     assert rows[0]['sampling'] == sampling
+
+
+@pytest.mark.parametrize('raw', [b'{"success":false,"success":true}',b'{"nested":[1e999]}',b'{"nested":[-1e999]}'])
+def test_captured_snapshot_uses_identical_strict_decoder(raw):
+    from turbo.json_io import parse_json
+    with pytest.raises(ValueError): parse_json(raw)
+
+
+def test_captured_snapshot_preserves_bom_unicode_and_object_requirement():
+    from turbo.json_io import parse_json
+    raw=b'\xef\xbb\xbf'+json.dumps({'name':'été'},ensure_ascii=False).encode()
+    assert parse_json(raw,require_object=True)=={'name':'été'}
+    with pytest.raises(ValueError,match='root must be an object'):
+        parse_json(b'[]',require_object=True)

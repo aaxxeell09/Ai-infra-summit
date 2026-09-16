@@ -24,10 +24,15 @@ def _float(value):
     return number
 
 
-def read_json(path, *, require_object=False):
-    """Read without rewriting bytes; reject invalid encoding, duplicates and NaN."""
-    data = Path(path).read_bytes().decode('utf-8-sig', errors='strict')
+def parse_json(raw, *, require_object=False):
+    """Decode one captured UTF-8 snapshot without rereading or rewriting it."""
+    data = raw.decode('utf-8-sig', errors='strict')
     value = json.loads(data, object_pairs_hook=_pairs, parse_constant=_constant, parse_float=_float)
     if require_object and not isinstance(value, dict):
         raise ValueError('JSON root must be an object')
     return value
+
+
+def read_json(path, *, require_object=False):
+    """Read without rewriting bytes; reject invalid encoding, duplicates and NaN."""
+    return parse_json(Path(path).read_bytes(), require_object=require_object)

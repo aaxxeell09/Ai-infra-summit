@@ -219,7 +219,7 @@ def test_sampling_observations_preserved_without_guessing_effective_defaults():
     assert observed['total_rows']==2 and observed['rows_with_sampling']==1
 
 
-@pytest.mark.parametrize('forged', [None,'model_sha256','evaluator_sha256'])
+@pytest.mark.parametrize('forged', [None,'model_sha256','evaluator_sha256','task_latency_ms','warm_task_latency_ms'])
 def test_run_qualification_checks_captured_identity(tmp_path,monkeypatch,forged):
     import eval.report_validation as validation
     from eval.scoring import load_dataset
@@ -243,7 +243,9 @@ def test_run_qualification_checks_captured_identity(tmp_path,monkeypatch,forged)
                     'config_sha256':e.digest(settings),'dataset_sha256':e.digest(cases),
                     'results':[{'id':c['id'],'case_sha256':e.digest(c),'task_success':True,
                                 'invalid_output':False,'task_latency_ms':1} for c in cases]}
-            if forged:result[forged]='forged-nonempty-identity'
+            if forged=='task_latency_ms': result['results'][0].pop('task_latency_ms')
+            elif forged=='warm_task_latency_ms': result['results'][0]['warm_task_latency_ms']=-1
+            elif forged:result[forged]='forged-nonempty-identity'
             (out/'candidate_synthetic.json').write_text(json.dumps(result))
             return 0
     monkeypatch.setattr(e.subprocess,'Popen',Child)
@@ -294,3 +296,48 @@ def test_historical_environment_is_never_filled_from_ingestion_host(tmp_path,mon
     archive=e.backfill(src,tmp_path/'archives')
     assert e.read_json(archive/'environment.json')==data['environment']
     assert e.read_json(archive/'manifest.json')['environment']==data['environment']
+
+
+@pytest.mark.parametrize('raw', [b'{"results":[{"task_success":false,"task_success":true}]}',
+                                b'{"results":[],"nested":{"overflow":1e999}}'])
+def test_invalid_backfill_snapshot_rejected_before_archive_creation(tmp_path,raw):
+    src=tmp_path/'bad.json';src.write_bytes(raw)
+    root=tmp_path/'archives'
+    with pytest.raises(ValueError):e.backfill(src,root)
+    assert not root.exists()
+    assert src.read_bytes()==raw
+
+
+def test_relative_run_root_and_config_paths_bound_to_child_cwd(tmp_path,monkeypatch):
+    caller=tmp_path/'caller';caller.mkdir()
+    repo=tmp_path/'repo';repo.mkdir()
+    # Minimal source files for captured identity, not an executable model stack.
+    for name in (*e.EVALUATOR_FILES,*e.APPLICATION_FILES):
+        p=repo/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b'# synthetic source')
+    model=repo/'models'/'weights.gguf';model.parent.mkdir();model.write_bytes(b'repo model')
+    sdk=repo/'sdk';sdk.mkdir();(sdk/'geniex.dll').write_bytes(b'repo runtime')
+    config=setup_run(tmp_path,monkeypatch)
+    raw=b'{"model_path":"models/weights.gguf","sdk_dir":"sdk"}'
+    config.write_bytes(raw)
+    monkeypatch.chdir(caller)
+    calls=[]
+    class Child:
+        pid=123456789
+        returncode=3
+        def __init__(self,command,**kwargs):calls.append((command,kwargs))
+        def poll(self):return 3
+        def wait(self,timeout):return 3
+    monkeypatch.setattr(e.subprocess,'Popen',Child)
+    archive=e.run('relative',config,root='archives',repo='../repo',change='test',hypothesis='cwd binding')
+    command,options=calls[0]
+    assert archive.parent==caller/'archives'
+    assert archive.is_absolute() and options['cwd']==repo
+    assert Path(command[3])==repo/'eval/run_secretary_eval.py'
+    assert Path(command[command.index('--config')+1])==archive/'config.json'
+    assert Path(command[command.index('--output-dir')+1])==archive/'runner-output'
+    assert (archive/'config.json').read_bytes()==raw
+    metadata=e.read_json(archive/'manifest.json')
+    assert metadata['execution_cwd']==str(repo)
+    assert metadata['resolved_artifact_paths']=={'model_path':str(model),'sdk_dir':str(sdk)}
+    assert metadata['runner_identity_before']['model_sha256']==e.sha(model)
+    assert not e.verify(archive)
