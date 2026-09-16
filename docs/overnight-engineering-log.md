@@ -70,3 +70,10 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Campaign/diagnostics checkpoint: `16c5824`.
 - Tuner now freshly verifies model/tokenizer/projector/image/prompt inputs after execution within its deadline; changed, deleted or unverifiable inputs cannot rank or export recommendations. Existing raw trials retained.
 - Focused tuning tests: **57 passed, 1 skipped**, including five artifact mutations and deadline/deletion regressions.
+
+## Phase F — reports and development errors — 2026-09-16 UTC
+
+- Artifact stability checkpoint: `fc8987b`.
+- Added sealed-archive summary, repeated campaign statistics, strict comparable case deltas and single-archive development-only error analysis. Diagnostic uncommissioned energy is excluded from qualified deltas/Pareto/pooling. No overall winner.
+- Focused tracker/analysis: **47 passed**.
+- First hosted CI at99591e8: macOS passes; Linux/Windows fail. Investigating actual logs; not declaring cross-platform completion.
