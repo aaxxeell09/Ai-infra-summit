@@ -220,3 +220,35 @@ test('speed request unchanged and cancel/reconcile flow intact', async () => {
   assert.equal(r.status, 'cancelled');
   assert.equal(p.pendingRequest(), null);
 });
+
+test('network failure retains routing ID across reload without another POST', async () => {
+  const { request, snapshotResponse } = routingScenario();
+  const storage = memory(); let starts = 0;
+  const broken = createLiveComparisonProvider({ storage, interval: 0, fetcher: async (url, options) => {
+    if (String(url).endsWith('/capabilities')) return reply(capabilities());
+    if (options?.method === 'POST') { starts++; throw new Error('connection lost after admission'); }
+    throw new Error('unexpected read');
+  } });
+  await assert.rejects(broken.execute(request), /connection lost/);
+  const calls = []; const resumed = provider(snapshotResponse, { storage, calls });
+  assert.equal(resumed.pendingRequest().request_id, request.request_id);
+  const result = await resumed.execute(resumed.pendingRequest());
+  assert.equal(result.status, 'completed');
+  assert.equal(starts, 1);
+  assert.equal(calls.filter(c => c.method === 'POST').length, 0);
+  assert.equal(resumed.pendingRequest(), null);
+});
+
+test('published native QAIRT response passes the real routing contract unchanged', async () => {
+  const path = new URL('../../benchmarks/results/live-backend-routing-1812/auto-default-1/', import.meta.url);
+  const request = JSON.parse(readFileSync(new URL('request.json', path)));
+  const response = JSON.parse(readFileSync(new URL('device-result.json', path)));
+  const p = createLiveComparisonProvider({storage: memory(), interval: 0, fetcher: async (url, options) => {
+    if (String(url).endsWith('/capabilities')) return reply({routing: {routes: response.result.routing.candidates}});
+    return reply(options?.method ? {request_id: request.request_id, state: 'running'} : response);
+  }});
+  const result = await p.execute(request);
+  assert.deepEqual(result.lanes, response.result.lanes);
+  // Preserve even an incorrect native answer; the browser must never repair it.
+  assert.match(result.lanes.turbo.answer, /cannot work without an internet/);
+});
