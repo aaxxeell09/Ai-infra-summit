@@ -1,6 +1,25 @@
 # Build queue and ownership
 
-Last updated: September 15, 2026. Check this file, `AGENTS.md`, open PRs and remote changes before starting a workstream. Commit and push small working milestones often.
+Last updated: September 16, 2026. Check this file, `AGENTS.md`, open PRs and remote changes before starting a workstream. Commit and push small working milestones often.
+
+## Immediate demo priority — September 16 morning
+
+The next deliverable is **local inference tuning with verified agent actions**.
+See [the three-minute runbook](docs/narrow-demo-runbook.md) and
+[the four-slide deck](demo/local-turbo-narrow-demo-v3.pptx). Broader backlog below
+is preserved; it is not evidence that unfinished features are demo-ready.
+
+- [x] Verify the 4B public invoice fixture through real MCP, including content and surrounding file hashes. Existing exact-call grade still fails; see `benchmarks/results/feedback-mcp-1300/`.
+- [x] Publish balanced repeated QAIRT output-stopping evidence: 34.48% lower mean inference latency, caused by shorter generation. No native tokens/s, energy or quality-gate win.
+- [x] Publish and visually inspect a concise, evidence-scoped PowerPoint and presenter runbook.
+- [x] Integrate and locally test the bounded one-command presenter CLI, including recorded-payload verification and malformed-reply failures.
+- [ ] Verify the new presenter entrypoint in a successful hardware rehearsal. Its underlying MCP path already has recorded evidence.
+- [ ] Restore reachability, collect the already launched `Qualcomm-Bound-MCP-1400` result, verify configuration binding and file state, and check gateway restoration before starting another job. Last SSH attempts timed out; do not duplicate the existing campaign.
+- [ ] Replace the teammate frontend's preview finale with a verified live provider; preserve its design ownership and label recorded fallback explicitly.
+- [ ] Review teammate TurboLab branch `claude/beautiful-mayer-gslb35` at `33de023` before integration. It is not yet a validated demo dependency.
+
+All broader quality gates remain unpassed. At 09:00 Pacific, stop starting
+experiments and leave the scheduled final handoff.
 
 ## Current execution order — Qualcomm feedback
 
@@ -56,7 +75,8 @@ Owner: worker in `feat/model-catalog`; hardware execution: main agent.
 
 - [x] Qwen3-0.6B dense text model: actual CPU/GPU/NPU/hybrid inference verified.
 - [x] Finish Qwen3-1.7B Q4_0 download, verify checksum and benchmark (10 real backend/thread cells; publication review pending).
-- [ ] Finish Qwen3-4B-Instruct-2507 Q4_0 download, verify checksum and benchmark.
+- [x] Finish Qwen3-4B-Instruct-2507 Q4_0 download, verify checksum and benchmark. Full result 37/50; quality gate unpassed. See `eval/results/candidate_qwen4b-cpu10-v2.md`.
+- [x] Download/checksum and exercise 8B and 20B models. 8B full result 38/50; 20B development 0/35 from incompatible output format. Native generation is not Secretary eligibility; see `eval/results/qwen8b-full-1200/` and `eval/results/large-model-dev-1100/`.
 - [ ] Add a very small instruction model from another family; identify exact model/quantization and license.
 - [ ] Add an IBM Granite or Mamba-family candidate; verify actual architecture and installed-runtime support rather than assuming support from its name.
 - [ ] Add a multimodal candidate with matching projector or compiled bundle and a fixed image workload.

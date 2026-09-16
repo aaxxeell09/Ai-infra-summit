@@ -5,6 +5,41 @@ Save results and a morning handoff at the cutoff. Scheduled hourly continuation
 is installed in the current task, ending at the cutoff. Pause that automation
 when producing the final morning handoff.
 
+## 15:00 UTC checkpoint — narrow demo packaged, remote still unavailable
+
+- Latest SSH checks at 14:56 and 14:58 UTC timed out. No new hardware jobs
+  launched and no result assumed from the already scheduled bound MCP campaign.
+  Follow the next scheduled reachability check; inspect existing processes/task
+  status and retrieve both rounds before claiming tuner-to-task integration.
+- Committed/pushed `78a8146`: four-slide editable PPTX at
+  `demo/local-turbo-narrow-demo-v3.pptx`, validation receipt and three-minute
+  runbook. Final PPTX was reimported, all four slides rendered and inspected;
+  chart/workbook, package, layout and font checks passed. Native PowerPoint
+  opening was not tested. The deck explicitly uses recorded evidence and keeps
+  quality failures and frontend preview limitations visible.
+- Fresh bounded Flash worker produced presenter CLI `eb70c1c`, integrated as
+  `377ad5d`; owner review hardened missing/malformed/duplicate replies, task/model
+  identity, verified 4B hash, ignored output containment and snapshot validation.
+  Worker stopped after its initial implementation; owner completed the review.
+  29 focused tests and 12 subtests pass, including replay of the committed public
+  hardware response. This is local transport/verification testing, not a new
+  successful hardware run. All original verifier fields remain unchanged.
+- The CLI creates a fresh public t13 fixture through the real opt-in MCP server;
+  it reports physical verification separately from exact-call grading and
+  records broader MCP-process timing as well as inner timing scopes. Default
+  service/MCP and frozen evaluation semantics are unchanged. It requires an
+  explicit candidate flag, clean checkout and a fresh ignored `local/` output.
+- GitHub PR1 frontend remains at `204a9fb`, unmerged and untouched. Teammate
+  branch `claude/beautiful-mayer-gslb35` advanced to `33de023` with a substantial
+  TurboLab implementation; review it before integration or hardware execution.
+- Leakage audit remains PASS_WITH_DISCLOSED_EXPOSURE: no runtime-source match,
+  archive-integrity error or unreviewed exposure. No new correctness/speed result.
+- Next: retrieve `bound-mcp-1400/local/bound-mcp-loop-1400/integration.json`,
+  validate native bindings/filesystem outcomes and gateway restoration. Rehearse
+  the presenter CLI only after exclusive hardware is confirmed. If unreachable,
+  use recorded evidence explicitly. Stop new experiments at 16:00 UTC, preserve
+  pending results and pause the overnight automation. No worker remains active.
+
 ## 14:00 UTC checkpoint — fresh recommendation binding queued
 
 - Pushedf1b8298 and3380a65: `verify_tuner_loop.py --feedback-mcp` now runs the

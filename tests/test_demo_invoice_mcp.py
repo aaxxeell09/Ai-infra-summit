@@ -39,7 +39,8 @@ def structured(final=None, verification=None, completed=True,
                               "final_snapshot": final,
                               "timing_scope": "loop scope"},
                      "timing_scope": "diagnostic scope"},
-          "identity": {"diagnostic_elapsed_s": 1.25}}
+          "identity": {"diagnostic_elapsed_s": 1.25,
+                       "model_sha256": demo_invoice_mcp.MODEL_SHA256}}
     if is_error:
         sc.update({"isError": True, "error": error})
     return sc
@@ -89,7 +90,7 @@ class DemoCase(unittest.TestCase):
         self.killed = []
         patches = [
             mock.patch.object(demo_invoice_mcp, "_preflight",
-                              return_value=([], "fakecommit")),
+                              side_effect=lambda *_: ([], "fakecommit")),
             mock.patch.object(demo_invoice_mcp, "_terminate_tree",
                               side_effect=lambda proc: self.killed.append(
                                   proc.pid)),
@@ -195,6 +196,103 @@ class DemoCase(unittest.TestCase):
             demo_invoice_mcp.main(["--config", str(self.config),
                                    "--output", str(self.output)])
         self.assertNotEqual(caught.exception.code, 0)
+
+    def test_missing_call_cannot_exit_success(self):
+        lines = fake_stdout().splitlines()[:2]
+        self._set_proc(stdout=b"\n".join(lines))
+        code, summary = self._run_main()
+        self.assertEqual(code, 1)
+        self.assertFalse(summary["transport_completed"])
+
+    def test_malformed_result_types_fail_without_crashing(self):
+        for reply_id in (1, 3, 4):
+            with self.subTest(reply_id=reply_id):
+                self.output = self.root / ("malformed-%s" % reply_id)
+                frames = [json.loads(x) for x in fake_stdout().splitlines()]
+                next(f for f in frames if f["id"] == reply_id)["result"] = []
+                self._set_proc(stdout=("\n".join(map(json.dumps, frames))).encode())
+                code, summary = self._run_main()
+                self.assertEqual(code, 1)
+                self.assertFalse(summary["transport_completed"])
+
+    def test_mismatched_native_model_is_rejected(self):
+        sc = structured()
+        sc["identity"]["model_sha256"] = "f" * 64
+        self._set_proc(sc=sc)
+        code, summary = self._run_main()
+        self.assertEqual(code, 1)
+        self.assertTrue(any("verified 4B weights" in e for e in summary["errors"]))
+
+    def test_task_and_alias_mismatch_rejected(self):
+        for field in ("task_id", "model_id"):
+            with self.subTest(field=field):
+                self.output = self.root / ("identity-" + field)
+                sc = structured()
+                sc[field] = "unexpected"
+                self._set_proc(sc=sc)
+                code, summary = self._run_main()
+                self.assertEqual(code, 1)
+                self.assertIn("diagnostic task/model identity mismatch", summary["errors"])
+
+    def test_real_recorded_payload_preserves_verdict_and_timing(self):
+        # Replay only the committed public MCP response; no inference occurs.
+        sc = json.loads((REPO_ROOT / "benchmarks/results/feedback-mcp-1300/result.json").read_text())
+        self._set_proc(sc=sc)
+        code, summary = self._run_main()
+        self.assertEqual(code, 0)
+        self.assertTrue(summary["file_move"]["verified"])
+        self.assertEqual(summary["existing_demo_verification"], sc["existing_demo_verification"])
+        self.assertFalse(summary["existing_demo_verification"]["passed"])
+        self.assertEqual(summary["timing"]["loop"]["elapsed_s"], sc["report"]["loop"]["elapsed_s"])
+        self.assertEqual(summary["timing"]["diagnostic"]["elapsed_s"], sc["identity"]["diagnostic_elapsed_s"])
+
+
+class ValidationCase(unittest.TestCase):
+    def test_ambiguous_reply_ids_rejected(self):
+        original = {"jsonrpc": "2.0", "id": 1, "result": {}}
+        for other in (original, {**original, "id": True}, {**original, "id": "1"}):
+            with self.subTest(other=other):
+                _, _, errors = demo_invoice_mcp._parse_replies(
+                    json.dumps(original) + "\n" + json.dumps(other))
+                self.assertTrue(errors)
+
+    def test_unverifiable_hashes_do_not_prove_a_move(self):
+        result = demo_invoice_mcp._check_move(
+            {demo_invoice_mcp.EXPECTED_SOURCE: "same"},
+            {demo_invoice_mcp.EXPECTED_DESTINATION: "same"})
+        self.assertFalse(result["verified"])
+
+    def test_preflight_output_boundaries(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            config = root / "config.json"
+            config.write_text('{"sdk_dir":"sdk","model_path":"model"}')
+            (root / "local").mkdir()
+            (root / "outside").mkdir()
+            (root / "local" / "escape").symlink_to(root / "outside", target_is_directory=True)
+            for destination, allowed in [
+                (root / "local" / "new", True),
+                (root / "elsewhere" / "new", False),
+                (root / "local", False),
+                (root / "local" / "escape" / "new", False),
+            ]:
+                with self.subTest(destination=destination), mock.patch.object(
+                        demo_invoice_mcp, "ROOT", root), mock.patch.object(
+                        demo_invoice_mcp.subprocess, "check_output", side_effect=["abc", ""]), mock.patch.object(
+                        demo_invoice_mcp.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)):
+                    errors, _ = demo_invoice_mcp._preflight(config, destination)
+                    self.assertEqual(not errors, allowed)
+
+    def test_not_ignored_output_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            config = root / "config.json"
+            config.write_text('{"sdk_dir":"sdk","model_path":"model"}')
+            with mock.patch.object(demo_invoice_mcp, "ROOT", root), mock.patch.object(
+                    demo_invoice_mcp.subprocess, "check_output", side_effect=["abc", ""]), mock.patch.object(
+                    demo_invoice_mcp.subprocess, "run", return_value=subprocess.CompletedProcess([], 1)):
+                errors, _ = demo_invoice_mcp._preflight(config, root / "local" / "new")
+                self.assertIn("output path must be ignored by Git", errors)
 
 
 if __name__ == "__main__":

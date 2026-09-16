@@ -22,23 +22,25 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import signal
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TIMEOUT_S = 240
 MODEL_ID = "qwen4b"
+MODEL_SHA256 = "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2"
 TASK_ID = "t13"
 PROTOCOL_VERSION = "2025-06-18"
 TOOL_NAME = "local_feedback_diagnostic"
 EXPECTED_SOURCE = "drafts/hexagon-invoice.md"
 EXPECTED_DESTINATION = "invoices/2026/hexagon-invoice.md"
-SOURCE = ("scripts/demo_invoice_mcp.py spawned a real 'python -Xutf8 -m "
-          "turbo.feedback_mcp' subprocess over stdio newline-delimited "
-          "JSON-RPC; the inner diagnostic ran scripts/run_secretary_feedback.py "
-          "with the real local qwen4b model; no fake inference")
+SOURCE = ("Live entrypoint: python -Xutf8 -m turbo.feedback_mcp over stdio "
+          "JSON-RPC, then scripts/run_secretary_feedback.py with native local "
+          "inference. Execution success is reported separately below.")
 SCOPE = ("Public demo fixture diagnostic; not frozen secretary-eval-v2 "
          "quality PASS; no rescoring or repair; physical outcome and exact "
          "call grade are reported separately")
@@ -49,6 +51,20 @@ def _preflight(config_path, output_path):
     """Validate config and clean Git source before any output is created."""
     errors = []
     commit = None
+    local_root = ROOT.resolve() / "local"
+    output_path = output_path.resolve()
+    if (local_root.is_symlink() or output_path == local_root
+            or not output_path.is_relative_to(local_root)):
+        errors.append("output must be a new child of this checkout's ignored local/ directory")
+    else:
+        try:
+            ignored = subprocess.run(
+                ["git", "check-ignore", "--quiet", "--", str(output_path)],
+                cwd=str(ROOT), capture_output=True, timeout=10)
+            if ignored.returncode != 0:
+                errors.append("output path must be ignored by Git")
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            errors.append("cannot verify ignored output: %s" % exc)
     if not config_path.is_file():
         errors.append("config not found: %s" % config_path)
     else:
@@ -61,7 +77,7 @@ def _preflight(config_path, output_path):
                     value = config.get(key)
                     if not isinstance(value, str) or not value:
                         errors.append("config missing string key: %s" % key)
-        except ValueError as exc:
+        except (ValueError, OSError) as exc:
             errors.append("config is not valid JSON: %s" % exc)
     try:
         commit = subprocess.check_output(
@@ -73,7 +89,7 @@ def _preflight(config_path, output_path):
             ["git", "status", "--porcelain"], cwd=str(ROOT), text=True)
         if status.strip():
             errors.append("Git source must be clean before creating output; "
-                          "commit or stash local changes")
+                          "use a separate clean committed checkout")
     except (OSError, subprocess.CalledProcessError) as exc:
         errors.append("git status unavailable: %s" % exc)
     if output_path.exists():
@@ -86,7 +102,7 @@ def _terminate_tree(proc):
     """Terminate only the process tree this script spawned."""
     if sys.platform == "win32":
         subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)],
-                       capture_output=True)
+                       capture_output=True, timeout=10)
         try:
             proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
@@ -148,7 +164,11 @@ def _run_server(config_path, output_path, timeout_s):
                 "stdout": out.decode("utf-8", errors="replace"),
                 "stderr": err.decode("utf-8", errors="replace")}
     except subprocess.TimeoutExpired as exc:
-        _terminate_tree(proc)
+        cleanup_error = None
+        try:
+            _terminate_tree(proc)
+        except (OSError, subprocess.TimeoutExpired) as cleanup_exc:
+            cleanup_error = str(cleanup_exc)
         out = exc.stdout if isinstance(exc.stdout, bytes) else (exc.stdout or "")
         err = exc.stderr if isinstance(exc.stderr, bytes) else (exc.stderr or "")
         if isinstance(out, bytes):
@@ -156,6 +176,7 @@ def _run_server(config_path, output_path, timeout_s):
         if isinstance(err, bytes):
             err = err.decode("utf-8", errors="replace")
         return {"timed_out": True, "returncode": None,
+                "cleanup_error": cleanup_error,
                 "stdout": out, "stderr": err}
 
 
@@ -171,8 +192,20 @@ def _parse_replies(raw_stdout):
             parse_errors.append("malformed reply line: %s" % exc)
     by_id = {}
     for frame in frames:
-        if isinstance(frame, dict) and isinstance(frame.get("id"), int):
-            by_id[frame["id"]] = frame
+        if not isinstance(frame, dict) or frame.get("jsonrpc") != "2.0":
+            parse_errors.append("reply is not a JSON-RPC 2.0 object")
+            continue
+        if "id" not in frame and isinstance(frame.get("method"), str):
+            continue  # Protocol notifications are not responses.
+        reply_id = frame.get("id")
+        if type(reply_id) is not int or reply_id not in {1, 3, 4}:
+            parse_errors.append("unexpected or non-integer reply id")
+        elif reply_id in by_id:
+            parse_errors.append("duplicate reply id: %s" % reply_id)
+        elif ("result" in frame) == ("error" in frame):
+            parse_errors.append("reply must contain exactly one of result/error")
+        else:
+            by_id[reply_id] = frame
     return frames, by_id, parse_errors
 
 
@@ -184,6 +217,11 @@ def _check_move(initial, final):
               "verified": False}
     if not isinstance(initial, dict) or not isinstance(final, dict):
         result["reason"] = "initial/final workspace snapshots missing from report"
+        return result
+    if any(not isinstance(k, str) or not isinstance(v, str)
+           or re.fullmatch(r"[0-9a-f]{64}", v) is None
+           for snapshot in (initial, final) for k, v in snapshot.items()):
+        result["reason"] = "workspace snapshots must contain SHA-256 file hashes"
         return result
     removed = {k: v for k, v in initial.items() if k not in final}
     added = {k: v for k, v in final.items() if k not in initial}
@@ -241,6 +279,7 @@ def parse_args(argv=None):
 
 def main(argv=None):
     args = parse_args(argv)
+    args.config = args.config.resolve()
     output_path = args.output.resolve()
     summary = {"schema": "demo_invoice_mcp.summary/1",
                "task_id": TASK_ID, "model_id": MODEL_ID,
@@ -256,7 +295,12 @@ def main(argv=None):
         print(json.dumps(summary, ensure_ascii=False, indent=2))
         return 1
     output_path.mkdir(parents=True, exist_ok=False)
+    started = time.perf_counter()
     run = _run_server(args.config, output_path, TIMEOUT_S)
+    summary["mcp_process_elapsed_s"] = time.perf_counter() - started
+    summary["mcp_process_timing_scope"] = (
+        "MCP process launch through exit, including native model load and "
+        "diagnostic; excludes CLI preflight and output serialization")
     (output_path / "mcp-stdout.txt").write_text(
         run["stdout"], encoding="utf-8")
     (output_path / "mcp-stderr.txt").write_text(
@@ -269,37 +313,54 @@ def main(argv=None):
         errors.append("failed to spawn turbo.feedback_mcp: %s"
                       % run["spawn_error"])
     elif run["timed_out"]:
-        errors.append("external process exceeded the %ds watchdog; the "
-                      "owned process tree was terminated" % TIMEOUT_S)
+        errors.append("external process exceeded the %ds watchdog; "
+                      "owned process tree termination was attempted" % TIMEOUT_S)
+        if run.get("cleanup_error"):
+            errors.append("cleanup incomplete; inspect hardware before retry: "
+                          + run["cleanup_error"])
     elif run["returncode"] != 0:
         errors.append("turbo.feedback_mcp exited %s; see mcp-stderr.txt"
                       % run["returncode"])
     init = by_id.get(1)
     tools = by_id.get(3)
     call = by_id.get(4)
-    if init is None or "result" not in init:
+    if init is None or not isinstance(init.get("result"), dict):
         errors.append("initialize response missing or malformed")
-    if tools is None or "result" not in tools:
+    elif init["result"].get("protocolVersion") != PROTOCOL_VERSION:
+        errors.append("initialize protocol version mismatch")
+    if tools is None or not isinstance(tools.get("result"), dict):
         errors.append("tools/list response missing or malformed")
     else:
-        names = [t.get("name") for t in tools["result"].get("tools", [])]
+        advertised = tools["result"].get("tools")
+        if not isinstance(advertised, list) or any(
+                not isinstance(t, dict) for t in advertised):
+            errors.append("tools/list tools must be a list of objects")
+            advertised = []
+        names = [t.get("name") for t in advertised]
         if TOOL_NAME not in names:
             errors.append("tools/list did not advertise %s" % TOOL_NAME)
-    transport_completed = (not errors and init is not None
-                           and tools is not None
-                           and call is not None and "result" in call)
+    if call is None or not isinstance(call.get("result"), dict):
+        errors.append("tools/call response missing or malformed")
+    transport_completed = not errors
     if transport_completed:
         sc = call["result"].get("structuredContent")
         if not isinstance(sc, dict):
             errors.append("tools/call reply has no structured diagnostic "
                           "content")
         else:
+            if sc.get("model_id") != MODEL_ID or sc.get("task_id") != TASK_ID:
+                errors.append("diagnostic task/model identity mismatch")
             if call["result"].get("isError") or sc.get("isError"):
                 errors.append("tools/call returned a structured error: %s"
                               % (sc.get("error") or "isError flag set"))
             if sc.get("completed") is not True:
                 errors.append("diagnostic reported completed=false")
             verification, timing, loop, _report = _extract(sc)
+            identity = sc.get("identity")
+            if not isinstance(identity, dict) or identity.get("model_sha256") != MODEL_SHA256:
+                errors.append("diagnostic does not identify the verified 4B weights")
+            summary["native_identity"] = identity
+            summary["native_config"] = _report.get("config")
             summary["existing_demo_verification"] = verification
             summary["timing"] = timing
             summary["file_move"] = _check_move(

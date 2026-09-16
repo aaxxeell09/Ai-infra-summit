@@ -46,7 +46,9 @@ inference process is running. Stop the existing gateway for this isolated demo;
 if its known service child remains listening, reconcile it before proceeding.
 Do not launch a second copy after an uncertain timeout.
 
-The one-command presenter entrypoint (when integrated) is:
+The one-command presenter entrypoint is implemented and locally tested. A successful
+hardware run of this new entrypoint remains pending; the underlying MCP path has
+recorded hardware evidence. Run:
 
 ```powershell
 python -X utf8 scripts/demo_invoice_mcp.py --enable-candidate --config local/qwen4b-cpu10-config.json --output local/live-invoice-demo-001
@@ -54,8 +56,12 @@ python -X utf8 scripts/demo_invoice_mcp.py --enable-candidate --config local/qwe
 
 Use a new output directory for every attempt. Preserve failures and logs.
 The command talks to the real opt-in MCP server; it does not simulate model text.
-Inspect the summary and original report, including the unchanged exact-call
-verdict. Restore the normal gateway afterward and verify its status separately.
+Inspect `summary.json` and the original report. Require `file_move.verified=true`
+for the physical-action claim; `ok` and exit zero describe transport/runtime
+completion only. The unchanged exact-call verdict remains separate. The summary
+also checks the verified 4B weights hash and records native identity/config.
+MCP-process timing includes launch, model loading and child exit; the reported
+feedback-loop timing has a narrower scope. Restore the normal gateway afterward and verify its status separately.
 This entrypoint does not assert that a fresh tuner recommendation was applied.
 
 The existing standalone server command, already verified on hardware, is:
