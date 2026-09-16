@@ -63,7 +63,7 @@ def measured_run(config, metadata, cases, codec, execute, fixture_root, protocol
             runtime = native_runtime(config['sdk_dir'])
             stack.callback(runtime.close)
             kwargs = {k:config[k] for k in ('device','threads','context','threads_batch','ubatch',
-                      'n_batch','spec_type','draft_tokens','plugin','backend') if k in config}
+                      'n_batch','spec_type','draft_tokens','plugin','backend','stop_after_tool_call') if k in config}
             model = stack.enter_context(native_model(runtime, config['model_path'],
                                       generation_observer=session, **kwargs))
         metadata['inference_backend'] = {**model.provenance(), 'model_path_or_id':metadata['model_label']}

@@ -181,6 +181,15 @@ The repository's newer context tests require pytest; dataset validation and the 
 
 152 tests and 5 subtests passed on the development Mac, including 22 evaluation tests; all 50 golden cases validate and the held-out exact-text scan found no duplicates outside the canonical dataset. Synthetic test outputs are not model results. A bounded independent review checked scoring/provenance; its two baseline-approval findings were fixed. External Fable/Claude review is unavailable on this Mac because the Claude executable is absent.
 
+## Frozen checkout bytes
+
+The root `.gitattributes` contains `eval/fixtures/secretary_workspace/** -text`
+(introduced in `ef9bb66`). This disables Git line-ending conversion for every
+nested fixture, including binary assets. Do not renormalize or edit these files.
+`tests/test_fixture_checkout.py` verifies index and checkout bytes with
+`core.autocrlf=true` in a temporary repository, including a control file that
+actually converts to CRLF. Run `python eval/validate_dataset.py` after a Windows
+checkout; changing attributes does not repair an already modified working file.
 
 ### September 15 integration findings for benchmark ownership
 

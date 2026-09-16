@@ -62,7 +62,8 @@ def execute(cases, codec, complete, fixture_root=None, measurement=None):
                            timings=output.get('timings'), selected_device=output.get('device'),
                            selected_route=None, routing_accuracy=None,
                            backend_id=output.get('backend_id'), runtime=output.get('runtime'),
-                           requested_device=output.get('requested_device'), resolved_device=output.get('resolved_device'))
+                           requested_device=output.get('requested_device'), resolved_device=output.get('resolved_device'),
+                   generation_control=output.get('generation_control'))
                 if error:
                     row['task_success'] = False
                     row['failure_reasons'] = ['TIMEOUT' if error in {'TimeoutError','TimeoutExpired'} else 'MODEL_ERROR']
@@ -134,7 +135,7 @@ def markdown(report):
 def run_uninstrumented(config, metadata, cases, codec, NativeRuntime, NativeModel):
     runtime = NativeRuntime(config['sdk_dir'])
     try:
-        kwargs = {k:config[k] for k in ['device','threads','context','threads_batch','ubatch','n_batch','spec_type','draft_tokens','plugin','backend'] if k in config}
+        kwargs = {k:config[k] for k in ['device','threads','context','threads_batch','ubatch','n_batch','spec_type','draft_tokens','plugin','backend','stop_after_tool_call'] if k in config}
         with NativeModel(runtime, config['model_path'], **kwargs) as model:
             metadata['inference_backend'] = {**model.provenance(), 'model_path_or_id': metadata['model_label']}
             def complete(messages):
@@ -180,7 +181,7 @@ def main(argv=None):
         p.error('--config is required for measured execution; no model fallback or mock baseline')
     config = json.loads(args.config.read_text())
     allowed = {'sdk_dir', 'model_path', 'device', 'threads', 'context', 'threads_batch', 'ubatch', 'n_batch',
-               'spec_type', 'draft_tokens', 'plugin', 'backend', 'max_tokens', 'grammar', 'hardware_note'}
+               'spec_type', 'draft_tokens', 'plugin', 'backend', 'stop_after_tool_call', 'max_tokens', 'grammar', 'hardware_note'}
     if set(config) - allowed:
         p.error('Unknown configuration keys: ' + ', '.join(sorted(set(config)-allowed)))
     if config.get('grammar'):

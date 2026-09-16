@@ -26,7 +26,7 @@ def main():
     runtime = NativeRuntime(config['sdk_dir'])
     try:
         kwargs = {k: config[k] for k in ('backend', 'plugin', 'device', 'context', 'threads',
-                  'threads_batch', 'n_batch', 'ubatch', 'spec_type', 'draft_tokens') if k in config}
+                  'threads_batch', 'n_batch', 'ubatch', 'spec_type', 'draft_tokens', 'stop_after_tool_call') if k in config}
         with NativeModel(runtime, config['model_path'], **kwargs) as model:
             result = model.chat([{'role': 'user', 'content': args.prompt}], max_tokens=16,
                                 temperature=0, reset=True)
