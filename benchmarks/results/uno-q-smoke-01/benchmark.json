@@ -1,0 +1,80 @@
+{
+  "schema_version": "4",
+  "cell_id": "cell",
+  "plugin": "llama_cpp",
+  "device": "cpu",
+  "device_id": null,
+  "model_path": "smollm2-360m-instruct-q8_0.gguf",
+  "model_size_bytes": 386404992,
+  "qairt_version": null,
+  "llama_cpp_version": "0eadefe",
+  "params": {
+    "warmup": 0,
+    "repetitions": 1,
+    "n_prompt": 512,
+    "n_gen": 16,
+    "temperature": 0.0,
+    "seed": 42,
+    "n_ctx": 512,
+    "n_threads": 2,
+    "n_gpu_layers": 0
+  },
+  "runs": [
+    {
+      "run_idx": 0,
+      "ttft_us": 1835518,
+      "media_us": 0,
+      "prompt_time_us": 1834452,
+      "decode_time_us": 1060094,
+      "prompt_tokens": 39,
+      "gen_tokens": 8,
+      "prefill_tps": 21.259755,
+      "decode_tps": 7.546501,
+      "stop_reason": "eos"
+    },
+    {
+      "run_idx": 1,
+      "ttft_us": 2060241,
+      "media_us": 0,
+      "prompt_time_us": 2059607,
+      "decode_time_us": 931375,
+      "prompt_tokens": 44,
+      "gen_tokens": 7,
+      "prefill_tps": 21.363299,
+      "decode_tps": 7.51577,
+      "stop_reason": "eos"
+    }
+  ],
+  "agg": {
+    "ttft_ms": {
+      "median": 1947.8795,
+      "min": 1835.518,
+      "max": 2060.241,
+      "mean": 1947.8795,
+      "stdev": 158.903157
+    },
+    "prefill_tps": {
+      "median": 21.311527,
+      "min": 21.259755,
+      "max": 21.363299,
+      "mean": 21.311527,
+      "stdev": 0.073217
+    },
+    "decode_tps": {
+      "median": 7.531135,
+      "min": 7.51577,
+      "max": 7.546501,
+      "mean": 7.531135,
+      "stdev": 0.02173
+    },
+    "gen_tokens": {
+      "median": 7.5
+    },
+    "prompt_tokens": {
+      "median": 41.5
+    },
+    "media_ms": {
+      "median": 0.0
+    }
+  }
+}

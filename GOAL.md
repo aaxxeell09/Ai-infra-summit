@@ -13,7 +13,7 @@ The product target is time and energy to a correct useful task, with native deco
 ## Hardware and offline requirement
 
 - Primary: Dell Latitude 7455, Snapdragon X Elite X1E80100, 32 GB RAM, Adreno X1-85, Windows ARM64.
-- Optional edge node/controller: Arduino UNO Q ABX00162 with Modulino buttons, knob, buzzer, pixels and vibration modules as available. Register it as a separate device only after probing its actual capabilities. Linux ARM64 CPU inference is a candidate, not a proven capability yet.
+- Optional edge node/controller: Arduino UNO Q ABX00162 with Modulino buttons, knob, buzzer, pixels and vibration modules as available. Register it as a separate device only after probing its actual capabilities. Linux ARM64 CPU inference is demonstrated with SmolLM2-360M Q8_0; the two diagnostic outputs failed exact formatting and do not establish Secretary eligibility. See `benchmarks/results/uno-q-smoke-01/`.
 - Core operation must work without the internet after installation and model download. No hidden cloud inference or hosted scoring dependency.
 - Credentials, addresses, connection details, model weights and raw private captures stay outside Git.
 
@@ -97,7 +97,7 @@ Greedy top-k workaround candidate (`41260c4`): **29/50 (58%)**, mean inference *
 
 ## Immediate priorities
 
-1. Secure unattended access before the Latitude is left at the venue. Tailscale SSH is verified on the current network; a different-network reconnect and desktop session still need verification. Keep the machine awake with a bounded process-scoped request.
+1. Secure unattended access before the Latitude is left at the venue. Fresh Tailscale SSH is verified after the Mac changed networks, and the local tunnel supervisor restarts successfully. Graphical desktop authentication still needs the Microsoft-backed Windows account credential. Keep the machine awake with a bounded process-scoped request.
 2. **Highest-priority engineering experiment: Qwen3-0.6B through native QAIRT.** The installed GenieX 0.6.1 catalog lists it for the detected X Elite; QAIRT 2.45 is installed. Finish the official artifact download, record its compiled context/precision/hash, and prove actual QAIRT/Hexagon execution. Keep GGUF `llama_cpp` HTP0, GGUF CPU10 and compiled `qairt` NPU distinct. No grammar, routing or context changes in this first comparison.
 3. Run the unchanged Secretary development benchmark on the stable QAIRT path, then the full 50-case serious candidate. Preserve the frozen reference and all failures. Classify QAIRT as a different model/runtime deployment artifact, not a same-weights kernel speedup. Compare useful task latency, correctness, phase timings, memory and energy with matched boundaries.
 4. Complete the hash-bound tuner → recommendation → exact apply → correct task → MCP loop. Wire teammate frontend to real sequential trials. Hardware policy changes must alter the same applied configuration and show acknowledged feedback.

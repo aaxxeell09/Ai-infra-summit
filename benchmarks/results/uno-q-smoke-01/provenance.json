@@ -1,0 +1,38 @@
+{
+  "status": "diagnostic_smoke",
+  "hardware": "Arduino UNO Q ABX00162, Dragonwing QRB2210",
+  "os": "Debian Linux aarch64, glibc 2.41",
+  "memory_mib_observed": 1737,
+  "model": "SmolLM2-360M-Instruct Q8_0",
+  "model_sha256": "48ab3034d0dd401fbc721eb1df3217902fee7dab9078992d66431f09b7750201",
+  "sdk": "GenieX 0.6.1 Linux ARM64 CPU SDK",
+  "sdk_archive_sha256": "3ee663c5f47f8bc7857fe76c91da7f1c95ad88ddac6d2e27c01c59c0e9d2989f",
+  "source_application_commit": "9288aeb1fce7b94a08918543e98694392669f0da",
+  "exit_code": 0,
+  "plugin": "llama_cpp",
+  "device": "cpu",
+  "npu_verified": false,
+  "warmup": 0,
+  "kv_reset_per_prompt": true,
+  "thinking": false,
+  "scope": "Two different diagnostic prompts, one call each; SDK verbose logging enabled. Not a paired benchmark or Secretary quality evaluation.",
+  "prompts": [
+    {
+      "prompt": "Reply with exactly the word hello.",
+      "output": "Hello, this is a helpful assistant.",
+      "exact_format_pass": false
+    },
+    {
+      "prompt": "What is two plus three? Reply with just the number.",
+      "output": "2 + 3 = 5",
+      "exact_format_pass": false
+    }
+  ],
+  "command": "LD_LIBRARY_PATH=\"$SDK/lib:$SDK/lib/llama_cpp\" timeout 120 \"$SDK/bin/geniex-bench\" --plugin llama_cpp --device cpu -m \"$MODEL\" -t 2 -c 512 -n 16 --accuracy --prompt-file smoke-prompts.txt --no-think --output-json uno-smoke.json",
+  "power_joules": null,
+  "peak_process_memory_mib": null,
+  "secretary_quality_eligible": false,
+  "redactions": [
+    "model_path reduced to basename; original raw output retained privately"
+  ]
+}
