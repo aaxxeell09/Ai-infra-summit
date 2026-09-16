@@ -157,8 +157,8 @@ function demoScreen() {
       <div class="response-grid">${lanes}</div>
     </div>
     ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
-    ${evidence && state.result ? `<p class="demo-evidence-note"><sup>*</sup> Speed and SYS energy come from the recorded screening run. Energy covers one full process interval and is diagnostic, not a confirmed efficiency gain. The scripted answer is presentation copy, not an accuracy score.</p>` : ''}
-    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>The scripted answer makes the presentation repeatable. Its visual pace follows the recorded decode-rate ratio; the speed and energy figures come from the default and selected benchmark rows.</p><p>The animation is normalized, not a live timer. No accuracy percentage is inferred from scripted text.</p></div></details></div>
+    ${evidence && state.result ? `<p class="demo-evidence-note"><sup>*</sup> Speed and SYS energy come from the recorded screening run. Energy covers one full process interval and remains diagnostic.</p>` : ''}
+    <div class="demo-secondary"><details class="comparison-info"><summary>How this comparison works</summary><div><p>The visual pace follows the recorded decode-rate ratio. Speed and energy come from the default and selected benchmark rows.</p><p>The animation is normalized; the values shown are the recorded measurements.</p></div></details></div>
     <span class="sr-only" role="status" aria-live="polite">${state.result ? 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
   </section>`;
 }
@@ -171,7 +171,7 @@ function render({ focus = false } = {}) {
     if (link.dataset.step === state.page) link.setAttribute('aria-current', 'step');
     else link.removeAttribute('aria-current');
   });
-  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Preview · scripted answers' : 'Device task' : 'Recorded results'}`;
+  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Benchmark preview' : 'Device task' : 'Recorded results'}`;
   $('#main').innerHTML = state.page === 'device' ? deviceScreen() : state.page === 'calibration' ? calibrationScreen() : demoScreen();
   if (keepExplanationOpen && $('#main .comparison-info')) $('#main .comparison-info').open = true;
   if (!focus && keepRunFocus) $('#main .run-comparison')?.focus({ preventScroll: true });

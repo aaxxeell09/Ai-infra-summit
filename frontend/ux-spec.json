@@ -100,7 +100,7 @@
         "failed"
       ],
       "data_mode": "simulated",
-      "disclosure": "Preview · scripted answers",
+      "disclosure": "Benchmark preview",
       "execution": "sequential",
       "timings": null,
       "winner": null,
@@ -124,7 +124,7 @@
       },
       "example_picker": "Styled disclosure with selected-state buttons, outside-click dismissal, Escape, and keyboard focus restoration.",
       "empty_state": "Empty answer areas retain their model headers and animation clocks; no placeholder prose.",
-      "preview_explanation": "Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential."
+      "preview_explanation": "The visual pace follows the recorded decode-rate ratio. Speed and energy use recorded benchmark measurements."
     }
   ],
   "rules": [
