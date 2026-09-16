@@ -5,6 +5,34 @@ Save results and a morning handoff at the cutoff. Scheduled hourly continuation
 is installed in the current task, ending at the cutoff. Pause that automation
 when producing the final morning handoff.
 
+## 10:00 UTC checkpoint — grammar diagnostic and larger models
+
+- Commit `31bb6a1` is pushed. An independent Flash/medium review found the
+  diagnostic could exit successfully after a runtime error. That is fixed;
+  effective loop limits are now passed explicitly and recorded. Focused tests:
+  **33 passed**. The review's proposed dataset-selector concern was rejected:
+  this standalone CLI only loads the public demonstration tasks.
+- Both pinned downloads on the Latitude are complete and checksum-verified:
+  Qwen3-8B Q4_K_M (5,027,784,512 bytes; SHA-256
+  `120307ba529eb2439d6c430d94104dabd578497bc7bfe7e322b5d9933b449bd4`)
+  and gpt-oss-20b MXFP4 (12,109,566,624 bytes; SHA-256
+  `27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901`).
+  Download success does not establish runtime support. Preflight architecture
+  and quantization before attempting either model.
+- A separate opt-in structured-output diagnostic uses a native exact-output
+  grammar canary before any fixture action. The tool grammar is derived from
+  current schemas; no fixture answers or filenames are embedded. This leaves
+  the frozen evaluator, service and default behavior unchanged.
+- Inspect scheduled task `Qualcomm-Grammar-1000` and checkout `grammar-1000`,
+  pinned to `31bb6a1`. Supervisor: `local/feedback-supervisor/status.json`;
+  result: `local/invoice-grammar-1000/diagnostic.json`. The child has a 180-second
+  watchdog, and the supervisor requests gateway restoration on completion.
+  Hardware is isolated from the now-completed downloads. Collect and publish
+  the outcome next wake; no successful invoice task is claimed yet.
+- Next priorities: inspect this diagnostic, verify gateway restoration, then
+  preflight 8B/20B and use the existing experiment tracker for any formal run.
+  Preserve all prior results and the unchanged quality gate. Stop by 16:00 UTC.
+
 ## Guardrails and ownership
 
 Preserve the main Mac checkout: it has uncommitted reversions affecting 16 files.
