@@ -22,12 +22,12 @@ npm test
 - All ten recorded screening configurations and provisional configuration/evidence export.
 - The Compare screen adds one compact QAIRT before/after finding beneath the original same-model tuning chart. Larger-model milestones remain available in Benchmark evidence; the main presentation labels the result experimental and does not name a qualified winner.
 - The final screen compares **Default setup** with **Local Turbo**, using one shared prompt and launch button.
-- **Speed** carries the recorded default and the selected settings for the same model. **Model routing** illustrates candidate roles for a quick explanation or reasoning question; no calibrated model choice is claimed.
+- **Speed** carries the recorded default and the selected settings for the same model. **Model routing** selects a registered model/backend using an explicit experimental task policy, or a manual QAIRT/HTP/GPU/CPU choice; no calibrated optimum is claimed.
 - Optional real sequential answers on the Latitude, with applied configuration acknowledgements, native metrics, cancellation and result export. Without the live connection configured, an explicitly labelled scripted preview remains available.
 
 ## Live scope
 
-The Speed comparison can call actual inference and apply the recorded CPU settings using `public/live-comparison.mjs`. The [browser rehearsal](../benchmarks/results/live-ui-1720/README.md) verifies that path. Routing, GPU/NPU answer comparisons and answer-quality grading remain unavailable. See [comparison-contract.md](comparison-contract.md) and the opt-in instructions below.
+The Speed comparison applies recorded CPU, Adreno GPU or Hexagon HTP settings using `public/live-comparison.mjs`. The original [CPU browser rehearsal](../benchmarks/results/live-ui-1720/README.md) verifies the initial path. Model routing now supports QAIRT and a larger 4B model through the [experimental task policy](../docs/live-backend-routing.md). Answer-quality grading remains unavailable. See [comparison-contract.md](comparison-contract.md) and the opt-in instructions below.
 
 The earlier `public/demo.mjs`, its tests and `task-contract.md` preserve the previous file-task adapter for reference. They are **not used by the current screen**. File operations are no longer the presentation workflow.
 
@@ -75,7 +75,7 @@ See [comparison-contract.md](comparison-contract.md). Keep device addresses/cred
 ## Opt-in live answer demo
 
 The native gateway now supports the final screen's two public prompts using the
-recorded 0.6B weights and CPU settings. Enable `live_comparison_enabled: true` in
+recorded 0.6B GGUF weights on CPU/GPU/HTP, plus registered QAIRT and 4B routes. Enable `live_comparison_enabled: true` in
 its private config, then start this frontend with a local gateway or SSH tunnel:
 
 ```sh
@@ -87,16 +87,16 @@ remains available. A configured but unreachable live device is an error; it neve
 silently substitutes scripted answers. Invalid non-loopback/credential URLs
 prevent startup. The existing visual design is preserved.
 
-Choose **Speed** and a **CPU configuration**, then **Run on Latitude**. Both
+Choose **Speed** and a supported **CPU, GPU or NPU configuration**, then **Run on Latitude**. Choose **Model routing → Auto** to apply the public-demo task policy, or select a specific registered route. Both
 answers come from sequential native inference with the selected model/config
 acknowledged. The live view shows lane load+answer+unload time, native TTFT,
 actual output-token counts and native decode rate. It does not use browser
 animation time as inference latency. Recorded charts remain recorded charts.
-Routing and GPU/NPU answer comparisons are not enabled by this adapter.
+Routing is a separate compiled-artifact/model comparison. The reason, native backend and resolved device are shown; SDK placement is not a utilization measurement.
 
 Stop requests cancellation and waits for native cleanup. Unknown execution
 retains its request ID in session storage; **Check device status** reconciles it
 before another run. First-lane evidence survives second-lane failure. Download
 the complete result for configuration hashes, generation policy and timing
-scopes. Different answer lengths and uncontrolled sampling remain visible;
+scopes. Per-plugin sampler settings and different answer lengths remain visible;
 one pair does not establish a confirmed speed or quality win.

@@ -1,10 +1,10 @@
 # Prompt comparison finale
 
-Status: **live CPU Speed path verified in the browser on the Latitude**; [rehearsal evidence](../benchmarks/results/live-ui-1720/README.md). Model routing and GPU/NPU answer comparisons remain unavailable. No file operations. `comparison.mjs` exports the request builder, lane descriptions and scripted provider; `live-comparison.mjs` supplies the opt-in native provider. The UI supports two fixed examples, not arbitrary edited prompts.
+Status: **live CPU Speed path verified in the browser on the Latitude**; [rehearsal evidence](../benchmarks/results/live-ui-1720/README.md). The adapter now also supports GPU/HTP and experimental model routing; see [the native routing contract](../docs/live-backend-routing.md). No file operations. `comparison.mjs` exports the request builder, lane descriptions and scripted provider; `live-comparison.mjs` supplies the opt-in native provider. The UI supports two fixed examples, not arbitrary edited prompts.
 
 ## Current preview
 
-`createComparisonRequest(snapshot, selectedRow, metric, mode, promptId, requestId)` returns `local-turbo.comparison-request.v1`, the shared prompt, sequential execution, recorded default configuration and, in speed mode, the selected same-model configuration. In routing mode the selected model is null and routing explicitly has `pending_calibration` status. Candidate role names are editorial examples, not real model IDs or classifier decisions.
+`createComparisonRequest(snapshot, selectedRow, metric, mode, promptId, requestId)` returns `local-turbo.comparison-request.v1`, the shared prompt, sequential execution, recorded default configuration and, in speed mode, the selected same-model configuration. In routing mode `selected` is null and `routing` contains `selection` (`auto` or a registered route ID), `policy: public-demo-v1`, and explicit `allow_uncalibrated: true`. The gateway reports its actual choice in a `route` event and the final result. This is a fixed public-prompt task policy, not a calibrated classifier.
 
 `createPreviewComparisonProvider().execute(request, {signal, onEvent})` emits `start`, `text` and `complete` events for the default lane followed by the turbo lane. Text chunks are animation fragments, never token counts. It returns `local-turbo.comparison-result.v1` with null timing, output-token counts, winner and speedup; quality is `not_evaluated`. Both lanes use the same scripted answer and animation pace. Abort ends the preview; resets and changed selections discard stale results.
 
@@ -12,7 +12,7 @@ The view also keeps independent browser animation clocks: start on each lane’s
 
 ## Live integration requirements
 
-The separate live provider updates the view's labels and metric bindings. `/api/live-comparisons` creates the native job, a request-ID endpoint polls its state, and a cancel endpoint requests native cleanup. The requirements below remain the integration contract; the current narrow implementation supports CPU Speed only.
+The separate live provider updates the view's labels and metric bindings. `/api/live-comparisons` creates the native job, a request-ID endpoint polls its state, and a cancel endpoint requests native cleanup. The requirements below remain the integration contract; the current implementation supports CPU/GPU/HTP Speed and the documented experimental model routes.
 
 Before execution, finalize the request with exact prompt hash, generation limits, seed/temperature, warmup/cache policy, execution order and source evidence. Confirm the requested and effective model/hash, runtime/hash, quantization, backend, threads and context for each lane. Do not send recorded synthetic benchmark token counts as the actual token counts of a natural-language prompt.
 

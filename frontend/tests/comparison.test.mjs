@@ -19,9 +19,11 @@ test('speed comparison carries the same model and explicit default/selected sett
 });
 test('routing preview distinguishes example roles from calibrated model identities', () => {
   const quick = request('routing'); const hard = request('routing', 'reasoning');
-  assert.equal(quick.selected, null); assert.equal(quick.routing.status, 'pending_calibration');
-  assert.notEqual(comparisonLanes(quick).turbo.model, comparisonLanes(hard).turbo.model);
-  assert.match(comparisonLanes(hard).turbo.configuration, /Illustrative/);
+  assert.equal(quick.selected, null);
+  assert.deepEqual(quick.routing, { selection: 'auto', policy: 'public-demo-v1', allow_uncalibrated: true });
+  assert.match(comparisonLanes(quick, { route: null }).turbo.model, /Task policy/);
+  const manualRoute = { id: 'qwen06-gpu', label: 'Qwen3 0.6B · Adreno GPU', device: 'gpu', threads: 0, available: true };
+  assert.match(comparisonLanes(hard, { route: manualRoute }).turbo.model, /Adreno GPU/);
 });
 test('preview executes sequentially with equal scripted answers and no measured winner', async () => {
   const events=[]; const r=request(); const result=await createPreviewComparisonProvider({delay:0}).execute(r,{onEvent:e=>events.push(e)});

@@ -109,3 +109,12 @@
 .behavior-foot{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 4px 0;color:var(--muted);font:9px var(--mono)}.behavior-foot>span:last-child{display:flex;align-items:center;gap:8px}.behavior-foot i{width:5px;height:5px;border-radius:50%;background:#d6a646}.latest-unavailable{margin-top:24px;padding:15px 18px;border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:12px}
 @media(max-width:980px){.behavior-flow{grid-template-columns:minmax(220px,1fr) 190px minmax(220px,1fr)}.behavior-state{padding:25px 22px}.behavior-metrics{gap:14px}.behavior-transition strong{font-size:9px}}
 @media(max-width:700px){.behavior-study{margin-top:38px;padding-top:32px}.behavior-head{align-items:flex-start;flex-direction:column;gap:9px}.behavior-head p{padding-bottom:0}.behavior-flow{grid-template-columns:1fr}.behavior-state{padding:25px 22px}.behavior-transition{min-height:82px;flex-direction:column;gap:7px;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.transition-line{top:0;bottom:0;left:50%;right:auto;width:1px;height:auto}.transition-arrow{transform:rotate(90deg)}.behavior-foot{align-items:flex-start;flex-direction:column;gap:7px;padding-top:13px}}
+
+/* Model routing: an experimental task policy picker, not a ranking control. */
+.routing-controls{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fbfcfe}
+.routing-label{font:600 9px var(--mono);letter-spacing:1.1px;text-transform:uppercase;color:#657084}
+.routing-controls select{font:inherit;font-size:13px;min-height:40px;max-width:320px;padding:6px 28px 6px 10px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.routing-controls select:focus-visible{outline:3px solid #90b0ff;outline-offset:3px}
+.routing-note{flex:1 1 260px;margin:0;font-size:11px;line-height:1.55;color:var(--muted)}
+.route-reason{margin-top:8px;font-size:11px;line-height:1.55;color:var(--muted)}
+@media(max-width:600px){.routing-controls{align-items:flex-start;flex-direction:column}.routing-controls select{max-width:100%;min-height:44px}}

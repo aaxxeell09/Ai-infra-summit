@@ -6,6 +6,7 @@ import threading
 import time
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from turbo.live_comparison import LiveComparisons, ROOT, PROMPTS, _hash, _manifest_hashes
@@ -139,6 +140,17 @@ class ComparisonTests(unittest.TestCase):
         self.assertEqual(state['result']['lanes']['default']['status'], 'completed')
         self.assertFalse(state['result']['lanes']['turbo']['configuration_applied'])
         self.assertEqual(len(Model.instances), 2)
+    def test_sdk_cleanup_runs_after_a_native_failure(self):
+        closed = []
+        self.engine.runtime = SimpleNamespace(close=lambda: closed.append(True))
+        self.manager.model_factory = None
+        Model.fail_threads = 10
+        with patch('turbo.native.NativeModel', Model):
+            self.manager.start(self.request); state = self.finish()
+        self.assertEqual(state['state'], 'failed')
+        self.assertEqual(closed, [True])
+        self.assertIsNone(self.engine.runtime)
+        self.assertIsNone(self.engine.runtime_binding)
     def test_partial_first_lane_survives_second_failure(self):
         Model.fail_threads=10
         self.manager.start(self.request);state=self.finish()

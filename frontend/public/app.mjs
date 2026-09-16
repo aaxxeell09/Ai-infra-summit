@@ -1,7 +1,7 @@
 import { createRecordedProvider, METRICS, rankRows, exportConfiguration } from './data.mjs';
 import { createLatestResultsProvider } from './latest.mjs';
 import { createLiveComparisonProvider } from './live-comparison.mjs';
-import { PROMPTS, createComparisonRequest, comparisonLanes, createPreviewComparisonProvider } from './comparison.mjs';
+import { PROMPTS, createComparisonRequest, comparisonLanes, createPreviewComparisonProvider, routingSelections, routingRoute } from './comparison.mjs';
 
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -12,7 +12,7 @@ const latestProvider = createLatestResultsProvider();
 let taskProvider = createPreviewComparisonProvider();
 let liveCapabilities = null;
 let liveSetupError = null;
-const state = { snapshot: null, latest: null, latestError: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', comparison: 'speed', demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
+const state = { snapshot: null, latest: null, latestError: null, page: 'device', metric: 'decode', metricHelp: false, selected: null, scenario: 'quick', comparison: 'speed', routingSelection: 'auto', turboDispatched: undefined, demo: 'idle', lanes: {}, result: null, error: null, reveal: false };
 let demoGeneration = 0;
 let taskAbort;
 let toastTimer;
@@ -124,21 +124,34 @@ function demoScreen() {
   const live = taskProvider.mode === 'live';
   const scenario = PROMPTS.find(item => item.id === state.scenario);
   let request; let setupError;
-  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, 'preview-layout'); }
+  const route = state.comparison === 'routing' ? routingRoute(liveCapabilities, state.routingSelection) : null;
+  try { request = createComparisonRequest(state.snapshot, currentRow(), state.metric, state.comparison, state.scenario, 'preview-layout', { routingSelection: state.routingSelection }); }
   catch (error) { setupError = error.message; }
-  if (live && !setupError) setupError = liveSetupError || (!liveCapabilities?.available ? 'Live device is unavailable.' : state.comparison !== 'speed' ? 'Model routing needs calibration. Choose Speed for the live demo.' : !liveCapabilities.supported_cell_ids.includes(request?.selected?.cell_id) ? 'Select a CPU configuration on Compare for the live demo.' : null);
-  const descriptions = request ? comparisonLanes(request) : null;
+  if (live && !setupError) setupError = liveSetupError || (!liveCapabilities?.available ? 'Live device is unavailable.'
+    : state.comparison === 'routing' ? (!liveCapabilities.routing?.available ? 'No route is currently available on the device.' : !routingSelections(liveCapabilities).includes(state.routingSelection) ? 'Choose an advertised route or automatic task policy.' : null)
+    : !liveCapabilities.supported_cell_ids.includes(request?.selected?.cell_id) ? 'Select a supported CPU, GPU or NPU configuration on Compare for the live demo.' : null);
+  let resolvedRoute = route;
+  if (live && request?.routing && state.result?.routing?.selected_route_id) {
+    resolvedRoute = routingRoute(liveCapabilities, state.result.routing.selected_route_id);
+  } else if (live && state.turboDispatched?.selected_route_id) {
+    resolvedRoute = routingRoute(liveCapabilities, state.turboDispatched.selected_route_id);
+  }
+  const descriptions = request ? comparisonLanes(request, { route: resolvedRoute }) : null;
   const lanes = ['default', 'turbo'].map(key => {
     const lane = state.lanes[key] || { status: 'idle', answer: '' };
     const meta = descriptions?.[key];
     const status = lane.status === 'running' ? 'Writing…' : lane.status === 'completed' ? 'Done' : lane.status === 'failed' ? 'Failed' : lane.status === 'cancelled' ? 'Cancelled' : busy ? 'Queued' : 'Ready';
-    const identity = !meta ? 'Configuration unavailable' : state.comparison === 'speed'
-      ? `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`
-      : key === 'default' ? `${meta.model} · fixed` : `${meta.model} · illustrative`;
+    const identity = !meta ? 'Configuration unavailable' : `${meta.model} · ${meta.configuration.replace('automatic threads', 'default')}`;
+    const dispatched = live && key === 'turbo' && state.turboDispatched;
+    const provenance = lane.effective_configuration?.native_provenance;
+    const resolved = provenance?.resolved_device;
+    const verified = provenance?.dispatch_verified;
+    const routeLine = dispatched?.reason ? `<p class="route-reason">${esc(dispatched.reason)}</p>` : '';
+    const backendLine = provenance ? `<p class="route-reason">GenieX ${esc(provenance.geniex_version)} · ${esc(provenance.runtime === 'qairt' ? 'Qualcomm QAIRT' : 'llama.cpp')} · ${esc(resolved || (provenance.requested_device === 'cpu' ? 'CPU' : 'unresolved'))}<br>${verified === true ? 'Dispatch verified' : 'SDK placement reported · utilization not measured'}</p>` : '';
     return `<article class="response-column ${key === 'turbo' ? 'response-turbo' : ''}" aria-label="${key === 'turbo' ? 'Local Turbo answer' : 'Default setup answer'}">
-      <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p></header>
+      <header class="response-header"><div class="response-title"><h2>${key === 'turbo' ? 'Local Turbo' : 'Default setup'}</h2><span class="response-status ${lane.status === 'running' ? 'active' : ''}">${status}</span></div><p>${esc(identity)}</p>${routeLine}${backendLine}</header>
       <div class="response-text ${lane.status === 'running' ? 'writing' : ''}" data-answer="${key}">${esc(lane.answer)}</div>
-      ${live ? `<div class="response-timing"><span>Load + answer + unload</span><strong>${lane.total_time_s == null ? '—' : number(lane.total_time_s) + ' s'}</strong></div><div class="response-timing"><span>First token · native, excludes load</span><strong>${lane.ttft_ms == null ? '—' : number(lane.ttft_ms) + ' ms'}</strong></div><div class="response-timing"><span>Native decode · ${lane.output_tokens == null ? 'tokens unavailable' : lane.output_tokens + ' output tokens'}</span><strong>${lane.native_decode_tps == null ? '—' : number(lane.native_decode_tps) + ' tok/s'}</strong></div>` : `<div class="response-timing"><span>Animation time</span><strong data-clock="${key}">${clockText(key)}</strong></div>`}
+      ${live ? `<div class="response-timing"><span>Load + answer + unload</span><strong>${lane.total_time_s == null ? '—' : number(lane.total_time_s) + ' s'}</strong></div><div class="response-timing"><span>First token · native, excludes load</span><strong>${lane.ttft_ms == null ? '—' : number(lane.ttft_ms) + ' ms'}</strong></div><div class="response-timing"><span>Native decode · ${lane.output_tokens == null ? 'tokens unavailable' : lane.output_tokens + ' output tokens'}</span><strong>${lane.native_decode_tps == null ? '—' : number(lane.native_decode_tps) + ' tok/s'}</strong></div>${lane.native_prefill_tps != null ? `<div class="response-timing"><span>Native prefill</span><strong>${number(lane.native_prefill_tps)} tok/s</strong></div>` : ''}` : `<div class="response-timing"><span>Animation time</span><strong data-clock="${key}">${clockText(key)}</strong></div>`}
     </article>`;
   }).join('');
   return `<section class="screen comparison-demo">
@@ -146,12 +159,17 @@ function demoScreen() {
     <div class="comparison-workspace">
       <div class="prompt-composer"><div class="prompt-controls"><span class="prompt-label">Prompt</span><details class="prompt-picker" ${busy ? 'inert' : ''}><summary aria-label="Example prompt: ${esc(scenario.label)}">${esc(scenario.label)}<span aria-hidden="true">⌄</span></summary><div class="prompt-options" role="group" aria-label="Example prompts">${PROMPTS.map(item => `<button data-scenario="${item.id}" aria-pressed="${state.scenario === item.id}">${item.label}<span aria-hidden="true">${state.scenario === item.id ? '✓' : ''}</span></button>`).join('')}</div></details></div>
         <p class="prompt-copy">${esc(scenario.prompt)}</p>
+        ${state.comparison === 'routing' ? `<div class="routing-controls"><label class="routing-label" for="route-select">Route</label><select id="route-select" data-role="route-select" ${busy ? 'disabled' : ''}>${routingSelections(liveCapabilities).map(id => {
+          const option = id === 'auto' ? null : routingRoute(liveCapabilities, id);
+          const suffix = id === 'auto' ? ' — Task policy · experimental' : option.available === false ? ` — unavailable` : '';
+          return `<option value="${esc(id)}" ${state.routingSelection === id ? 'selected' : ''}>${esc(id === 'auto' ? 'Auto' : option.label)}${esc(suffix)}</option>`;
+        }).join('')}</select><p class="routing-note">The task policy picks a route by prompt type. It is an experimental choice, not a calibrated speed or quality ranking. The QAIRT option uses a separate compiled artifact.</p></div>` : ''}
         <button class="button primary run-comparison" data-action="${busy ? 'reset-demo' : 'run-demo'}" ${setupError || state.demo === 'cancelling' ? 'disabled' : ''}>${state.demo === 'cancelling' ? 'Stopping on device…' : busy ? '<span aria-hidden="true">■</span> Stop' : live && taskProvider.pendingRequest() ? 'Check device status' : state.result ? '↻ Run again' : live ? 'Run on Latitude <span aria-hidden="true">→</span>' : 'Run preview <span aria-hidden="true">→</span>'}</button>
       </div>
       <div class="response-grid">${lanes}</div>
     </div>
     ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
-    <div class="demo-secondary">${live && state.result ? '<button class="button ghost" data-action="download-task">Download device result ↓</button>' : ''}<details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Routing compares a fixed model with an illustrative model choice for each prompt. Actual model choices need calibrated speed and quality profiles.'}</p><p>${live ? 'Real local inference, sequential on the Latitude. Each lane includes loading and cleanup. Different answer lengths can affect latency; one pair does not establish a speedup. Answer quality is not evaluated. Model and runtime acknowledgements are included in the result.' : 'Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential.'}</p></div></details></div>
+    <div class="demo-secondary">${live && state.result ? '<button class="button ghost" data-action="download-task">Download device result ↓</button>' : ''}<details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Model routing runs an experimental task policy: the quick explanation prefers the registered Qualcomm QAIRT bundle, and the schedule question uses the 4B model on CPU. Choose a route above to pin one instead. This policy is not a calibrated speed or quality ranking, and the QAIRT option uses a separately compiled artifact.'}</p><p>${live ? 'Real local inference, sequential on the Latitude. Each lane includes loading and cleanup. Different answer lengths can affect latency; one pair does not establish a speedup. Answer quality is not evaluated. Model and runtime acknowledgements are included in the result.' : 'Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential.'}</p></div></details></div>
     <span class="sr-only" role="status" aria-live="polite">${state.result ? taskProvider.mode === 'live' ? 'Device comparison finished. Results are available.' : 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
   </section>`;
 }
@@ -206,7 +224,10 @@ async function runDemo() {
   try {
     const execution = taskProvider.execute(request, { signal: controller.signal, onEvent(event) {
       if (generation !== demoGeneration) return;
-      if (event.type === 'text') {
+      if (event.type === 'route') {
+        state.turboDispatched = event.routing;
+        render();
+      } else if (event.type === 'text') {
         state.lanes[event.lane].answer = event.answer;
         const output = document.querySelector(`[data-answer="${event.lane}"]`);
         if (output) output.textContent = event.answer;
@@ -236,6 +257,7 @@ function download(data, filename) {
   a.href = url; a.download = filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+
 function showEvidence() {
   if (!state.snapshot) return;
   const s = state.snapshot; const row = currentRow();
@@ -264,6 +286,7 @@ document.addEventListener('click', event => {
     resetDemo(); state.selected = target.dataset.select; render(); document.querySelector(`[data-select="${CSS.escape(state.selected)}"]`)?.focus({ preventScroll: true }); return;
   }
   if (target.dataset.comparison) { state.comparison = target.dataset.comparison; resetDemo(); render(); document.querySelector(`[data-comparison="${state.comparison}"]`)?.focus(); return; }
+  if (target.closest('#route-select')) return;
   if (target.dataset.scenario) { state.scenario = target.dataset.scenario; resetDemo(); render(); $('.prompt-picker summary')?.focus({ preventScroll: true }); return; }
   switch (target.dataset.action) {
     case 'metric-help': state.metricHelp = !state.metricHelp; render(); $('.metric-help-button')?.focus({ preventScroll: true }); break;
@@ -290,6 +313,9 @@ document.addEventListener('keydown', event => {
 $('#evidence-button').addEventListener('click', showEvidence);
 $('#close-dialog').addEventListener('click', () => $('#evidence-dialog').close());
 $('#evidence-dialog').addEventListener('click', event => { if (event.target === $('#evidence-dialog')) { const r = event.target.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) event.target.close(); } });
+$('#main').addEventListener('change', event => {
+  if (event.target.dataset?.role === 'route-select') { state.routingSelection = event.target.value; resetDemo(); render(); $('#route-select')?.focus({ preventScroll: true }); }
+});
 window.addEventListener('hashchange', navigate);
 
 async function load() {
@@ -312,7 +338,13 @@ async function load() {
     state.selected = rankRows(state.snapshot).leaders[0] ?? null;
     if (taskProvider.mode === 'live') {
       const pending = taskProvider.pendingRequest();
-      if (pending) { state.selected = pending.selected.cell_id; state.scenario = pending.prompt_id; state.comparison = 'speed'; }
+      if (pending) {
+        state.comparison = pending.comparison === 'routing' ? 'routing' : 'speed';
+        state.scenario = pending.prompt_id; state.routingSelection = pending.routing?.selection ?? 'auto';
+        if (pending.selected) state.selected = pending.selected.cell_id;
+      } else if (liveCapabilities?.routing?.selections && !liveCapabilities.routing.selections.includes(state.routingSelection)) {
+        state.routingSelection = 'auto';
+      }
       else if (liveCapabilities?.available) {
         const ranked = rankRows(state.snapshot);
         state.selected = ranked.rows.find(row => ranked.eligible(row) && liveCapabilities.supported_cell_ids.includes(row.id))?.id ?? state.selected;
