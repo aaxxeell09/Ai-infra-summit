@@ -49,6 +49,44 @@ Earlier [QAIRT](../benchmarks/results/qairt-mcp-loop-01/README.md) and [4B](../b
 
 ## Current TurboLab implementation
 
+### Subsequent owner-reported target observations
+
+The owner supplied the following measurements from **one target session** after
+the initial status snapshot. Raw files, exact measurement source SHA and artifact
+hashes have not been inspected here. These are diagnostic reports, not constants
+for the scheduler and not qualified experiment results.
+
+| Category | Reported value | Boundary |
+|---|---:|---|
+| S1 | 8.467 s | Wall time |
+| S2, eight cases | 13.835 s | `hardware_seconds` reported by the canary |
+| S3, eighteen cases | 18.636 s | `hardware_seconds` reported by the canary |
+| S3, eighteen cases | 22.856 s | Outer wall time |
+| Development, 35 cases | 64.354 s | Outer wall time |
+| OpenAI API probe | 3.154 s | Reported API probe latency |
+| Anthropic API probes | 1.829 s; 1.191 s | Two separate reported probe latencies |
+
+The later S2 field name clarifies the earlier “wall time” description above;
+it is not evidence of S2 outer-process wall time. API numbers establish reported
+successful probes, not durable credentials, quotas or future latency guarantees.
+
+The owner also ran five identical-prompt calls on the same QAIRT `NativeModel`
+instance with `reset=True`, official Qwen3-0.6B, GenieX 0.6.1 and QAIRT 2.45.
+Reported outputs were `hello`, `Hello.`, `HELLO`, `hello`, `hello`:
+**exact byte-identical output was false**. This demonstrates output variation in
+that observed run; semantic correctness was not assessed. Logged fields were
+`temperature=0`, `top_p=1`, `top_k=0`, `seed=-1`. Their pre/post-adapter logging
+boundary still needs verification. Zero is a fallback sentinel in the pinned
+[QAIRT sampler adapter](qairt-sampling.md), so this is not proof of greedy
+sampling. Explicit sampler controls remain Lane C research.
+
+A separate ten-minute pilot failed at its first S1 with
+`TypeError: 'NoneType' object is not callable`: the executor forwarded
+`runner=None` over the probe's default callable. The owner then found no
+`session.json`. At the inspected base, startup runner selection and durable
+session recovery are therefore blockers. Separate fix branches must be reviewed
+and target-validated before claiming this pilot works.
+
 At `c866c48`, [the implemented workflow](turbolab.md) separates S0 static admission, S1 startup generation, S2/S3 diagnostic canaries, and S4/S5 tracked full-development evaluations. Sealed S4/S5 archives are re-read through the observation adapter. The real proposer/critic call sites, bounded search and archive ingestion are present in source; mock/dry-run evidence does not prove live external API success.
 
 The current QAIRT search contract exposes `max_tokens` and `stop_after_tool_call`; unsupported sampler/grammar/prompt changes remain separate research proposals. No parallel API or commissioning branch is claimed merged by this snapshot.

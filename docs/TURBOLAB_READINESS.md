@@ -27,16 +27,23 @@ Snapshot: **2026-09-16**. Inspected implementation: **`c866c48f0d12219d8cf38187c
 
 Owner confirmations are identified as such rather than presented as newly inspected raw artifacts. No model inference was launched for this readiness update.
 
+Subsequent owner reports add S1/S2/S3/dev35 and API timing samples, plus a
+five-repeat same-process QAIRT test whose outputs were not byte-identical.
+[Exact values and timing boundaries](CURRENT_STATUS.md#subsequent-owner-reported-target-observations)
+are retained as single-session diagnostics. None are hardcoded scheduler costs.
+
 ## NOT_YET_VALIDATED
 
 - Read-only reconciliation of the target's 26 sealed archives: exact source/model/SDK identities, statuses, dataset scope, retained failures, control relationships and integrity results. The local six-archive historical Mac copy is not a substitute.
 - A complete current-source TurboLab session through startup, diagnostic canaries, tracked development evaluation and confirming repeats, with stage boundaries and actual costs validated against sealed evidence.
-- Live proposer/critic API calls and authentication on the current target. Call sites and mock execution are not evidence of live provider success.
+- Independently inspected provider probe records and their source/model/authentication identities. Successful OpenAI and Anthropic timings are now owner-reported; sustained availability and failures still need validation.
 - Current target's effective sampler, cancellation behavior, dispatch evidence and thermal/background stability. Older target observations do not automatically validate changed source. `dispatch_verified=false` is absence of that proof, not evidence that no NPU work occurred.
 - Energy commissioning. Probe duration and counter update gaps are observations, not certified hardware resolution. Diagnostic full-process SYS joules cannot be substituted for warm-task energy or promoted to comparable energy by setting a flag.
 - Quality acceptance and the product's success/latency thresholds. Recorded invalid rates and clarification failures remain visible; no prompt/parser/scorer relaxation or new golden answer is authorized by these results.
 
 ## BLOCKED
+
+- **Base-commit pilot and recovery:** the owner observed first-S1 `runner=None` failure and a missing `session.json` at `c866c48`. The separate runner/persistence fix must pass portable recovery tests and a target retry before a ten-minute pilot or 120-minute session is considered ready.
 
 - **Qualified efficiency ranking:** no commissioned, compatible energy campaign is established in the evidence reviewed here. No overall winner or qualified EFFICIENT/BALANCED recommendation follows.
 - **Current target archive verification from this Mac:** network reachability and the known host key were observed, but this session's saved authentication key was rejected. An accepted authorized credential is needed to read the target archive/probe evidence. SSH restoration remains owner-confirmed; the device is not declared globally inaccessible.
