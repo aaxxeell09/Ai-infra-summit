@@ -164,11 +164,11 @@ function demoScreen() {
           const suffix = id === 'auto' ? ' — Task policy · experimental' : option.available === false ? ` — unavailable` : '';
           return `<option value="${esc(id)}" ${state.routingSelection === id ? 'selected' : ''}>${esc(id === 'auto' ? 'Auto' : option.label)}${esc(suffix)}</option>`;
         }).join('')}</select><p class="routing-note">The task policy picks a route by prompt type. It is an experimental choice, not a calibrated speed or quality ranking. The QAIRT option uses a separate compiled artifact.</p></div>` : ''}
+        ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}${live && liveSetupError ? ' <button class="text-button" data-action="reconnect-live">Check connection</button>' : ''}</p>` : ''}
         <button class="button primary run-comparison" data-action="${busy ? 'reset-demo' : 'run-demo'}" ${setupError || state.demo === 'cancelling' ? 'disabled' : ''}>${state.demo === 'cancelling' ? 'Stopping on device…' : busy ? '<span aria-hidden="true">■</span> Stop' : live && taskProvider.pendingRequest() ? 'Check device status' : state.result ? '↻ Run again' : live ? 'Run on Latitude <span aria-hidden="true">→</span>' : 'Run preview <span aria-hidden="true">→</span>'}</button>
       </div>
       <div class="response-grid">${lanes}</div>
     </div>
-    ${state.error || setupError ? `<p class="comparison-error" role="alert">${esc(state.error || setupError)}</p>` : ''}
     <div class="demo-secondary">${live && state.result ? '<button class="button ghost" data-action="download-task">Download device result ↓</button>' : ''}<details class="comparison-info"><summary>How this comparison works</summary><div><p>${state.comparison === 'speed' ? 'Speed compares the same model with its default settings and the configuration selected on the Compare screen.' : 'Model routing runs an experimental task policy: the quick explanation prefers the registered Qualcomm QAIRT bundle, and the schedule question uses the 4B model on CPU. Choose a route above to pin one instead. This policy is not a calibrated speed or quality ranking, and the QAIRT option uses a separately compiled artifact.'}</p><p>${live ? 'Real local inference, sequential on the Latitude. Each lane includes loading and cleanup. Different answer lengths can affect latency; one pair does not establish a speedup. Answer quality is not evaluated. Model and runtime acknowledgements are included in the result.' : 'Scripted preview. Clocks measure each animation, excluding queue time. Live runs will be sequential.'}</p></div></details></div>
     <span class="sr-only" role="status" aria-live="polite">${state.result ? taskProvider.mode === 'live' ? 'Device comparison finished. Results are available.' : 'Comparison preview complete. Both example answers are available.' : busy ? 'Comparison running. Answers appear one at a time.' : ''}</span>
   </section>`;
@@ -182,7 +182,7 @@ function render({ focus = false } = {}) {
     if (link.dataset.step === state.page) link.setAttribute('aria-current', 'step');
     else link.removeAttribute('aria-current');
   });
-  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Preview · scripted answers' : 'Live · Snapdragon' : 'Recorded results'}`;
+  $('#mode-tag').innerHTML = `<span class="mode-dot"></span>${state.page === 'demo' ? taskProvider.mode === 'simulated' ? 'Preview · scripted answers' : liveSetupError ? 'Device unavailable' : 'Live · Snapdragon' : 'Recorded results'}`;
   $('#main').innerHTML = state.page === 'device' ? deviceScreen() : state.page === 'calibration' ? calibrationScreen() : demoScreen();
   if (keepExplanationOpen && $('#main .comparison-info')) $('#main .comparison-info').open = true;
   if (!focus && keepRunFocus) $('#main .run-comparison')?.focus({ preventScroll: true });
@@ -275,7 +275,7 @@ document.addEventListener('click', event => {
   if (picker && !picker.contains(event.target)) picker.open = false;
   const target = event.target.closest('button'); if (!target) return;
   if (taskProvider.mode === 'live' && ['running','cancelling'].includes(state.demo) && target.dataset.action !== 'reset-demo') { notify('Wait for the current device job to finish.'); return; }
-  if (taskProvider.mode === 'live' && taskProvider.pendingRequest() && !['run-demo','reset-demo'].includes(target.dataset.action)) { notify('Check device status before changing the comparison.'); return; }
+  if (taskProvider.mode === 'live' && taskProvider.pendingRequest() && !['run-demo','reset-demo','reconnect-live'].includes(target.dataset.action)) { notify('Check device status before changing the comparison.'); return; }
   const metric = target.dataset.metric;
   if (metric) {
     resetDemo();
@@ -289,6 +289,12 @@ document.addEventListener('click', event => {
   if (target.closest('#route-select')) return;
   if (target.dataset.scenario) { state.scenario = target.dataset.scenario; resetDemo(); render(); $('.prompt-picker summary')?.focus({ preventScroll: true }); return; }
   switch (target.dataset.action) {
+    case 'reconnect-live': {
+      target.disabled = true;
+      taskProvider.capabilities().then(caps => { liveCapabilities = caps; liveSetupError = null; state.error = null; })
+        .catch(error => { liveSetupError = error.message; }).finally(() => render());
+      break;
+    }
     case 'metric-help': state.metricHelp = !state.metricHelp; render(); $('.metric-help-button')?.focus({ preventScroll: true }); break;
     case 'explore': state.reveal = true; location.hash = 'calibration'; break;
     case 'try': resetDemo(); location.hash = 'demo'; break;
