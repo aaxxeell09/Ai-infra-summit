@@ -273,6 +273,9 @@ Not executable in this Linux environment; assessed by inspection.
 * Locking uses `msvcrt.locking(LK_NBLCK, 1)` at offset 0 with a matching unlock, mirroring
   the POSIX `flock` path. Same-process reacquisition on a second handle will block until
   the 30 s deadline on both platforms; no code path does this.
+  `test_two_processes_cannot_hold_the_same_archive_lock` now proves the mutual exclusion
+  on whatever platform runs it, using two plain subprocesses and no tracker code, so a
+  Windows failure would separate a broken mutex from a raced harness. See section 19a.
 * `stop_child` uses `taskkill /PID <pid> /T /F` with `CREATE_NEW_PROCESS_GROUP`, the
   Windows analogue of the POSIX `killpg` that was demonstrated to kill grandchildren.
   Unverified on Windows.
@@ -283,6 +286,47 @@ Not executable in this Linux environment; assessed by inspection.
 * Archive names are `EXP-NNN_slug`; slugs are `[A-Za-z0-9][A-Za-z0-9_-]{0,95}`, so
   `CON`/`NUL`/`AUX` can only appear as a suffix of a longer name and are harmless, and
   trailing dots and spaces are rejected. Worst-case archive basename is 104 characters.
+
+### 19a. Windows CI follow-up on the Phase 2 fixes
+
+The first Phase 2 push was red on `windows-latest` only (Ubuntu and macOS green), at
+733 passed / 5 skipped, failing exactly two of the new audit-regression tests. Both were
+defects in the tests, not in the fixes.
+
+**TRK-002 test race.** The original test waited for `root/.hardware-execution.lock` to
+appear and then slept 0.5 s. `archive_lock` opens its lock file *before* calling
+`msvcrt.locking` or `flock`, so file existence never proved acquisition. Under
+multiprocessing spawn on Windows CI the holder had not necessarily acquired when the
+contender started, so no `TimeoutError` was raised. The heuristic is replaced by an
+explicit post-acquisition handshake: the holder writes a marker only from inside the
+lock, and the parent waits for that marker. The holder and contender are now ordinary
+subprocesses rather than a `multiprocessing.Pool`, and the contender records its outcome,
+exception cause and errno as JSON so a future red run is self-diagnosing. A new
+tracker-independent test, `test_two_processes_cannot_hold_the_same_archive_lock`, asserts
+that a second process is refused while the first holds the lock and acquires once it is
+released. It also asserts the lock file exists throughout, keeping the reason the old
+heuristic was invalid visible in the test itself.
+
+**TRK-008 platform contract.** The original test spied on `os.open` for `O_DIRECTORY`,
+which is absent on Windows, so the spy recorded nothing. Rather than force a POSIX
+assertion to pass, the contract is now explicit (option A of the follow-up):
+
+> `fsync_directory` is a POSIX durability improvement. Windows has no portable
+> directory-fsync primitive, so it is a documented no-op there and the durability of a
+> replacement rests on `os.replace` / `MoveFileExW` alone. It returns `True` only when a
+> directory entry was actually flushed, and never raises.
+
+Both platforms now assert something real: POSIX must return `True`, Windows must return
+`False`, `atomic` and `seal` must call it with the right directory on both, and a
+dedicated test proves that atomic replacement is still correct and leaves no debris when
+the flush is unsupported. No Windows-specific flush primitive was introduced, because
+TRK-008 is P2 and a fragile implementation would be worse than a documented limitation.
+
+**Durability guarantee, stated plainly:** on POSIX, a replaced manifest or ledger survives
+a power loss once `atomic` returns. On Windows the replacement is atomic but the directory
+entry may not be durable, so a power loss can revert it to the previous version. It cannot
+corrupt it, and a sealed archive whose manifest reverted fails `verify` rather than
+reading as valid.
 
 ## 20. Cross-platform behaviour
 
@@ -479,7 +523,8 @@ rather than against `validate()`, avoiding the 35/50 hash ambiguity. Fixed.
   the containing directory, and `seal()` fsyncs the checksum manifest but not the
   directory. After a power loss the rename or the new directory entry can be lost. The
   previous file content is never corrupted, so the failure mode is "reverts", not
-  "garbage". Fixed.
+  "garbage". Fixed on POSIX; on Windows the flush is a documented no-op and the
+  durability guarantee is explicitly reduced. See section 19a.
 * **TRK-009** `artifact_identity` hashes a tree with no post-hash re-check, unlike
   `runtime_identity` which re-reads its signature and raises "Native SDK changed while
   being fingerprinted". A model mutated during the pre-hash and reverted before the
@@ -529,6 +574,7 @@ rather than against `validate()`, avoiding the 35/50 hash ambiguity. Fixed.
 | Injection | 2 | no shell execution, no CSV escape (TRK-007) |
 | Child behaviour | 4 | 105 MB stdout, grandchild kill, two candidates, timeout |
 | Human/machine consistency | 4 experiments x 6 artifacts | all agree |
+| Cross-platform lock proof | 2 independent processes, tracker-free | second process refused, acquires after release |
 
 ## 32. Synthetic corruption tests
 

@@ -60,14 +60,26 @@ def digest(value):
 
 
 def fsync_directory(path):
-    """Persist a directory entry after replace/create; platforms may refuse it."""
+    """Flush a directory entry after replace/create. POSIX only; returns success.
+
+    Windows has no portable directory-fsync primitive (opening a directory as a
+    file descriptor is rejected), so this is a documented no-op there and the
+    durability of a replacement rests on os.replace/MoveFileExW alone. Callers
+    must treat a False result as reduced durability, never as an error.
+    """
+    if os.name == 'nt':
+        return False
     try:
-        handle=os.open(str(path), getattr(os,'O_DIRECTORY',0) or os.O_RDONLY)
+        handle=os.open(str(path), getattr(os,'O_DIRECTORY',os.O_RDONLY))
     except OSError:
-        return
-    try: os.fsync(handle)
-    except OSError: pass
-    finally: os.close(handle)
+        return False
+    try:
+        os.fsync(handle)
+        return True
+    except OSError:
+        return False
+    finally:
+        os.close(handle)
 
 
 def atomic(path, data):

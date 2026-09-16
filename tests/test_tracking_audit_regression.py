@@ -4,8 +4,8 @@ Every test here reproduces a specific finding. All of them operate on synthetic
 archives in temporary directories and never touch local/experiments or eval/results.
 """
 import json
-import multiprocessing
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -35,6 +35,19 @@ def _telemetry(candidate, joules):
                 raw_before={'channels_pwh': {'SYS': 0.0}, 'monotonic_s': 0.0, 'error': None},
                 raw_after={'channels_pwh': {'SYS': joules / 3.6e-9}, 'monotonic_s': 300.0, 'error': None},
                 energy={'channels': {'SYS': {'energy_j': joules}}})
+
+
+def _sealable_archive(root):
+    archive = E.reserve(root, 'sealme')
+    metadata = E.initialize(archive, {'hypothesis': 'h', 'change': 'c', 'git_commit': 'a',
+                                      'git_status': '', 'git_diff': '', 'command': ['x']}, b'{}\n')
+    for name in ('result.json', 'kpi.json'):
+        (archive / name).write_text('{}\n', encoding='utf-8')
+    for name in ('KPI.txt', 'stdout.log', 'stderr.log'):
+        (archive / name).write_text('x\n', encoding='utf-8')
+    metadata.update(status='completed_diagnostic')
+    (archive / 'manifest.json').write_text(json.dumps(metadata, indent=2) + '\n', encoding='utf-8')
+    return archive
 
 
 # --- TRK-001: telemetry must be bound to its result, never by filename alone -------------
@@ -100,19 +113,95 @@ def test_telemetry_identity_reads_recorded_child_argv():
 
 
 # --- TRK-002: only one supervised experiment may execute at a time -----------------------
+#
+# archive_lock() creates its lock FILE before acquiring the OS lock, so file existence
+# proves nothing. Every test below waits for a marker the holder writes only AFTER
+# acquisition. The first test is deliberately independent of the tracker so that a
+# failure separates "the Windows mutex is broken" from "the harness raced".
 
-def _hold_lock(args):
-    root, repo, seconds = args
-    sys.path.insert(0, repo)
-    import turbo.experiments as inner
-    with inner.archive_lock(root, 'hardware-execution', timeout=1):
-        time.sleep(seconds)
-    return 'released'
+_HOLDER = """
+import sys, time
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+from turbo.experiments import archive_lock
+root, name, held, stop = sys.argv[2:6]
+with archive_lock(root, name, timeout=30):
+    Path(held).write_text('held', encoding='utf-8')   # only after acquisition
+    deadline = time.monotonic() + 120
+    while not Path(stop).exists() and time.monotonic() < deadline:
+        time.sleep(0.02)
+Path(held + '.released').write_text('released', encoding='utf-8')
+"""
+
+_CONTENDER = """
+import json, os, sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+from turbo.experiments import archive_lock
+root, name, out = sys.argv[2:5]
+record = {'os_name': os.name, 'pid': os.getpid()}
+try:
+    with archive_lock(root, name, timeout=1):
+        record['outcome'] = 'ACQUIRED'
+except TimeoutError as exc:
+    record['outcome'] = 'REFUSED'
+    record['detail'] = str(exc)
+    cause = exc.__cause__
+    if cause is not None:
+        record['cause'] = type(cause).__name__
+        record['errno'] = getattr(cause, 'errno', None)
+except Exception as exc:
+    record['outcome'] = 'ERROR'
+    record['detail'] = type(exc).__name__ + ': ' + str(exc)
+Path(out).write_text(json.dumps(record), encoding='utf-8')
+"""
 
 
-def test_second_concurrent_run_is_refused(tmp_path):
-    root = tmp_path / 'archives'
+def _contend(script, root, name, out):
+    subprocess.run([sys.executable, str(script), str(REPO), str(root), name, str(out)],
+                   check=True, timeout=120)
+    return json.loads(Path(out).read_text(encoding='utf-8'))
+
+
+def _wait_for(path, seconds=90):
+    deadline = time.monotonic() + seconds
+    while not Path(path).exists():
+        if time.monotonic() >= deadline:
+            raise AssertionError(f'timed out waiting for {path}')
+        time.sleep(0.02)
+
+
+def test_two_processes_cannot_hold_the_same_archive_lock(tmp_path):
+    """Direct evidence for TRK-002, independent of the experiment tracker."""
+    root = tmp_path / 'root'
     root.mkdir()
+    holder_script = tmp_path / 'holder.py'
+    holder_script.write_text(_HOLDER, encoding='utf-8')
+    contender_script = tmp_path / 'contender.py'
+    contender_script.write_text(_CONTENDER, encoding='utf-8')
+    held, stop, out = tmp_path / 'held', tmp_path / 'stop', tmp_path / 'out'
+    holder = subprocess.Popen([sys.executable, str(holder_script), str(REPO),
+                               str(root.resolve()), 'proof', str(held), str(stop)])
+    try:
+        _wait_for(held)
+        assert not (Path(str(held) + '.released')).exists(), 'holder released too early'
+        # The lock file exists whether or not anyone holds the lock: archive_lock
+        # opens it before acquiring. This is precisely why a file-existence probe
+        # is not a valid handshake, and why the marker above is written only after
+        # acquisition. Keep both assertions together so the distinction stays visible.
+        assert (root / '.proof.lock').exists()
+        blocked = _contend(contender_script, root, 'proof', out)
+        assert blocked['outcome'] == 'REFUSED', (
+            'a second process entered a lock already held by another process: ' + repr(blocked))
+    finally:
+        stop.write_text('stop', encoding='utf-8')
+        holder.wait(timeout=120)
+    _wait_for(Path(str(held) + '.released'))
+    released = _contend(contender_script, root, 'proof', out)
+    assert released['outcome'] == 'ACQUIRED', 'the lock was never released: ' + repr(released)
+
+
+def _tracker_config(tmp_path):
     model = tmp_path / 'm.gguf'
     model.write_bytes(b'w')
     sdk = tmp_path / 'sdk'
@@ -122,38 +211,34 @@ def test_second_concurrent_run_is_refused(tmp_path):
     config.write_text(json.dumps({'model_path': str(model), 'sdk_dir': str(sdk)}), encoding='utf-8')
     child = tmp_path / 'child.py'
     child.write_text('print("ok")', encoding='utf-8')
-    context = multiprocessing.get_context('spawn')
-    holder = context.Pool(1)
+    return config, child
+
+
+def test_second_concurrent_run_is_refused(tmp_path):
+    root = tmp_path / 'archives'
+    root.mkdir()
+    config, child = _tracker_config(tmp_path)
+    holder_script = tmp_path / 'holder.py'
+    holder_script.write_text(_HOLDER, encoding='utf-8')
+    held, stop = tmp_path / 'held', tmp_path / 'stop'
+    holder = subprocess.Popen([sys.executable, str(holder_script), str(REPO), str(root.resolve()),
+                               'hardware-execution', str(held), str(stop)])
     try:
-        pending = holder.map_async(_hold_lock, [(str(root), str(REPO), 6)])
-        deadline = time.monotonic() + 10
-        lock = root / '.hardware-execution.lock'
-        while not lock.exists() and time.monotonic() < deadline:
-            time.sleep(0.05)
-        time.sleep(0.5)
+        _wait_for(held)
         with pytest.raises(TimeoutError, match='hardware-execution'):
             E.run('blocked', config, root=root, repo=REPO, dataset='dev', change='c',
                   hypothesis='h', command_override=[sys.executable, str(child)],
                   timeout=30, execution_lock_timeout=1, diagnostic_dirty=True)
-        pending.get(timeout=30)
     finally:
-        holder.close()
-        holder.join()
+        stop.write_text('stop', encoding='utf-8')
+        holder.wait(timeout=120)
     assert not list(root.glob('EXP-*')), 'a refused run must not allocate an EXP ID'
 
 
 def test_run_releases_the_execution_lock(tmp_path):
     root = tmp_path / 'archives'
     root.mkdir()
-    model = tmp_path / 'm.gguf'
-    model.write_bytes(b'w')
-    sdk = tmp_path / 'sdk'
-    sdk.mkdir()
-    (sdk / 'g.so').write_bytes(b'l')
-    config = tmp_path / 'c.json'
-    config.write_text(json.dumps({'model_path': str(model), 'sdk_dir': str(sdk)}), encoding='utf-8')
-    child = tmp_path / 'child.py'
-    child.write_text('print("ok")', encoding='utf-8')
+    config, child = _tracker_config(tmp_path)
     for _ in range(2):
         E.run('sequential', config, root=root, repo=REPO, dataset='dev', change='c',
               hypothesis='h', command_override=[sys.executable, str(child)], timeout=30,
@@ -222,34 +307,52 @@ def test_csv_safe_leaves_ordinary_values_untouched(value):
     assert E.csv_safe(value) == value
 
 
-# --- TRK-008: archive directories must be fsynced after replace and seal -----------------
+# --- TRK-008: archive directories are flushed where the platform supports it ------------
+#
+# Contract (option A of the audit follow-up): directory fsync is a POSIX durability
+# improvement. Windows has no portable equivalent, so fsync_directory is a documented
+# no-op there and atomic replacement alone carries the guarantee. Both platforms assert
+# something real rather than skipping.
 
-def test_atomic_and_seal_fsync_parent_directory(tmp_path, monkeypatch):
-    synced = []
-    real_open = os.open
+def test_fsync_directory_reports_the_platform_contract(tmp_path):
+    result = E.fsync_directory(tmp_path)
+    if os.name == 'nt':
+        assert result is False, 'Windows directory fsync must report itself unsupported'
+    else:
+        assert result is True, 'POSIX directory fsync must actually flush'
 
-    def spy_open(path, flags, *args, **kwargs):
-        handle = real_open(path, flags, *args, **kwargs)
-        if flags & getattr(os, 'O_DIRECTORY', 0):
-            synced.append(str(path))
-        return handle
 
-    monkeypatch.setattr(os, 'open', spy_open)
+def test_fsync_directory_never_raises(tmp_path):
+    assert E.fsync_directory(tmp_path / 'does-not-exist') is False
+    target = tmp_path / 'f.txt'
+    target.write_text('x', encoding='utf-8')
+    assert E.fsync_directory(target) in (True, False)
+
+
+def test_atomic_flushes_the_containing_directory(tmp_path, monkeypatch):
+    seen = []
+    monkeypatch.setattr(E, 'fsync_directory', lambda path: seen.append(Path(path)) or False)
     E.atomic(tmp_path / 'sub' / 'f.json', '{}\n')
-    assert str(tmp_path / 'sub') in synced, 'atomic() must fsync the containing directory'
+    assert seen == [tmp_path / 'sub']
 
 
-def test_atomic_survives_a_platform_that_refuses_directory_fsync(tmp_path, monkeypatch):
-    real_open = os.open
+def test_seal_flushes_the_archive_directory(tmp_path, monkeypatch):
+    archive = _sealable_archive(tmp_path)
+    seen = []
+    monkeypatch.setattr(E, 'fsync_directory', lambda path: seen.append(Path(path)) or False)
+    E.seal(archive)
+    assert archive in seen
 
-    def refuse(path, flags, *args, **kwargs):
-        if flags & getattr(os, 'O_DIRECTORY', 0):
-            raise OSError(1, 'Operation not permitted')
-        return real_open(path, flags, *args, **kwargs)
 
-    monkeypatch.setattr(E.os, 'open', refuse)
-    E.atomic(tmp_path / 'f.json', '{"a":1}\n')
-    assert json.loads((tmp_path / 'f.json').read_text(encoding='utf-8')) == {'a': 1}
+def test_atomic_replacement_is_correct_even_when_directory_fsync_is_unsupported(tmp_path, monkeypatch):
+    """The Windows path: no directory flush, but replacement still wins and leaves no debris."""
+    monkeypatch.setattr(E, 'fsync_directory', lambda path: False)
+    target = tmp_path / 'f.json'
+    E.atomic(target, '{"generation":1}\n')
+    assert json.loads(target.read_text(encoding='utf-8')) == {'generation': 1}
+    E.atomic(target, '{"generation":2}\n')
+    assert json.loads(target.read_text(encoding='utf-8')) == {'generation': 2}
+    assert [p.name for p in tmp_path.iterdir()] == ['f.json'], 'no temporary debris'
 
 
 # --- TRK-010: an invalid counter resolution must report its real reason ------------------
