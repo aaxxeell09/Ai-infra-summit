@@ -24,6 +24,11 @@ when producing the final morning handoff.
   29 focused tests and 12 subtests pass, including replay of the committed public
   hardware response. This is local transport/verification testing, not a new
   successful hardware run. All original verifier fields remain unchanged.
+  After committing clean source `3f61ed7`, an actual local MCP subprocess test
+  with deliberately absent SDK/model returned three protocol replies and exit 1,
+  transport_completed=true, ok=false and quality_qualified=false. This verifies
+  the real error path without loading a model; private logs are retained under
+  `local/presenter-transport-check-1520/`. No successful inference is implied.
 - The CLI creates a fresh public t13 fixture through the real opt-in MCP server;
   it reports physical verification separately from exact-call grading and
   records broader MCP-process timing as well as inner timing scopes. Default
