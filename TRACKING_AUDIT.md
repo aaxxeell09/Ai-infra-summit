@@ -273,12 +273,14 @@ Not executable in this Linux environment; assessed by inspection.
 * Locking uses `msvcrt.locking(LK_NBLCK, 1)` at offset 0 with a matching unlock, mirroring
   the POSIX `flock` path. Same-process reacquisition on a second handle will block until
   the 30 s deadline on both platforms; no code path does this.
-  `test_two_processes_cannot_hold_the_same_archive_lock` now proves the mutual exclusion
-  on whatever platform runs it, using two plain subprocesses and no tracker code, so a
-  Windows failure would separate a broken mutex from a raced harness. See section 19a.
+  `test_two_processes_cannot_hold_the_same_archive_lock` proves the mutual exclusion on
+  whatever platform runs it, using two plain subprocesses and no tracker code. It passed
+  on `windows-latest`, so cross-process `msvcrt.locking` exclusion is demonstrated, not
+  assumed. See section 19a.
 * `stop_child` uses `taskkill /PID <pid> /T /F` with `CREATE_NEW_PROCESS_GROUP`, the
   Windows analogue of the POSIX `killpg` that was demonstrated to kill grandchildren.
-  Unverified on Windows.
+  **Still unverified on Windows**: no test starts a grandchild there. This is the one
+  remaining Windows behaviour that matters for energy measurement and is not covered.
 * `command.txt` / `reproduce.txt` use `subprocess.list2cmdline` on Windows and
   `shlex.join` elsewhere. The POSIX form round-trips exactly through `shlex.split`.
 * `parse_json` accepts a UTF-8 BOM, which Windows editors and `Out-File` produce.
@@ -321,6 +323,44 @@ Both platforms now assert something real: POSIX must return `True`, Windows must
 dedicated test proves that atomic replacement is still correct and leaves no debris when
 the flush is unsupported. No Windows-specific flush primitive was introduced, because
 TRK-008 is P2 and a fragile implementation would be worse than a documented limitation.
+
+**Windows evidence.** At commit `145032c` the corrected handshake was green on all three
+platforms. `windows-latest` reported:
+
+```
+739 passed, 5 skipped, 17 subtests passed in 210.81s (0:03:30)
+frontend 28/28, git diff --exit-code clean, job conclusion success
+```
+
+Both previously failing tests passed there, including the tracker-independent
+`test_two_processes_cannot_hold_the_same_archive_lock`. **The TRK-002 CI failure was a
+test race, not a broken Windows mutex.** Windows mutual exclusion is now demonstrated
+rather than assumed: a second process is refused while the first holds the lock and
+acquires once it is released, on `msvcrt.locking` as well as `flock`.
+
+**A failed follow-up, and what it cost.** Two mistakes were made after that, both recorded
+here because an audit that hides its own errors is worth less than one that does not.
+
+1. While the `145032c` CI run (35108129512) was still executing, successive in-progress
+   API polls were misread as elapsed time and this document briefly claimed
+   `windows-latest` had "stalled past twenty minutes". It had not: the test step ran
+   3 minutes 32 seconds, about 45 seconds slower than the 165 second baseline because
+   the new subprocess tests add three child processes. GitHub's job API does not
+   update step timestamps until a step completes, so repeated polls of an
+   in-progress step carry no timing information at all.
+2. Acting on that false premise, commit `aa3e56f` rewrote the lock tests to fail fast:
+   captured holder output, `holder.poll()` checks, shorter deadlines, and a stubbed frozen
+   revalidation in the two tracker-level tests. Ubuntu and macOS stayed green, but
+   `windows-latest` then stalled for real, well past twenty minutes on a step that had
+   taken 210 seconds at `145032c` with the same lock tests and strictly more work.
+
+`aa3e56f` was therefore reverted in `c41a7db`, restoring a tree byte-identical to the
+verified-green `145032c`. The cause of the Windows stall it introduced is **not
+established**; it cannot be reproduced on Linux or macOS, and diagnosing a Windows-only
+hang is not worth destabilising a branch that is already proven green on all three
+platforms. The lesson is recorded rather than the fix: prefer the implementation with
+platform evidence over an unverified improvement, and never infer job duration from
+in-progress polls.
 
 **Durability guarantee, stated plainly:** on POSIX, a replaced manifest or ledger survives
 a power loss once `atomic` returns. On Windows the replacement is atomic but the directory
@@ -639,8 +679,8 @@ section 23.
    energy can be derived with no resolution evidence. Both are contained by
    `energy_comparable=False` and by comparison-time signature checks, not by run-time
    refusal.
-3. Windows behaviour of the lock, the process-tree kill and the new hardware mutex is
-   reasoned, not executed.
+3. The Windows process-tree kill (`taskkill /T /F`) is still reasoned, not executed. The
+   lock, the hardware mutex and the directory-fsync contract are covered by Windows CI.
 4. The archive binds artifact identity, not artifact bytes. Long-term reproduction depends
    on the model and SDK still existing.
 5. Background system load is neither detected nor recorded. Exclusivity is an operator
@@ -700,7 +740,7 @@ to its Phase 0 hash.
 | Archive immutability | READY |
 | Crash recovery | READY |
 | Concurrency (allocation / ledger / backfill) | READY |
-| Concurrency (hardware execution) | READY WITH CAVEATS (fixed in Phase 2, unverified on Windows) |
+| Concurrency (hardware execution) | READY (mutex fixed in Phase 2, demonstrated on Windows, macOS and Linux) |
 | KPI correctness | READY |
 | Latency semantics | READY |
 | Energy math | READY |
@@ -713,7 +753,7 @@ to its Phase 0 hash.
 | Ledger | READY |
 | Campaign planning | READY |
 | Campaign analysis | READY WITH CAVEATS (TRK-003) |
-| Windows compatibility | READY WITH CAVEATS (reasoned, not executed) |
+| Windows compatibility | READY WITH CAVEATS (CI green; lock proven, process-tree kill unverified) |
 | CI | READY |
 | Documentation | READY WITH CAVEATS (TRK-015) |
 | Hardware qualification | NOT READY (no hardware access in this environment) |
@@ -754,7 +794,7 @@ what was attacked, what held, and what did not.
 | 27 | Archive path traversal escape the root? | NO | 24 hostile slugs, all refused or contained |
 | 28 | Malicious checksum manifest read outside the archive? | NO | absolute, `..`, drive, backslash, colon, NUL all refused |
 | 29 | Command or hypothesis input cause shell execution? | NO | argv arrays only; payload stored verbatim |
-| 30 | Windows behaviour differ materially from Linux? | PARTIALLY | locking and process-tree kill are analogous but unexecuted |
+| 30 | Windows behaviour differ materially from Linux? | PARTIALLY | locking proven on Windows CI; directory fsync is a documented Windows no-op; process-tree kill still unexecuted |
 | 31 | Stale lock permanently block work? | NO | OS locks release on process exit |
 | 32 | Crash reuse an EXP ID? | NO | index is max+1 over all entries including files |
 | 33 | `backfill-known` create duplicates? | NO | content fingerprint dedup, verified idempotent |
@@ -768,7 +808,7 @@ what was attacked, what held, and what did not.
 | 41 | Hard links undermine archive immutability? | NO | external mutation detected as a hash mismatch |
 | 42 | Symlink or junction redirect archive writes? | PARTIALLY | a symlinked `--root` is followed; stated trust boundary (TRK-013) |
 | 43 | Huge stdout deadlock the child? | NO | 105 MB written to a file handle in 0.8 s |
-| 44 | Grandchild survive a timeout? | NO on POSIX, UNKNOWN on Windows | marker file stopped advancing |
+| 44 | Grandchild survive a timeout? | NO on POSIX, UNKNOWN on Windows | marker file stopped advancing; `taskkill /T /F` remains untested |
 | 45 | Report output overwrite an input? | NO | exclusive create, refuses output inside a source archive |
 | 46 | Verifier tricked by Unicode or path normalization? | NO | a name that does not resolve to a file fails closed |
 | 47 | Experimental state lost if the disk fills? | NO | `ENOSPC` preserved the previous file and left no debris |
