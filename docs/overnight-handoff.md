@@ -5,6 +5,38 @@ Save results and a morning handoff at the cutoff. Scheduled hourly continuation
 is installed in the current task, ending at the cutoff. Pause that automation
 when producing the final morning handoff.
 
+## 11:00 UTC checkpoint — actual move and larger-model queue
+
+- The constrained 4B feedback diagnostic completed at clean source `31bb6a1`.
+  It made three empty-result searches, listed files, then moved the invoice.
+  Original contents are preserved at the destination, the source is absent,
+  and every other file hash is unchanged. Existing verifier: **passed=false,
+  calls_match=false, final_state_match=true, execution_ok=true**. Extra calls
+  fail exact sequence scoring. This is a public-fixture diagnostic, not v2 or
+  an accepted product/quality result. Evidence: `benchmarks/results/invoice-grammar-1000/`.
+  Loop 18.142 s; broader diagnostic 29.702 s; no energy captured or speedup claim.
+- A fresh Flash review supports these limited claims. The simple canary and
+  observed actions do not cover every GBNF branch. Preserved grammar bytes have
+  Windows CRLF; the report hashes the actual LF runtime string. Both hashes are
+  documented. Future runs write exact UTF-8 bytes, fixing that artifact mismatch.
+- The gateway was restored and `/api/status` reported native runtime available,
+  all four registered artifacts available, and no tuner running. It is paused
+  again for the sequential larger-model campaign.
+- Read-only GGUF inspection found `qwen3` in the 8B artifact and `gpt-oss` in
+  the 20B artifact. These metadata observations alone do not prove compatibility.
+  Scheduled task `Qualcomm-Large-Dev-1100` now runs each model through the existing
+  immutable experiment tracker, 35 development cases, CPU10/context4096, max128,
+  no grammar/routing/speculation. Child timeout900 s; watchdog1020 s; task40 min.
+  No overlapping jobs. Full-process energy remains diagnostic/uncommissioned.
+- Inspect `grammar-1000/local/large-dev-1100/status.json` and its logs, plus
+  `grammar-1000/local/experiments/`. Configs are private in the campaign folder;
+  source stays pinned to clean `31bb6a1`. Archive every attempt and preserve
+  unknown/unsupported outcomes. Supervisor restores and smoke-tests the service.
+- Next wake: collect and verify these archives, then decide whether development
+  evidence warrants a full unchanged 50-case milestone. Repeat the opt-in
+  grammar diagnostic before proposing an MCP integration. Do not alter v2 or
+  promote the single filesystem success to a quality PASS. Stop by16:00 UTC.
+
 ## 10:00 UTC checkpoint — grammar diagnostic and larger models
 
 - Commit `31bb6a1` is pushed. An independent Flash/medium review found the

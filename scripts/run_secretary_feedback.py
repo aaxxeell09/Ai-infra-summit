@@ -42,7 +42,7 @@ def main(argv=None):
         'model_sha256':None,'completed':False,
         'grammar_enabled':args.constrain_tools,
         'grammar_sha256':hashlib.sha256(grammar.encode()).hexdigest() if grammar else None}
-    if grammar:(args.output/'tool-grammar.gbnf').write_text(grammar,encoding='utf-8')
+    if grammar:(args.output/'tool-grammar.gbnf').write_bytes(grammar.encode('utf-8'))
     path=Path(config['model_path'])
     if path.is_file():
         with path.open('rb') as stream:record['model_sha256']=hashlib.file_digest(stream,'sha256').hexdigest()

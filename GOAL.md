@@ -112,3 +112,12 @@ A fresh checkout pinned to `16d1313` completed two real QAIRT tune/apply/MCP cyc
 both invoice tasks failed. The verified 4B transfer is underway. Overnight work
 is authorized through September 16 at 09:00 Pacific, with bounded jobs and cost
 controls. See `docs/overnight-handoff.md` for the current checkpoint.
+
+
+September 16, 11:00 UTC checkpoint: the isolated opt-in constrained feedback
+diagnostic moved the requested invoice with all file hashes verified. Its
+existing exact-call verifier still fails because it used extra search/list
+steps. This is not a v2 result or an accepted integrated demo. Both 8B and
+20B artifacts are downloaded and checksum-verified; sequential development
+evaluations are queued through the immutable tracker. See the latest section
+of `docs/overnight-handoff.md` for source, evidence, jobs and remaining gates.
