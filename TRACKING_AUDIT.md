@@ -324,7 +324,29 @@ correct trade-off and is stated in `docs/experiment-protocol.md`.
 samples for a nearest-rank p95. The campaign report labels the column "Sample SD".
 Pooled energy statistics are emitted only when every member of a group has an identical
 and qualified energy signature, which is currently impossible, so `stats([None, ...])`
-returns all-None rather than a fabricated figure. There is no significance test and none
+returns all-None rather than a fabricated figure.
+
+The one real campaign in the repository, `eval/results/qairt-repeats-0700`, was
+recomputed independently from its six raw reports and six telemetry files. It is a
+correctly balanced two-treatment, three-repetition stop ablation whose execution order
+(A,B / B,A / A,B) matches the cyclic rotation `campaign_plan.plan` produces:
+
+```
+stop_after_tool_call=false  positions 1,4,5   success mean 42.857  SD 2.857  CV 0.067
+                                              median task 628.295 ms  SD 41.663
+                                              J/correct 39.131 / 41.737 / 51.757 (diagnostic)
+stop_after_tool_call=true   positions 2,3,6   success mean 55.238  SD 3.299  CV 0.060
+                                              median task 564.787 ms  SD 2.504
+                                              J/correct 25.762 / 27.331 / 29.553 (diagnostic)
+```
+
+The published `qairt-repeats-0700_campaign.json` reports exactly these group means
+(42.857142857142854 and 55.23809523809524 success; 628.2946666666667 and 564.787 ms), two
+groups, zero ungrouped attempts, zero integrity failures and `overall_winner: null`. Its
+pooled energy statistic is `None` even though all six raw J/correct values exist and the
+two treatments do not overlap on either success or energy. That suppression is the system
+working as designed: diagnostic block energy is never pooled into a campaign statistic, no
+matter how clean the separation looks. There is no significance test and none
 is claimed. No "best run" selection exists anywhere: `min`/`max` appear only inside
 `stats` and in the Pareto helper, which is gated behind qualified energy.
 
@@ -559,6 +581,10 @@ candidate_qwen4b-cpu10-dev-v1  SYS delta 10089.423458 J over 263.683 s (38.263 W
 Both match `docs/CURRENT_STATUS.md` to the published precision. Both scopes are correctly
 declared "Complete evaluator child process". Neither is warm-task energy, and neither is
 marked comparable anywhere.
+
+All twenty historical reports reachable by `backfill-known` were re-derived the same way;
+none disagreed with its own archive. The six `qairt-repeats-0700` J/correct values are in
+section 23.
 
 ## 37. Remaining risks
 
