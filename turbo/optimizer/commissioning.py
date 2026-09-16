@@ -29,12 +29,15 @@ METRICS = {
     'five_repeat_outputs_equal':('boolean','exact UTF-8 outputs equal across five reset=True requests; not proof of universal determinism'),
     's1_wall_s':('s','existing backend smoke child process wall time'),
     's2_8_wall_s':('s','existing diagnostic canary child process wall time, fixed eight development cases'),
+    's2_8_hardware_s':('s','existing canary reported hardware_seconds; excludes parent process overhead'),
+    's3_18_wall_s':('s','existing diagnostic canary child process wall time, fixed eighteen development cases'),
+    's3_18_hardware_s':('s','existing canary reported hardware_seconds; excludes parent process overhead'),
     'dev35_wall_s':('s','tracker invocation wall time, including validation, hashing and archival'),
-    'proposer_api_s':('s','optional injected API probe wall time; no hardware lock'),
-    'critic_api_s':('s','optional injected API probe wall time; no hardware lock'),
+    'anthropic_api_s':('s','successful provider SDK request wall time from sanitized API probe; no hardware lock'),
+    'openai_api_s':('s','successful provider SDK request wall time from sanitized API probe; no hardware lock'),
 }
-STEPS = {'resident':tuple(list(METRICS)[:6]),'s1':('s1_wall_s',),'s2':('s2_8_wall_s',),
-         'dev35':('dev35_wall_s',),'proposer_api':('proposer_api_s',),'critic_api':('critic_api_s',)}
+STEPS = {'resident':tuple(list(METRICS)[:6]),'s1':('s1_wall_s',),'s2':('s2_8_wall_s','s2_8_hardware_s'),'s3':('s3_18_wall_s','s3_18_hardware_s'),
+         'dev35':('dev35_wall_s',),'anthropic_api':('anthropic_api_s',),'openai_api':('openai_api_s',)}
 
 
 def identity(config, *, inspect_artifacts=False):
@@ -103,7 +106,7 @@ def commission(config_path, *, output=DEFAULT_PATH, runner=None, steps=tuple(STE
             try:
                 if artifact_error and not step.endswith('_api'):raise ValueError(artifact_error)
                 # dev35's tracker acquires this same lock internally. APIs never do.
-                lock=archive_lock(archives,'hardware-execution',timeout=.1) if step in ('resident','s1','s2') and not getattr(runner,'owns_hardware_lock',False) else nullcontext()
+                lock=archive_lock(archives,'hardware-execution',timeout=.1) if step in ('resident','s1','s2','s3') and not getattr(runner,'owns_hardware_lock',False) else nullcontext()
                 with lock: response=runner(step,attempt,config_path)
                 values=response.get('metrics',{})
                 if set(values)-set(STEPS[step]): raise ValueError('Runner returned unrelated metrics')
@@ -155,9 +158,26 @@ class TargetRunner:
 
     def __call__(self,step,attempt,config_path):
         if step.endswith('_api'):
-            if self.api_probe is None:return {'metrics':{},'unavailable':{STEPS[step][0]:'API probe callable not configured; separate API integration unavailable'}}
-            start=time.monotonic();evidence=self.api_probe(step,attempt,timeout=self.timeout)
-            return {'metrics':{STEPS[step][0]:time.monotonic()-start},'api_evidence':evidence}
+            provider=step.removesuffix('_api')
+            if self.api_probe is None:
+                script=ROOT/'scripts/api_probe.py'
+                if not script.is_file():
+                    return {'metrics':{},'unavailable':{STEPS[step][0]:'Optional API probe script unavailable'}}
+                try:
+                    child_command([sys.executable,'-X','utf8',str(script),'--provider',provider,
+                                   '--timeout',str(min(120,self.timeout))],attempt,timeout=min(120,self.timeout)+10)
+                except RuntimeError:
+                    # The sanitized CLI also emits structured JSON for API failures.
+                    pass
+                data=read_json(attempt/'stdout.log',require_object=True)
+                evidence=data['results'][0]
+            else:
+                evidence=self.api_probe(provider,attempt,timeout=min(120,self.timeout))
+            safe={key:evidence.get(key) for key in ('provider','model','timestamp','status','error_category','latency_ms','latency_scope','sdk_version')}
+            latency=safe.get('latency_ms')
+            if safe.get('provider')!=provider or safe.get('status')!='ok' or type(latency) not in (int,float) or not math.isfinite(latency) or latency<0:
+                return {'metrics':{},'api_evidence':safe,'unavailable':{STEPS[step][0]:'API success latency unavailable; see diagnostic evidence'}}
+            return {'metrics':{STEPS[step][0]:latency/1000},'api_evidence':safe}
         if step=='dev35':
             from turbo.experiments import run
             start=time.monotonic()
@@ -177,7 +197,10 @@ class TargetRunner:
             command+=['--changed-config',str(changed_path)]
         start=time.monotonic();child_command(command,attempt,timeout=self.timeout);elapsed=time.monotonic()-start
         if step=='resident':return read_json(out,require_object=True)
-        return {'metrics':{STEPS[step][0]:elapsed},'probe_path':str(out) if out.exists() else None}
+        values={STEPS[step][0]:elapsed}
+        if step in ('s2','s3') and out.exists():
+            values[STEPS[step][1]]=read_json(out,require_object=True).get('hardware_seconds')
+        return {'metrics':values,'probe_path':str(out) if out.exists() else None}
 
 
 def diagnostic_worker(kind,config_path,output,*,changed_config=None,archives=DEFAULT_ARCHIVES):
@@ -195,9 +218,9 @@ def diagnostic_worker(kind,config_path,output,*,changed_config=None,archives=DEF
                 sys.argv=[str(ROOT/'scripts/backend_smoke.py'),'--config',str(config_path)]
                 runpy.run_path(sys.argv[0],run_name='__main__')
             finally:sys.argv=original
-        elif kind=='s2':
+        elif kind in ('s2','s3'):
             namespace=runpy.run_path(str(ROOT/'scripts/diagnostic_canary.py'),run_name='commissioning_canary')
-            result=namespace['run_canary'](read_json(config_path,require_object=True),size=8,seed_label='commissioning-v1')
+            result=namespace['run_canary'](read_json(config_path,require_object=True),size=8 if kind=='s2' else 18,seed_label='commissioning-v1')
             with Path(output).open('x',encoding='utf-8') as stream:
                 import json
                 json.dump(result,stream,indent=2,allow_nan=False)
@@ -216,17 +239,20 @@ def resident_probe(config_path,output,changed_config=None):
     keys=('device','threads','context','threads_batch','ubatch','n_batch','spec_type','draft_tokens','plugin','backend','stop_after_tool_call')
     def create(runtime,c):return NativeModel(runtime,c['model_path'],**{k:c[k] for k in keys if k in c})
     def case(model,c):
-        return execute(cases,codec,lambda messages:model.chat(messages,tools=TOOLS,max_tokens=c.get('max_tokens',128),temperature=0,reset=True),ROOT/'eval/fixtures/secretary_workspace')[0]
+        row=execute(cases,codec,lambda messages:model.chat(messages,tools=TOOLS,max_tokens=c.get('max_tokens',128),temperature=0,reset=True),ROOT/'eval/fixtures/secretary_workspace')[0]
+        rows.append(row)
+        if row.get('execution_error'):raise RuntimeError('Resident generation failed; see partial diagnostic rows')
+        return row
     model=None;runtime=None;values={};rows=[]
     try:
         start=time.monotonic();runtime=NativeRuntime(config['sdk_dir']);model=create(runtime,config)
         values['cold_load_s']=time.monotonic()-start
         case(model,config)
         model_id=id(model);pid=os.getpid()
-        start=time.monotonic();rows.append(case(model,config));values['warm_one_case_s']=time.monotonic()-start
-        start=time.monotonic();rows.append(case(model,config));values['same_config_reuse_s']=time.monotonic()-start
+        start=time.monotonic();case(model,config);values['warm_one_case_s']=time.monotonic()-start
+        start=time.monotonic();case(model,config);values['same_config_reuse_s']=time.monotonic()-start
         values['same_config_process_reused']=id(model)==model_id and os.getpid()==pid
-        repeat=[case(model,config) for _ in range(5)];rows.extend(repeat)
+        repeat=[case(model,config) for _ in range(5)]
         texts=[r.get('output_text') for r in repeat]
         if all(isinstance(t,str) and not r.get('execution_error') for t,r in zip(texts,repeat)):
             values['five_repeat_outputs_equal']=len(set(texts))==1
@@ -257,7 +283,7 @@ def reference_cost(config,stage,path=DEFAULT_PATH):
         data=read_json(path,require_object=True)
         if data.get('schema_version')!=SCHEMA or data['identity']['config_sha256']!=digest(config):return None
         if not data['identity'].get('model_sha256') or not data['identity'].get('sdk_sha256'):return None
-        key={'S1':'s1_wall_s','S2':'s2_8_wall_s','S4':'dev35_wall_s','S5':'dev35_wall_s'}.get(stage)
+        key={'S1':'s1_wall_s','S2':'s2_8_wall_s','S3':'s3_18_wall_s','S4':'dev35_wall_s','S5':'dev35_wall_s'}.get(stage)
         value=data['metrics'].get(key,{})
         if value.get('source')!='measured' or value.get('model_config_sha256')!=data['identity']['model_config_sha256']:return None
         seconds=value.get('value')
@@ -271,6 +297,6 @@ def load_costs(config,path=DEFAULT_PATH):
     try:
         data=read_json(path,require_object=True)
         if data.get('schema_version')!=SCHEMA or data.get('identity')!=identity(config,inspect_artifacts=True):return {}
-        return {stage:value for stage in ('S1','S2','S4','S5')
+        return {stage:value for stage in ('S1','S2','S3','S4','S5')
                 if (value:=reference_cost(config,stage,path)) is not None}
     except (OSError,ValueError,KeyError,TypeError):return {}

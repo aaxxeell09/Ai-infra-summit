@@ -73,6 +73,8 @@ class Scheduler:
         self.commissioned_costs = {} if dry_run else load_costs(control_config, commissioning_path or DEFAULT_PATH)
         if (session.get('canary_sizes') or {}).get('S2') != 8:
             self.commissioned_costs.pop('S2', None)
+        if (session.get('canary_sizes') or {}).get('S3') != 18:
+            self.commissioned_costs.pop('S3', None)
         if self.commissioned_costs:
             session['cost_model']['commissioned_stage_reference_seconds'] = dict(self.commissioned_costs)
             session['cost_model']['commissioning_source'] = str(commissioning_path or DEFAULT_PATH)

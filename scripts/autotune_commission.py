@@ -10,6 +10,7 @@ from turbo.experiments import git_state
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--backend',choices=['qairt_npu'],default='qairt_npu')
     p.add_argument('--config',type=Path,required=True)
     p.add_argument('--output',type=Path,default=DEFAULT_PATH)
     p.add_argument('--changed-config',type=Path)
@@ -18,7 +19,7 @@ def main(argv=None):
     p.add_argument('--acknowledge-interrupted',action='store_true',help='Only after independently checking surviving hardware jobs')
     p.add_argument('--step',action='append',choices=tuple(STEPS))
     p.add_argument('--timeout',type=float,default=900)
-    p.add_argument('--diagnostic-worker',choices=['resident','s1','s2'],help=argparse.SUPPRESS)
+    p.add_argument('--diagnostic-worker',choices=['resident','s1','s2','s3'],help=argparse.SUPPRESS)
     from turbo.experiments import DEFAULT_ARCHIVES
     p.add_argument('--archives-root',type=Path,default=DEFAULT_ARCHIVES)
     p.add_argument('--worker-output',type=Path,help=argparse.SUPPRESS)

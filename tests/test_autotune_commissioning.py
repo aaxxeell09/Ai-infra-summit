@@ -37,7 +37,7 @@ def test_injected_runner_records_scopes_and_resume_does_not_repeat_success(tmp_p
     c.commission(path,output=output,runner=runner,archives=archives,resume=True,inspect_artifacts=True)
     assert len(calls)==len(c.STEPS)
     assert original==[(Path(a['path'])/'result.json').read_bytes() for a in first['attempts']]
-    assert c.load_costs(json.loads(path.read_text()),output)=={'S1':3.5,'S2':3.5,'S4':3.5,'S5':3.5}
+    assert c.load_costs(json.loads(path.read_text()),output)=={'S1':3.5,'S2':3.5,'S3':3.5,'S4':3.5,'S5':3.5}
     (tmp_path/'model'/'weights.bin').write_bytes(b'changed')
     assert c.load_costs(json.loads(path.read_text()),output)=={}
 
@@ -67,15 +67,15 @@ def test_shared_tracker_mutex_blocks_diagnostics_but_never_api(tmp_path):
     path=config(tmp_path);archives=tmp_path/'exp';calls=[]
     def runner(step,*args):calls.append(step);return {'metrics':{c.STEPS[step][0]:1}}
     with archive_lock(archives,'hardware-execution'):
-        result=c.commission(path,output=tmp_path/'commissioning.json',runner=runner,steps=['s1','proposer_api'],archives=archives)
-    assert calls==['proposer_api']
+        result=c.commission(path,output=tmp_path/'commissioning.json',runner=runner,steps=['s1','anthropic_api'],archives=archives)
+    assert calls==['anthropic_api']
     assert result['attempts'][0]['status']=='failed'
     assert result['metrics']['s1_wall_s']['source']=='unavailable'
 
 
 def test_missing_api_is_unavailable_and_no_subprocess(tmp_path,monkeypatch):
     monkeypatch.setattr(c,'child_command',lambda *a,**k:pytest.fail('Must not launch'))
-    result=c.TargetRunner()('proposer_api',tmp_path,config(tmp_path))
+    result=c.TargetRunner()('anthropic_api',tmp_path,config(tmp_path))
     assert result['metrics']=={}
 
 
@@ -160,3 +160,88 @@ def test_dev35_composes_tracker_without_taking_a_second_lock(tmp_path,monkeypatc
     assert captured[0]['dataset']=='dev' and 'dev35_wall_s' in result['metrics']
     write_json(archive/'manifest.json',{'status':'completed_diagnostic','case_set_complete':False})
     with pytest.raises(RuntimeError,match='incomplete'):runner('dev35',tmp_path,tmp_path/'config.json')
+
+
+def test_provider_latency_success_only_and_bounded(tmp_path):
+    seen=[]
+    def probe(provider,attempt,timeout):
+        seen.append((provider,timeout))
+        return {'provider':provider,'status':'ok','latency_ms':250,'private':'discard'}
+    runner=c.TargetRunner(api_probe=probe)
+    result=runner('openai_api',tmp_path,config(tmp_path))
+    assert result['metrics']=={'openai_api_s':.25}
+    assert seen==[('openai',120)]
+    assert 'private' not in result['api_evidence']
+    runner.api_probe=lambda *a,**k:{'provider':'openai','status':'error','latency_ms':250}
+    assert runner('openai_api',tmp_path,tmp_path/'config.json')['metrics']=={}
+
+
+def test_canary_outer_and_inner_boundaries(tmp_path,monkeypatch):
+    path=config(tmp_path)
+    def child(command,attempt,**kwargs):
+        c.write_json(attempt/'probe.json',{'hardware_seconds':.125})
+    monkeypatch.setattr(c,'child_command',child)
+    for step,key in [('s2','s2_8'),('s3','s3_18')]:
+        result=c.TargetRunner()(step,tmp_path,path)
+        assert result['metrics'][key+'_hardware_s']==.125
+        assert result['metrics'][key+'_wall_s']>=0
+
+
+def test_cli_accepts_explicit_backend_without_execution(tmp_path):
+    from scripts.autotune_commission import main
+    assert main(['--backend','qairt_npu','--config',str(config(tmp_path)),
+                 '--output',str(tmp_path/'commissioning.json')])==0
+
+
+@pytest.mark.parametrize('failure',[None,'generation','reload'])
+def test_resident_route_uses_one_instance_and_retains_failed_rows(tmp_path,monkeypatch,failure):
+    import types
+    path=config(tmp_path);calls=[];instances=[]
+    class Runtime:
+        def __init__(self,*a):pass
+        def close(self):pass
+    class Model:
+        def __init__(self,*a,**kwargs):
+            if kwargs.get('threads')==2:raise RuntimeError('reload failed')
+            instances.append(self)
+        def chat(self,*a,**kwargs):calls.append((self,kwargs));return 'same'
+        def close(self):pass
+    monkeypatch.setitem(sys.modules,'turbo.native',types.SimpleNamespace(NativeModel=Model,NativeRuntime=Runtime))
+    def execute(cases,codec,generate,workspace):
+        output=generate([])
+        return [{'output_text':output,'execution_error':'failure' if failure=='generation' else None}]
+    monkeypatch.setitem(sys.modules,'eval.run_secretary_eval',types.SimpleNamespace(execute=execute))
+    monkeypatch.setitem(sys.modules,'eval.secretary_adapter',types.SimpleNamespace(TOOLS=[],SecretaryAdapter=types.SimpleNamespace(from_files=lambda data:None)))
+    monkeypatch.setitem(sys.modules,'eval.scoring',types.SimpleNamespace(load_dataset=lambda paths:[{'synthetic':True}]))
+    changed=None
+    if failure=='reload':
+        changed=tmp_path/'changed.json';data=json.loads(path.read_text());data['threads']=2;c.write_json(changed,data)
+    out=tmp_path/'probe.json'
+    if failure:
+        with pytest.raises(RuntimeError):c.resident_probe(path,out,changed)
+        assert not out.exists()
+    else:c.resident_probe(path,out)
+    partial=c.read_json(out.with_suffix('.partial.json'))
+    assert all(model is instances[0] and kw['reset'] is True for model,kw in calls)
+    assert len(calls)==(1 if failure=='generation' else 8)
+    if failure=='generation':
+        assert partial['rows'][0]['execution_error']=='failure'
+        assert 'warm_one_case_s' not in partial['metrics']
+        assert 'same_config_process_reused' not in partial['metrics']
+    elif failure=='reload':assert 'config_change_reload_s' not in partial['metrics']
+    else:assert partial['metrics']['five_repeat_outputs_equal'] is True
+
+
+def test_optional_api_cli_is_sanitized_and_success_scoped(tmp_path,monkeypatch):
+    root=tmp_path/'repo';(root/'scripts').mkdir(parents=True);(root/'scripts/api_probe.py').write_text('# stub')
+    monkeypatch.setattr(c,'ROOT',root)
+    seen=[]
+    def child(command,attempt,timeout):
+        seen.append((command,timeout))
+        c.write_json(attempt/'stdout.log',{'results':[{'provider':'anthropic','status':'ok','latency_ms':500,'secret':'discard'}]})
+    monkeypatch.setattr(c,'child_command',child)
+    result=c.TargetRunner()('anthropic_api',tmp_path,tmp_path/'unused.json')
+    assert result['metrics']=={'anthropic_api_s':.5}
+    assert seen[0][0][-4:]==['--provider','anthropic','--timeout','120']
+    assert seen[0][1]==130
+    assert 'secret' not in result['api_evidence']

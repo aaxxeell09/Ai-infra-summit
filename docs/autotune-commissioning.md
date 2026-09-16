@@ -74,3 +74,23 @@ the record. Dry runs do not read target commissioning or load models.
 Target validation still required: real loading, reload behavior, same-process
 reuse, five-repeat outputs, target wall times, Windows locking and cancellation.
 Portable tests inject execution; none are evidence of Snapdragon performance.
+
+### Provider probes and cost boundaries
+
+`--backend qairt_npu` is accepted explicitly. After the optional API readiness
+branch is merged, `--execute --step anthropic_api --step openai_api` invokes its
+sanitized `scripts/api_probe.py` CLI with a maximum 120-second provider timeout.
+Absent integration or unsuccessful requests produce unavailable success latency;
+failure diagnostics are retained separately. No API step acquires a hardware lock.
+Credentials/model selection use that probe's environment contract.
+
+S2 records both `s2_8_wall_s` (outer worker wall) and `s2_8_hardware_s` (the
+existing canary's reported `hardware_seconds`). S3 similarly records
+`s3_18_wall_s` and `s3_18_hardware_s`. Scheduler estimates prefer the measured
+outer wall for matching eight/eighteen-case stages. These boundaries must not be
+mixed in comparisons. No user-reported timing is a code default.
+
+To collect another successful sample, use a new `--output` path, for example
+`local/autotune/commissioning-repeat-2.json`; retain the earlier file and attempts.
+`--resume` deliberately skips successful samples. Each output independently binds
+its metrics to configuration/artifact hashes and timestamps.
