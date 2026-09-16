@@ -596,6 +596,25 @@ def _qairt_bundle_input(path: str) -> tuple[str, int]:
 # ---------------------------------------------------------------------------
 
 
+class _ToolCallStop:
+    """Streaming byte matcher only; never edits the model's native output."""
+    marker = b'</tool_call>'
+
+    def __init__(self):
+        self.tail = b''
+        self.hit = False
+        self.callbacks_after_stop = 0
+
+    def feed(self, piece):
+        if self.hit:
+            self.callbacks_after_stop += 1
+            return False
+        combined = self.tail + (piece or b'')
+        self.hit = self.marker in combined
+        self.tail = combined[-(len(self.marker)-1):]
+        return not self.hit
+
+
 class NativeModel:
     '''One opaque geniex_LLM; every call serialized by a per-model lock.'''
 
@@ -614,6 +633,7 @@ class NativeModel:
         plugin: str | None = None,
         backend: str | None = None,
         generation_observer=None,
+        stop_after_tool_call: bool = False,
     ):
         plugin, device = backend_options(backend, plugin, device, path)
         self.backend_id = backend
@@ -622,6 +642,11 @@ class NativeModel:
         self.model_path = os.fspath(path)
         self.device_alias = device
         self.plugin_id = plugin or _detect_plugin(self.model_path)
+        if type(stop_after_tool_call) is not bool:
+            raise ValueError('stop_after_tool_call must be boolean')
+        if stop_after_tool_call and self.plugin_id != 'qairt':
+            raise ValueError('stop_after_tool_call is an opt-in QAIRT candidate only')
+        self.stop_after_tool_call = stop_after_tool_call
         self.compiled_context = None
         native_model_path = self.model_path
         if self.plugin_id == 'qairt':
@@ -644,6 +669,7 @@ class NativeModel:
             'ubatch': ubatch,
             'n_batch': n_batch,
             'plugin': self.plugin_id,
+            'stop_after_tool_call': self.stop_after_tool_call,
         }
         self._lock = threading.Lock()
         self._handle: int | None = None
@@ -794,17 +820,21 @@ class NativeModel:
         # gets an empty instance, which ctypes marshals as a NULL pointer.
         cb_ref = geniex_token_callback()
         state = {'alive': True}
+        stopper = _ToolCallStop() if self.stop_after_tool_call else None
 
         def _tramp(token: bytes | None, _user: int | None) -> bool:
-            if not state['alive'] or on_token is None:
-                return True
+            if not state['alive']:
+                return False
+            keep_generating = stopper.feed(token) if stopper else True
             try:
-                cont = on_token(token.decode('utf-8', errors='replace') if token else '')
-                return cont is not False
+                if on_token is not None:
+                    cont = on_token(token.decode('utf-8', errors='replace') if token else '')
+                    keep_generating = keep_generating and cont is not False
+                return keep_generating
             except Exception:
-                return False  # stop generation rather than crash inside C
+                return False  # preserve existing external-callback cancellation behavior
 
-        if on_token is not None:
+        if on_token is not None or stopper is not None:
             cb_ref = geniex_token_callback(_tramp)
         keepalive.append(cb_ref)
 
@@ -849,6 +879,14 @@ class NativeModel:
         ttft_s = profile['ttft'] / 1e6
         return {
             'text': text,
+            'generation_control': {
+                'stop_after_tool_call':self.stop_after_tool_call,
+                'mechanism':'qairt_token_callback' if stopper else None,
+                'delimiter':'</tool_call>' if stopper else None,
+                'delimiter_seen':stopper.hit if stopper else False,
+                'callbacks_after_stop_request':stopper.callbacks_after_stop if stopper else 0,
+                'native_text_modified':False,
+            },
             'sampling': {'requested_temperature': float(temperature),
                          'sdk_top_k': sampler.top_k,
                          'greedy_via_top_k': greedy_top_k,

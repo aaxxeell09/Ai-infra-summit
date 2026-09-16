@@ -1,0 +1,9 @@
+{
+  "backend": "qairt_npu",
+  "plugin": "qairt",
+  "device": "npu",
+  "sdk_dir": "",
+  "model_path": "",
+  "max_tokens": 128,
+  "stop_after_tool_call": true
+}
