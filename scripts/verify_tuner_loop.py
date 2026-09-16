@@ -28,6 +28,10 @@ def main():
     p.add_argument('--rounds', type=int, choices=(1, 2, 3), default=2)
     p.add_argument('--task-id', default='t13', help='Interactive demo fixture, not golden benchmark')
     args = p.parse_args()
+    source_commit = subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+    source_status = subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip()
+    if source_status:
+        p.error('Integration evidence requires a clean source checkout; use ignored local/ for config and output')
     config = json.loads(Path(args.config).read_text(encoding='utf-8-sig'))
     search = json.loads(Path(args.search_space).read_text(encoding='utf-8-sig'))
     out = Path(args.output).resolve(); out.mkdir(parents=True, exist_ok=False)
@@ -39,7 +43,8 @@ def main():
                TURBO_BASE_URL=f'http://127.0.0.1:{server.server_port}')
     log = (out/'mcp-stderr.log').open('wb')
     proc = subprocess.Popen([sys.executable,'-X','utf8','-m','turbo.mcp_server'],
-        stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log,text=True,encoding='utf-8',env=env,cwd=ROOT)
+        stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log,text=True,encoding='utf-8',env=env,cwd=ROOT,
+        creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
     replies = queue.Queue()
     def read_replies():
         for line in proc.stdout:
@@ -47,7 +52,7 @@ def main():
         replies.put(None)
     threading.Thread(target=read_replies,daemon=True).start()
     record = dict(scope='Integration smoke through real MCP/HTTP/native inference; no quality qualification',
-                  git_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+                  git_commit=source_commit, dirty=False,
                   model_id=args.model_id, search_space=search, calls=[], rounds=[], completed=False)
     def save():
         (out/'integration.json').write_text(json.dumps(record,indent=2),encoding='utf-8')
