@@ -54,7 +54,9 @@ def execute(cases, codec, complete, fixture_root=None):
                    expected_tool=case['expected']['tool'], case_sha256=digest(case), execution_error=error,
                    output_text=output.get('text'), profile=output.get('profile'),
                    timings=output.get('timings'), selected_device=output.get('device'),
-                   selected_route=None, routing_accuracy=None)
+                   selected_route=None, routing_accuracy=None,
+                   backend_id=output.get('backend_id'), runtime=output.get('runtime'),
+                   requested_device=output.get('requested_device'), resolved_device=output.get('resolved_device'))
         if error:
             row['task_success'] = False
             row['failure_reasons'] = ['TIMEOUT' if error in {'TimeoutError','TimeoutExpired'} else 'MODEL_ERROR']
@@ -134,11 +136,16 @@ def main(argv=None):
         p.error('--config is required for measured execution; no model fallback or mock baseline')
     config = json.loads(args.config.read_text())
     allowed = {'sdk_dir', 'model_path', 'device', 'threads', 'context', 'threads_batch', 'ubatch', 'n_batch',
-               'spec_type', 'draft_tokens', 'plugin', 'max_tokens', 'grammar', 'hardware_note'}
+               'spec_type', 'draft_tokens', 'plugin', 'backend', 'max_tokens', 'grammar', 'hardware_note'}
     if set(config) - allowed:
         p.error('Unknown configuration keys: ' + ', '.join(sorted(set(config)-allowed)))
     if config.get('grammar'):
         p.error('ToolWire grammar is not valid for the production Secretary tool contract')
+    from turbo.native import backend_options
+    try:
+        backend_options(config.get('backend'), config.get('plugin'), config.get('device'), config.get('model_path'))
+    except ValueError as exc:
+        p.error(str(exc))
     policy = json.loads(args.policy.read_text())
     for key in ['max_accuracy_drop_points', 'max_category_drop_points']:
         if not isinstance(policy[key], (int, float)) or not math.isfinite(policy[key]) or policy[key] < 0:
@@ -167,7 +174,7 @@ def main(argv=None):
                 'candidate_name': args.candidate_name, 'git_commit': commit,
                 'branch': git('branch', '--show-current'), 'dirty': bool(status),
                 'application_sources_sha256': {name: file_hash(ROOT/name) for name in
-                   ['turbo/secretary.py','turbo/service.py','turbo/native.py','turbo/policy.py']},
+                   ['turbo/secretary.py','turbo/service.py','turbo/native.py','turbo/policy.py','turbo/tuning.py']},
                 'timestamp': datetime.now(timezone.utc).isoformat(), 'dataset_sha256': digest(cases),
                 'fixture_sha256': golden['fixture_sha256'], 'inventory_sha256':codec.digest,
                 'action_schema_sha256':golden['action_schema_sha256'], 'system_prompt_sha256':golden['system_prompt_sha256'], 'baseline_approval':approval,
@@ -187,6 +194,11 @@ def main(argv=None):
     # SDK import/load occurs only for measured execution, never scoring tests.
     from turbo.native import NativeRuntime, NativeModel, PINNED_VERSION
     metadata['runtime_version'] = PINNED_VERSION
+    if Path(config['model_path']).is_dir():
+        from turbo.tuning import _sha256
+        metadata['model_sha256'] = _sha256(config['model_path'])
+        metadata['model_hash_method'] = 'turbo.tuning._sha256 directory manifest'
+
     source_hashes = {**metadata['application_sources_sha256'], **metadata['evaluator_sha256']}
     if metadata['secretary_module_present']:
         source_hashes['turbo/secretary.py'] = file_hash(ROOT/'turbo/secretary.py')
@@ -195,8 +207,9 @@ def main(argv=None):
     metadata['source_hashes'] = source_hashes
     runtime = NativeRuntime(config['sdk_dir'])
     try:
-        kwargs = {k:config[k] for k in ['device','threads','context','threads_batch','ubatch','n_batch','spec_type','draft_tokens','plugin'] if k in config}
+        kwargs = {k:config[k] for k in ['device','threads','context','threads_batch','ubatch','n_batch','spec_type','draft_tokens','plugin','backend'] if k in config}
         with NativeModel(runtime, config['model_path'], **kwargs) as model:
+            metadata['inference_backend'] = {**model.provenance(), 'model_path_or_id': metadata['model_label']}
             def complete(messages):
                 return model.chat(messages, tools=TOOLS, max_tokens=config.get('max_tokens',128), temperature=0,reset=True)
             warmup = load_dataset([ROOT/'eval/datasets/secretary_dev.json'])[0]

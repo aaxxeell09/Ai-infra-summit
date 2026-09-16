@@ -519,6 +519,35 @@ class NativeRuntime:
         return (dev.decode() if dev else None, out.ngl, warn.decode() if warn else None)
 
 
+BACKEND_CONFIGS = {
+    'llama_cpp_cpu': ('llama_cpp', 'cpu'),
+    'llama_cpp_htp': ('llama_cpp', 'npu'),
+    'qairt_npu': ('qairt', 'npu'),
+}
+
+
+def backend_options(backend=None, plugin=None, device=None, model_path=None):
+    """Resolve explicit identities without replacing the SDK device resolver."""
+    if backend is None:
+        return plugin, device or 'cpu'
+    if backend not in BACKEND_CONFIGS:
+        raise ValueError(f'Unknown inference backend: {backend}')
+    wanted_plugin, wanted_device = BACKEND_CONFIGS[backend]
+    allowed_devices = {wanted_device}
+    if backend == 'llama_cpp_htp':
+        allowed_devices.add('HTP0')
+    if plugin is not None and plugin != wanted_plugin:
+        raise ValueError(f'{backend} conflicts with plugin {plugin}')
+    if device is not None and device not in allowed_devices:
+        raise ValueError(f'{backend} conflicts with device {device}')
+    if backend == 'qairt_npu':
+        if not model_path or not os.path.isfile(os.path.join(os.fspath(model_path), 'geniex.json')):
+            raise ValueError('QAIRT model not configured: model_path must be a local bundle containing geniex.json')
+    elif model_path and not os.fspath(model_path).lower().endswith('.gguf'):
+        raise ValueError(f'{backend} requires a GGUF artifact')
+    return wanted_plugin, device or wanted_device
+
+
 def _detect_plugin(path: str) -> str:
     lower = path.lower()
     if lower.endswith('.gguf'):
@@ -540,7 +569,7 @@ class NativeModel:
         self,
         runtime: NativeRuntime,
         path: str | os.PathLike[str],
-        device: str = 'cpu',
+        device: str | None = None,
         threads: int = 0,
         context: int = 4096,
         spec_type: str = 'none',
@@ -549,7 +578,10 @@ class NativeModel:
         ubatch: int = 0,
         n_batch: int = 0,
         plugin: str | None = None,
+        backend: str | None = None,
     ):
+        plugin, device = backend_options(backend, plugin, device, path)
+        self.backend_id = backend
         self.runtime = runtime
         self.model_path = os.fspath(path)
         self.device_alias = device
@@ -576,6 +608,11 @@ class NativeModel:
         device_id, ngl, warning = runtime.resolve_device(self.plugin_id, device)
         if warning:
             print(f'geniex: {warning}', file=sys.stderr)
+        if backend is not None and device_id:
+            resolved = device_id.upper()
+            if ((backend == 'llama_cpp_cpu' and resolved.startswith(('HTP', 'GPU')))
+                    or (backend in ('llama_cpp_htp', 'qairt_npu') and resolved.startswith(('CPU', 'GPU')))):
+                raise ValueError(f'{backend} resolved to incompatible device {device_id}; refusing fallback')
 
         spec_type_b = None if spec_type in ('', 'none') else spec_type.encode('utf-8')
         mc = geniex_ModelConfig(
@@ -604,8 +641,33 @@ class NativeModel:
         self._handle = handle.value
         self._device_id = device_id
         self._ngl = ngl
+        self.resolution_warning = warning
 
         runtime._register(self)
+
+    def provenance(self):
+        """Resolver evidence, not a hardware-utilization assertion. Keep legacy fields."""
+        identity = self.backend_id
+        if identity is None:
+            if self.plugin_id == 'qairt':
+                identity = 'qairt_npu'
+            elif self.plugin_id == 'llama_cpp':
+                resolved = (self._device_id or '').upper()
+                if resolved.startswith('HTP'):
+                    identity = 'llama_cpp_htp'
+                elif resolved == 'CPU' or (not resolved and self.device_alias == 'cpu'):
+                    identity = 'llama_cpp_cpu'
+        return {
+            'backend_id': identity, 'runtime': self.plugin_id,
+            'requested_device': self.device_alias, 'resolved_device': self._device_id,
+            'device_resolution_warning': self.resolution_warning,
+            'model_artifact_type': 'QAIRT' if self.plugin_id == 'qairt' else 'GGUF',
+            'model_path_or_id': self.model_path,
+            'geniex_version': PINNED_VERSION, 'qairt_version': None,
+            'dispatch_verified': False,
+            'context_source': 'compiled_artifact' if self.plugin_id == 'qairt' else 'model_config',
+            'effective_compiled_context': None,
+        }
 
     # -- chat ---------------------------------------------------------------
 
@@ -742,6 +804,7 @@ class NativeModel:
                          'sdk_zero_temperature_uses_default': self.plugin_id == 'llama_cpp'},
             'profile': profile,
             'timings': {'ttft': ttft_s, 'total': total_s},
+            **self.provenance(),
             'backend': 'geniex',
             'device': self._device_id or self.device_alias,
             'version': PINNED_VERSION,
