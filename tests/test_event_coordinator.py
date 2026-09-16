@@ -184,7 +184,7 @@ def test_full_worker_development_only_and_shared_lock(tmp_path,monkeypatch):
             with archive_lock(tmp_path,'hardware-execution',timeout=0):pass
     monkeypatch.setattr(worker.runpy,'run_path',run)
     assert worker.main(['--archives-root',str(tmp_path),'--script','run_secretary_eval.py','--','--dataset','dev'])==0
-    assert '/eval/run_secretary_eval.py' in seen[0]
+    assert seen[0] == str(worker.ROOT / 'eval' / 'run_secretary_eval.py')
     with pytest.raises(SystemExit):worker.main(['--archives-root',str(tmp_path),'--script','run_secretary_eval.py','--','--dataset','all'])
 
 
