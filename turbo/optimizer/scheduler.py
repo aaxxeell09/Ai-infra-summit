@@ -177,6 +177,11 @@ class Scheduler:
             if job_id is not None:
                 entry = self.state['hardware_journal'].get(job_id)
                 if entry and entry['status'] == 'completed':
+                    saved_candidate = entry.get('candidate', {})
+                    if (entry.get('stage') != stage
+                            or saved_candidate.get('candidate_id') != candidate.get('candidate_id')
+                            or saved_candidate.get('config') != candidate.get('config')):
+                        raise ValueError('Durable job identity belongs to a different candidate or stage')
                     return copy.deepcopy(entry['observation'])
                 if entry and entry['status'] == 'started':
                     raise RuntimeError('Recovery requires reconciliation of uncertain hardware job ' + job_id)
@@ -189,6 +194,11 @@ class Scheduler:
             if not self.budget.can_start(estimated_seconds, allow_unknown=self.dry_run):
                 self.console.warn('skipping ' + candidate['candidate_id'] + ': estimated cost does not fit the remaining budget')
                 return None
+            if job_id is not None and stage in ('S2', 'S3'):
+                # Execution identity is not a treatment/configuration change.
+                candidate = copy.deepcopy(candidate)
+                candidate['hardware_attempt'] = {
+                    'session_id': self.state['session_id'], 'job_id': job_id, 'stage': stage}
             candidate_id = candidate['candidate_id']
             self._mark('hardware_idle_s')
             self.queue.claim(candidate)
@@ -410,6 +420,8 @@ def canary_executor(*, repo=ROOT, python=None, seed_label, sizes, output_directo
     execute = runner or _subprocess.run
 
     def executor(candidate, *, stage):
+        if stage not in ('S2', 'S3'):
+            raise ValueError('Canary supports development S2/S3 only')
         size = (sizes or {}).get(stage)
         if not size:
             return {'outcome': 'skipped', 'stage': stage, 'simulated': False, 'archive': None,
@@ -420,11 +432,46 @@ def canary_executor(*, repo=ROOT, python=None, seed_label, sizes, output_directo
         directory.mkdir(parents=True, exist_ok=True)
         outputs.mkdir(parents=True, exist_ok=True)
         config_path = directory / (candidate['candidate_id'] + '.json')
-        if not config_path.exists():
-            config_path.write_text(json.dumps(candidate['config'], indent=2, ensure_ascii=False,
-                                              allow_nan=False) + '\n',
-                                   encoding='utf-8', newline='\n')
-        output = outputs / (candidate['candidate_id'] + '-' + stage + '.json')
+        payload = json.dumps(candidate['config'], indent=2, ensure_ascii=False, allow_nan=False) + '\n'
+        if config_path.exists():
+            if config_path.read_text(encoding='utf-8') != payload:
+                raise ValueError('Canary config differs from retained configuration')
+        else:
+            with config_path.open('x', encoding='utf-8', newline='\n') as stream:
+                stream.write(payload)
+        config_hash = S.config_hash(candidate['config'])
+        if candidate.get('config_hash', config_hash) != config_hash:
+            raise ValueError('Canary candidate config hash mismatch')
+        leaf = candidate['candidate_id'] + '-' + stage + '.json'
+        identity = candidate.get('hardware_attempt')
+        if identity is not None:
+            if (not isinstance(identity, dict) or set(identity) != {'session_id', 'job_id', 'stage'}
+                    or identity['stage'] != stage
+                    or any(not isinstance(value, str) or not value for value in identity.values())):
+                raise ValueError('Invalid durable canary attempt identity')
+            # An exclusive directory is a durable launch reservation. A crash
+            # leaves it occupied: nobody can silently rerun or reuse its output.
+            attempt_dir = outputs / 'jobs' / S.digest(identity)
+            attempt_dir.parent.mkdir(parents=True, exist_ok=True)
+            attempt_dir.mkdir(exist_ok=False)
+            output = attempt_dir / leaf
+            request = attempt_dir / 'request.json'
+        else:
+            # Compatibility for direct executor callers: retain the old name,
+            # but reserve it before launch, including failed/uncertain attempts.
+            output = outputs / leaf
+            request = outputs / (leaf + '.attempt.json')
+        if output.exists() or output.is_symlink():
+            raise FileExistsError('Refusing existing canary artifact before hardware launch: ' + str(output))
+        evidence = {'hardware_attempt': identity, 'candidate_id': candidate['candidate_id'],
+                    'config_hash': config_hash, 'config_sha256': S.digest(candidate['config']),
+                    'stage': stage, 'canary_artifact': str(output.resolve()),
+                    'request_artifact': str(request.resolve()), 'subset_size': size, 'seed_label': seed_label}
+        with request.open('x', encoding='utf-8') as stream:
+            json.dump(evidence, stream, indent=2, allow_nan=False)
+            stream.flush()
+            import os
+            os.fsync(stream.fileno())
         command = [interpreter, '-X', 'utf8', str(Path(repo) / 'scripts/diagnostic_canary.py'),
                    '--config', str(config_path), '--size', str(size),
                    '--seed-label', str(seed_label), '--output', str(output)]
@@ -435,16 +482,16 @@ def canary_executor(*, repo=ROOT, python=None, seed_label, sizes, output_directo
         except _subprocess.TimeoutExpired:
             return {'outcome': 'timed_out', 'stage': stage, 'simulated': False, 'archive': None,
                     'qualified': False, 'promotion_evidence': False, 'hardware_seconds': None,
-                    'detail': 'Canary exceeded ' + str(timeout_s) + ' s'}
+                    'detail': 'Canary exceeded ' + str(timeout_s) + ' s', **evidence}
         elapsed = round(time.monotonic() - started, 3)
         if completed.returncode != 0 or not output.is_file():
             return {'outcome': 'failed', 'stage': stage, 'simulated': False, 'archive': None,
                     'qualified': False, 'promotion_evidence': False, 'hardware_seconds': elapsed,
-                    'runtime_error': (completed.stderr or '').strip()[-2000:] or None}
+                    'runtime_error': (completed.stderr or '').strip()[-2000:] or None, **evidence}
         from turbo.json_io import read_json
         record = read_json(output, require_object=True)
-        record.update(stage=stage, simulated=False, archive=None, hardware_seconds=elapsed,
-                      outcome='survive')
+        record.update(simulated=False, archive=None, hardware_seconds=elapsed,
+                      outcome='survive', qualified=False, promotion_evidence=False, **evidence)
         return record
 
     return executor
