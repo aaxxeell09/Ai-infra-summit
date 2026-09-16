@@ -89,3 +89,9 @@ Immutable tracker and protocol implemented;22 initial tracker tests pass. Advers
 - Host/encoding checkpoint: `ef917b5`.
 - Implemented opt-in standalone exact-command action proposals, never executed or connected to frozen evaluation. 45 synthetic safety/abstention tests pass. Quality/energy benefit unmeasured; integration requires versioned approval.
 - Added static prefix inventory inspection with exclusive outputs; three tests pass. Exact bytes reported, token counts and prefix-cache support left unknown. No heldout optimization or prompt change.
+
+## CI-discovered GGUF reader fix — 2026-09-16 UTC
+
+- Independent diagnostic checkpoint: `bcfd1c7`.
+- Linux CI exposed an untrusted uint64 string length allocation in GGUF preflight. Reader now validates remaining bytes before allocation, bounds nested array work and avoids allocating skipped strings. Windows tests use closed temporary-file writers.
+- Porting validation: **28 passed, 4 subtests passed**. Existing malformed-header regression remains enforced.
