@@ -30,6 +30,18 @@ ARCHIVE_SHA256 = {'eval/results/baseline.json': '49984ec86fae086b27612a3909a7021
  'eval/results/candidate_qwen17-cpu-t10-v2.json': 'ac20ae53e6db0382c7a47dc0282a8269484b943a78a5fd438fbda03fa8a0faad',
  'eval/results/candidate_qwen17-cpu-t10-v2.md': '10d3ac7503d298567056e1e90f8a4d6253b9ad004e757d31084e8fe6fa0e09b5'}
 
+# Full-suite result publication explicitly requested by Henry; original bytes
+# archived at this commit. Disclose exposure, never treat these as unseen data.
+ARCHIVE_SUPPLEMENT_REVISION = "5861c8b0b56afa8303144352fb160f74ef24964a"
+ARCHIVE_SHA256.update({
+    'eval/results/candidate_qwen4b-cpu10-v2.json': '615b4ee944a4c44575cbd421d726733a09bce54cc52d5ed12558ad87e2ab51d2',
+    'eval/results/candidate_qwen4b-cpu10-v2.md': 'be5ad4cd7f8c89ba0276039ea008466af1e49cabca11a46f8d54bb9468c8dafa',
+    'eval/results/candidate_qairt-stop-control-full-v1.json': '3567a7cd47385d0f8fd9d3892430f67b1ff2f721a2c983b3431bf03d0212b721',
+    'eval/results/candidate_qairt-stop-control-full-v1.md': '2c69aa0d1ddfe52e6f53c53056379181fe9d214c179f09922f20496a6caa80ea',
+    'eval/results/candidate_qairt-stop-candidate-full-v1.json': '274c4827366b04af70249e53b28139e3855fcf43a79c49f5f10ce503f94ee94b',
+    'eval/results/candidate_qairt-stop-candidate-full-v1.md': 'de66783e122b90312fd84854fae9bb45856437b07d036db8521855f24f9b0001',
+})
+
 
 def audit(root=ROOT, heldout=None, archive_sha256=None):
     root = Path(root)
@@ -54,6 +66,7 @@ def audit(root=ROOT, heldout=None, archive_sha256=None):
     return {
         "status": "FAIL" if mismatches or unreviewed else "PASS_WITH_DISCLOSED_EXPOSURE",
         "archive_revision": ARCHIVE_REVISION,
+        "archive_supplement_revision": ARCHIVE_SUPPLEMENT_REVISION,
         "heldout_unseen_by_developers": not bool(matches),
         "developer_archive_exposure": archived,
         "unreviewed_exposure": unreviewed,
