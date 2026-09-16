@@ -21,11 +21,13 @@ when producing the final morning handoff.
   This does not alter the already queued Latitude run or any frozen semantics;
   it adds no new inference, quality or speed evidence.
 - PR1 remains `204a9fb`. Teammate TurboLab branch is now `e4b30e1`; not merged.
-  One fresh Flash/medium read-only reviewer is active: Mill,
-  `01a0aad0-3643-7a82-a385-65dfd59c7778`, reviewing hardware queue/budget/timeout
-  behavior in that commit. It has no hardware or write authority. Review its
-  concrete findings against source before treating them as blockers; do not
-  merge this large branch during the final checkpoint without verification.
+  Flash reviewer Mill (`01a0aad0-3643-7a82-a385-65dfd59c7778`) completed its
+  bounded read-only review. Owner verified the resume schema failure with an
+  injected-clock reproduction and inspected outcome ingestion/deadline paths.
+  See `docs/turbolab-review-e4b30e1.md`: hold integration pending fixes. The
+  worker's stronger false-promotion claim was not established and is qualified
+  explicitly. No branch edits, hardware work or teammate messages. No worker
+  remains active.
 - At the 16:00 UTC cutoff, start no experiment. Try one bounded recovery check,
   preserve any retrievable pending bound-MCP result and verify restoration if
   reachable. If unreachable, report remote cleanup/result status as unknown.
