@@ -1,6 +1,6 @@
 # Local Turbo
 
-Fast, private tool-using AI on a Snapdragon X Elite laptop. We are rebuilding around measured inference throughput, local model routing and auditable context reduction.
+Private tool-using AI on a Snapdragon X Elite laptop. Our primary objective is to minimize **energy per correct Secretary task**, subject to acceptable accuracy and task latency. Throughput remains a secondary diagnostic.
 
 **Hardware:** Dell Latitude 7455, Snapdragon X Elite X1E-80-100, 32 GB RAM, Adreno X1-85, Windows ARM64. Inference runs locally through Qualcomm GenieX. The earlier camera/Arduino prototype is preserved in Git history and `archive/inspection-station`.
 
@@ -13,6 +13,8 @@ Fast, private tool-using AI on a Snapdragon X Elite laptop. We are rebuilding ar
 - An OpenAI-compatible adapter and dashboard showing measured speed, TTFT, tool correctness and routing decisions.
 
 ## Current status
+
+The [task-energy protocol](docs/energy-protocol.md) and optional per-task instrumentation are prepared for CPU, llama.cpp HTP and QAIRT. The [decision matrix](docs/decision-matrix.md) remains unmeasured: no new hardware energy run or winning backend is claimed.
 
 Actual Latitude measurements show **2.67× aggregate decode throughput** for CPU/10 versus default auto/NPU on the same 0.6B weights. The stronger CPU-default comparison measured +16.9% aggregate but only +3.2% median individual-run throughput, with substantial variability. See [results and limits](benchmarks/results/README.md).
 

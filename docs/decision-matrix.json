@@ -1,0 +1,113 @@
+{
+  "schema_version": "secretary-decision-v1",
+  "current_commit": "26bcc7be9e1d40877ce3de394742453ebc581f85",
+  "generated_at": "2026-09-16T00:54:57.732867+00:00",
+  "policy": {
+    "min_accuracy_pct": null,
+    "max_e2e_latency_ms": null,
+    "latency_stat": "p95"
+  },
+  "rows": [
+    {
+      "backend": "llama_cpp_cpu",
+      "status": "NOT_MEASURED",
+      "reasons": [
+        "No measured report supplied"
+      ],
+      "eligible": false,
+      "accuracy_pct": null,
+      "invalid_rate": null,
+      "latency_ms": null,
+      "gross_energy_j": null,
+      "joules_per_task": null,
+      "joules_per_correct_task": null,
+      "correct_tasks": null,
+      "tasks": null,
+      "peak_ram": null,
+      "clarification_accuracy_pct": null,
+      "critical_move_failures": null,
+      "measurement_summary": null,
+      "provenance": null,
+      "quality_gate": {
+        "status": "NOT_EVALUATED",
+        "reasons": [
+          "Measured run unavailable"
+        ]
+      }
+    },
+    {
+      "backend": "llama_cpp_htp",
+      "status": "NOT_MEASURED",
+      "reasons": [
+        "No measured report supplied"
+      ],
+      "eligible": false,
+      "accuracy_pct": null,
+      "invalid_rate": null,
+      "latency_ms": null,
+      "gross_energy_j": null,
+      "joules_per_task": null,
+      "joules_per_correct_task": null,
+      "correct_tasks": null,
+      "tasks": null,
+      "peak_ram": null,
+      "clarification_accuracy_pct": null,
+      "critical_move_failures": null,
+      "measurement_summary": null,
+      "provenance": null,
+      "quality_gate": {
+        "status": "NOT_EVALUATED",
+        "reasons": [
+          "Measured run unavailable"
+        ]
+      }
+    },
+    {
+      "backend": "qairt_npu",
+      "status": "NOT_MEASURED",
+      "reasons": [
+        "No measured report supplied"
+      ],
+      "eligible": false,
+      "accuracy_pct": null,
+      "invalid_rate": null,
+      "latency_ms": null,
+      "gross_energy_j": null,
+      "joules_per_task": null,
+      "joules_per_correct_task": null,
+      "correct_tasks": null,
+      "tasks": null,
+      "peak_ram": null,
+      "clarification_accuracy_pct": null,
+      "critical_move_failures": null,
+      "measurement_summary": null,
+      "provenance": null,
+      "quality_gate": {
+        "status": "NOT_EVALUATED",
+        "reasons": [
+          "Measured run unavailable"
+        ]
+      }
+    }
+  ],
+  "comparison_status": "NOT_ENOUGH_DATA",
+  "comparison_reasons": [],
+  "winner": null,
+  "objective_winners": {
+    "lowest_joules_per_correct_task": null,
+    "lowest_latency": null,
+    "highest_accuracy": null,
+    "lowest_joules_per_task": null,
+    "best_eligible": null
+  },
+  "modes": {
+    "FAST": null,
+    "BALANCED": null,
+    "EFFICIENT": null
+  },
+  "generator": {
+    "commit": "26bcc7be9e1d40877ce3de394742453ebc581f85",
+    "source_sha256": "4cfd09b478e59ea7107e6e8f6bb0f514617994f2878de47aa99a6cb3e625e5f6",
+    "dirty": true
+  }
+}

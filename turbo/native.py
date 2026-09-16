@@ -20,6 +20,7 @@ Memory contract, mirroring the header and run.c:
 from __future__ import annotations
 
 import ctypes
+from contextlib import nullcontext
 import json
 import os
 import sys
@@ -579,9 +580,11 @@ class NativeModel:
         n_batch: int = 0,
         plugin: str | None = None,
         backend: str | None = None,
+        generation_observer=None,
     ):
         plugin, device = backend_options(backend, plugin, device, path)
         self.backend_id = backend
+        self.generation_observer = generation_observer
         self.runtime = runtime
         self.model_path = os.fspath(path)
         self.device_alias = device
@@ -769,11 +772,13 @@ class NativeModel:
         gout = geniex_LlmGenerateOutput()
         keepalive.extend([gin, prompt_b, gout])
 
-        t0 = time.perf_counter()
-        code = lib.geniex_llm_generate(c_void_p(self._handle), byref(gin), byref(gout))
+        # Optional diagnostics around exactly the native generation call.
+        with self.generation_observer.measure('inference') if self.generation_observer else nullcontext():
+            t0 = time.perf_counter()
+            code = lib.geniex_llm_generate(c_void_p(self._handle), byref(gin), byref(gout))
+            total_s = time.perf_counter() - t0
         state['alive'] = False
         self.runtime._check(code)
-        total_s = time.perf_counter() - t0
 
         text = ''
         if gout.full_text:
