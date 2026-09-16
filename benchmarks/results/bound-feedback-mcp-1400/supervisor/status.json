@@ -1,0 +1,31 @@
+{
+  "state": "complete",
+  "scope": "Integration smoke only",
+  "started_at": "2026-09-16T14:09:15.227779+00:00",
+  "command": [
+    "${QUALCOMM_TOOLS}\\Python314\\python.exe",
+    "-X",
+    "utf8",
+    "scripts/verify_tuner_loop.py",
+    "--config",
+    "local/mcp-config.json",
+    "--model-id",
+    "qwen4b",
+    "--search-space",
+    "local/mcp-search.json",
+    "--output",
+    "local/bound-mcp-loop-1400",
+    "--rounds",
+    "2",
+    "--feedback-mcp"
+  ],
+  "exit_code": 0,
+  "completed": true,
+  "passes": [
+    false,
+    false
+  ],
+  "integration_error": null,
+  "restore_error": "CalledProcessError(1, ['schtasks', '/Run', '/TN', 'Qualcomm-Turbo-Service'])",
+  "finished_at": "2026-09-16T14:11:29.232302+00:00"
+}

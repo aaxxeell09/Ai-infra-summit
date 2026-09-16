@@ -1,0 +1,4 @@
+{
+  "model_id": "qwen4b",
+  "recommendation_file": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\recommended.json"
+}

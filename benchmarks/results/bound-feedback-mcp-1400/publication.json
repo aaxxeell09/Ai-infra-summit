@@ -1,0 +1,416 @@
+{
+  "scope": "Previously completed integration diagnostic retrieved after cutoff; no new experiment. Public fixture only, not frozen v2 evaluation.",
+  "source_commit": "3380a652dda56b5389c84b2c545fc60645f566ff",
+  "redactions": "Private tool/user directories replaced; nested JSON text reserialized. Original bytes retained privately.",
+  "files": [
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/diagnostic.json",
+      "original_sha256": "081f5c923a961405fc29abe25eba016cc2fb20fd7c64149c7d83edaa38b39086",
+      "original_bytes": 39571,
+      "published": true,
+      "published_sha256": "fbb07806a8d6abf19abf28628b115dd45328d3d682b3094f1785269aece59fd2"
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/tool-grammar.gbnf",
+      "original_sha256": "c9152fb6870d56189c33c6359c29c1d3285aa1626d9c0a968539119f698d2408",
+      "original_bytes": 1030,
+      "published": true,
+      "published_sha256": "c9152fb6870d56189c33c6359c29c1d3285aa1626d9c0a968539119f698d2408"
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/README.md",
+      "original_sha256": "b4fafffdbe20ab76ad84cae37c0094d353e218c2b2f85a5d72c08151a83d7076",
+      "original_bytes": 48,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/docs/expense-policy.md",
+      "original_sha256": "2b3adf592c235b69ca73c45bccc5c3ed35c792362f4fe03a3514ad236cd6758c",
+      "original_bytes": 52,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/docs/onboarding.md",
+      "original_sha256": "37802ae1a7aa9a9c484770a8cf32110cc6f1e442e44c1aeca60d02f6be512d6c",
+      "original_bytes": 47,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/docs/vendor-contacts.md",
+      "original_sha256": "88c1c668744bd5e839790cbc17f19c5d8423a9cf1b88f1dae726412ca53c5c0f",
+      "original_bytes": 57,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/drafts/q3-summary.md",
+      "original_sha256": "2b8da768d174c480b829f0603513c82216118436fca8111491c9cc55b471508c",
+      "original_bytes": 63,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/invoices/2026/INV-0142.pdf",
+      "original_sha256": "a855ce33bc03967d815ff35813cb249c5d63582cd9ee3ac890ba3f864ac62998",
+      "original_bytes": 14,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/invoices/2026/INV-0157.pdf",
+      "original_sha256": "a855ce33bc03967d815ff35813cb249c5d63582cd9ee3ac890ba3f864ac62998",
+      "original_bytes": 14,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/invoices/2026/hexagon-invoice.md",
+      "original_sha256": "3682fa12150836b2c00966843ce17f4ecae88d9c16396dd19691011d2e313c05",
+      "original_bytes": 56,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/notes/2026-09-standup.md",
+      "original_sha256": "96d4831e732e5142b3cb2c4cee951fb9768c4c2ce149d09a4ab9c67c0c1627cf",
+      "original_bytes": 62,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/notes/ideas.md",
+      "original_sha256": "15e9f4aaad89189f392e41cf686273f3baf838456aca8559b2d4dcdab51c8a21",
+      "original_bytes": 45,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/notes/parking-lot.md",
+      "original_sha256": "58dd0c1392bdf2ba441fc894f310fb5265e43cd6c16d93d61a2b4a4e48b807aa",
+      "original_bytes": 49,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-0/feedback-mcp-20260916T070952-8129dc13/workspace/todo.txt",
+      "original_sha256": "7615ff347750f95b39174e62194fed356d96fd79942a3d6eca5141919f1b207f",
+      "original_bytes": 50,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/diagnostic.json",
+      "original_sha256": "82482df0f90279aac9e4d46df2ab2ec02d2bfb85ed69c42b7b23175d98113c49",
+      "original_bytes": 39564,
+      "published": true,
+      "published_sha256": "b22126bf87d606c6388803ffbe261e57305b11f52fb110c36c293b77428cb364"
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/tool-grammar.gbnf",
+      "original_sha256": "c9152fb6870d56189c33c6359c29c1d3285aa1626d9c0a968539119f698d2408",
+      "original_bytes": 1030,
+      "published": true,
+      "published_sha256": "c9152fb6870d56189c33c6359c29c1d3285aa1626d9c0a968539119f698d2408"
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/README.md",
+      "original_sha256": "b4fafffdbe20ab76ad84cae37c0094d353e218c2b2f85a5d72c08151a83d7076",
+      "original_bytes": 48,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/docs/expense-policy.md",
+      "original_sha256": "2b3adf592c235b69ca73c45bccc5c3ed35c792362f4fe03a3514ad236cd6758c",
+      "original_bytes": 52,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/docs/onboarding.md",
+      "original_sha256": "37802ae1a7aa9a9c484770a8cf32110cc6f1e442e44c1aeca60d02f6be512d6c",
+      "original_bytes": 47,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/docs/vendor-contacts.md",
+      "original_sha256": "88c1c668744bd5e839790cbc17f19c5d8423a9cf1b88f1dae726412ca53c5c0f",
+      "original_bytes": 57,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/drafts/q3-summary.md",
+      "original_sha256": "2b8da768d174c480b829f0603513c82216118436fca8111491c9cc55b471508c",
+      "original_bytes": 63,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/invoices/2026/INV-0142.pdf",
+      "original_sha256": "a855ce33bc03967d815ff35813cb249c5d63582cd9ee3ac890ba3f864ac62998",
+      "original_bytes": 14,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/invoices/2026/INV-0157.pdf",
+      "original_sha256": "a855ce33bc03967d815ff35813cb249c5d63582cd9ee3ac890ba3f864ac62998",
+      "original_bytes": 14,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/invoices/2026/hexagon-invoice.md",
+      "original_sha256": "3682fa12150836b2c00966843ce17f4ecae88d9c16396dd19691011d2e313c05",
+      "original_bytes": 56,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/notes/2026-09-standup.md",
+      "original_sha256": "96d4831e732e5142b3cb2c4cee951fb9768c4c2ce149d09a4ab9c67c0c1627cf",
+      "original_bytes": 62,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/notes/ideas.md",
+      "original_sha256": "15e9f4aaad89189f392e41cf686273f3baf838456aca8559b2d4dcdab51c8a21",
+      "original_bytes": 45,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/notes/parking-lot.md",
+      "original_sha256": "58dd0c1392bdf2ba441fc894f310fb5265e43cd6c16d93d61a2b4a4e48b807aa",
+      "original_bytes": 49,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-1/feedback-mcp-20260916T071051-0f52b51b/workspace/todo.txt",
+      "original_sha256": "7615ff347750f95b39174e62194fed356d96fd79942a3d6eca5141919f1b207f",
+      "original_bytes": 50,
+      "published": false,
+      "reason": "Duplicate public fixture contents retained privately; actual copied bytes checked against published final snapshots."
+    },
+    {
+      "path": "feedback-config-0.json",
+      "original_sha256": "0f519b6a2c167d8001d466a8c1178913c42c9fd2281fb806c7643e01db6d93c5",
+      "original_bytes": 9267,
+      "published": true,
+      "published_sha256": "557e8af7ec1dc7752c662a8f6835ef0ecd057363b5d33a38d1c4467567006db8"
+    },
+    {
+      "path": "feedback-config-1.json",
+      "original_sha256": "4992756c74ee9d5be59faea6f7e1d50ad4f71b0a445b0dafcbf570eac19b6856",
+      "original_bytes": 9272,
+      "published": true,
+      "published_sha256": "9b2f4923b40400071babf3b9afec302c540c561083c47c3a52b0f83c31286da4"
+    },
+    {
+      "path": "feedback-stderr-0.log",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_bytes": 0,
+      "published": true,
+      "published_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "feedback-stderr-1.log",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_bytes": 0,
+      "published": true,
+      "published_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "feedback-wire-0.jsonl",
+      "original_sha256": "4a73ea1e0d6704e5596f00564098bc7ba82b53b8e9a88bdd2b6ada81bac5bb7d",
+      "original_bytes": 92672,
+      "published": true,
+      "published_sha256": "b9541d3e6f7f88b8cba30aaafaa37b9b451c9580bb6e4d4d3e375953d2ce1a0b"
+    },
+    {
+      "path": "feedback-wire-1.jsonl",
+      "original_sha256": "02f5067c90c311abbae8b3179828befdc9f33f08d844f11db90a3d1a9f5eefc0",
+      "original_bytes": 92664,
+      "published": true,
+      "published_sha256": "16a457afb58fb2645495ab5cbd1cb0924807e4390e6d8501176939c32e0d3462"
+    },
+    {
+      "path": "fixtures/last-tuning.json",
+      "original_sha256": "bdbc1c924ecde18c3d505fdbfd309ccfd5637d4481efb1655c51dc52b94009c8",
+      "original_bytes": 182,
+      "published": true,
+      "published_sha256": "f76c5c018608353e628cf3a22abad06692ea0b6fbfd17259a1fa3beb73a96059"
+    },
+    {
+      "path": "integration.json",
+      "original_sha256": "fd92b07a14b031f04905f8c9101dbfd9b23d7be007e6382361dd9225f5f2a409",
+      "original_bytes": 516498,
+      "published": true,
+      "published_sha256": "3e0e28f845813a7fec4a42f976c9cdb155ec2c18ad07c96db8cad9ed8e983128"
+    },
+    {
+      "path": "mcp-stderr.log",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_bytes": 0,
+      "published": true,
+      "published_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tuning/run-0fbe31fd46/recommended.json",
+      "original_sha256": "3886cf7b7d3c78fa3e28eeed84765f4ed499ab137a78238c61a9c2128429f58b",
+      "original_bytes": 13009,
+      "published": true,
+      "published_sha256": "e0f3cbb0e268520a26b841b0b92d8002af6c0ea0fbe99410e6f3b00751930b67"
+    },
+    {
+      "path": "tuning/run-0fbe31fd46/record.json",
+      "original_sha256": "be06dad1b6cdc6eb386fae57f2834eb158bd2b3afaf4d617fe11e51ff95a8e9b",
+      "original_bytes": 104827,
+      "published": true,
+      "published_sha256": "3ef2d33308166c5231359fdd5736a92f3fda82224b8e7ef58123ed8fe4832a6f"
+    },
+    {
+      "path": "tuning/run-0fbe31fd46/trial-0000/bench.log",
+      "original_sha256": "c38d35387fad167c090bd7c326d1fc92d153638aac12feaf4fc4a21c303fda7c",
+      "original_bytes": 215153,
+      "published": true,
+      "published_sha256": "b834fd1889c850cb92b03c358491ee3815b9766dd35e8d045684ad16d3e74ffa"
+    },
+    {
+      "path": "tuning/run-0fbe31fd46/trial-0000/result.json",
+      "original_sha256": "3689ccb27a4d92bafd89360439e929d224a326dd5c19fdcd6f8c80607c27a0fd",
+      "original_bytes": 2872,
+      "published": true,
+      "published_sha256": "3e2702e7e707933a109fa813c6e4b06fbdff61fba4d26b4f6d5248eb1ed69418"
+    },
+    {
+      "path": "tuning/run-0fbe31fd46/trial-0001/bench.log",
+      "original_sha256": "561b36a11de5748b4889fcc3cd96bc1e640e4c81d5c5a475389dbf50f551a8c6",
+      "original_bytes": 215158,
+      "published": true,
+      "published_sha256": "d8e11c4439ad7c8980f8f372c0fc711b518a6bb1b238f1720f7794aad47e3dfa"
+    },
+    {
+      "path": "tuning/run-0fbe31fd46/trial-0001/result.json",
+      "original_sha256": "dba43def59d8a6544f0083430830e86ebca9ae4a78485e53cf4cd393c4849597",
+      "original_bytes": 2887,
+      "published": true,
+      "published_sha256": "c0324d463de3ce232548c09ce4303cb7ad9fc430a16e14f291f641e0ba6b5b61"
+    },
+    {
+      "path": "tuning/run-b28aebdba7/recommended.json",
+      "original_sha256": "3891c5955cc7b2f04757dcac0686d91209b9de4e03f94d66237ce5fc1db04c98",
+      "original_bytes": 13008,
+      "published": true,
+      "published_sha256": "a6625ea16539090ac4e01e3a2d628d00e9493aca84fe19b85f1f7841609dd608"
+    },
+    {
+      "path": "tuning/run-b28aebdba7/record.json",
+      "original_sha256": "88d10592e140c3bb67819428c249eeb649eba4659c24c9cd2592a7074a1ca28e",
+      "original_bytes": 94423,
+      "published": true,
+      "published_sha256": "6e80a8e9b99a688d850ae1a78095c068c37f4be8f5f790d223f05523dcc80252"
+    },
+    {
+      "path": "tuning/run-b28aebdba7/trial-0000/bench.log",
+      "original_sha256": "a8a673a09aaf2f1cb3168831a2a39659c9f84d1032b5e730db9abb7654d71d82",
+      "original_bytes": 214843,
+      "published": true,
+      "published_sha256": "ba9f50b022abb3d87022308c994146f19ceb53ca169115653f9b58b84f0a361b"
+    },
+    {
+      "path": "tuning/run-b28aebdba7/trial-0000/result.json",
+      "original_sha256": "c9b511ef577f3aeb0bf81a1f28f25ca42cd4117ed860b7c2d323344ffd8505dc",
+      "original_bytes": 2879,
+      "published": true,
+      "published_sha256": "f098323dd55456de1cd884f5768cf7b76e71cd2b886a3f9d0b318be606b478bb"
+    },
+    {
+      "path": "tuning/run-b28aebdba7/trial-0001/bench.log",
+      "original_sha256": "dc02d165bcde9936b0e0a22bb297a51bf2a21948e225dc2912a417646f1f45f9",
+      "original_bytes": 214847,
+      "published": true,
+      "published_sha256": "2c507ecad3a744fda7ea44af7a6d3d481b62a598ecd99513b53e484d47986817"
+    },
+    {
+      "path": "tuning/run-b28aebdba7/trial-0001/result.json",
+      "original_sha256": "1934d7bd74df09633c66883ccb4fa24773b743280c68e0d9e58d41d0642bdf82",
+      "original_bytes": 2874,
+      "published": true,
+      "published_sha256": "8541adf5ac03f2af34103eec3e9aea682b5b92011aad8c702006ff04486d77c2"
+    },
+    {
+      "path": "supervisor/status.json",
+      "original_sha256": "d1b38edf28086578caffe867f84c5d5ce1993ec7932e3e9a504abd052b43ae48",
+      "original_bytes": 783,
+      "published": true,
+      "published_sha256": "ed154ba48dfeff76255e89faf52aeacc98a1cf26db3fc3b909a0dba30b69686d"
+    },
+    {
+      "path": "supervisor/stdout.log",
+      "original_sha256": "f4f7cca4e4caf2c33192e050e68d3901c502479a463346458182f17623fb8522",
+      "original_bytes": 418746,
+      "published": true,
+      "published_sha256": "924c39d3ba4075df2ed604ef47c1bec833b60002e2a8ba94e20b302ad424759c"
+    }
+  ],
+  "independent_checks": [
+    {
+      "round": 0,
+      "mode": "fast",
+      "applied_config": {
+        "device": "cpu",
+        "threads": 10,
+        "context": 4096
+      },
+      "recommendation_and_native_binding_match": true,
+      "copied_workspace_hashes_match": true,
+      "file_move_verified": true,
+      "other_files_unchanged": 11,
+      "existing_demo_verification": {
+        "passed": false,
+        "calls_match": false,
+        "final_state_match": true,
+        "execution_ok": true,
+        "task_id": "t13"
+      },
+      "feedback_loop_s": 19.346530000213534,
+      "diagnostic_s": 30.296282900031656,
+      "whole_round_s": 67.89256200008094,
+      "quality_qualified": false
+    },
+    {
+      "round": 1,
+      "mode": "efficient",
+      "applied_config": {
+        "device": "cpu",
+        "threads": 6,
+        "context": 4096
+      },
+      "recommendation_and_native_binding_match": true,
+      "copied_workspace_hashes_match": true,
+      "file_move_verified": true,
+      "other_files_unchanged": 11,
+      "existing_demo_verification": {
+        "passed": false,
+        "calls_match": false,
+        "final_state_match": true,
+        "execution_ok": true,
+        "task_id": "t13"
+      },
+      "feedback_loop_s": 26.576731599867344,
+      "diagnostic_s": 37.520662600174546,
+      "whole_round_s": 65.53626980027184,
+      "quality_qualified": false
+    }
+  ],
+  "energy_qualification": "Not commissioned; no efficiency claim.",
+  "quality_qualified": false
+}

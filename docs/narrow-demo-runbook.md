@@ -34,8 +34,12 @@ No cold end-to-end, statistical-significance or energy-efficiency claim follows.
 **Close, 20 seconds.** “The action works in this bounded fixture; the remaining
 work is reliable clarification and broader task quality.” All QAIRT repeat blocks
 failed the quality gate. The 8B full result is 38/50 with 2/13 clarification success.
-The latest combined tuner→MCP run must remain pending until its actual report is
-retrieved and verified. Do not claim a production-ready secretary.
+The combined tuner→MCP run is now verified for two public-fixture rounds;
+see [the recovered evidence](../benchmarks/results/bound-feedback-mcp-1400/README.md).
+Fast applied CPU/10 and Efficient CPU/6; both moved the invoice correctly, while
+both exact-call checks failed. These single observations do not establish a
+speed or efficiency winner. The older deck predates this recovery: replace its
+pending-integration line with this result when presenting. Do not claim a production-ready secretary.
 
 ## Live preparation on the Latitude
 

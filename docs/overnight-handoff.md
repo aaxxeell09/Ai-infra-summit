@@ -5,6 +5,41 @@ Save results and a morning handoff at the cutoff. Scheduled hourly continuation
 is installed in the current task, ending at the cutoff. Pause that automation
 when producing the final morning handoff.
 
+## Final morning handoff — 16:00 UTC / 09:00 Pacific
+
+**Overnight continuation is paused. No new experiment was started after cutoff.**
+
+- SSH recovered long enough to retrieve the complete queued bound-MCP run.
+  It had finished successfully at 14:11 UTC, source `3380a65`, two rounds.
+  Results and independent checks are published under
+  `benchmarks/results/bound-feedback-mcp-1400/`.
+- Tune → apply → native inference → MCP invoice action is now verified for this
+  bounded fixture. Fast applied CPU/10; Efficient applied CPU/6; both context4096
+  on the same verified4B model/SDK. Both native bindings matched their selected
+  recommendations. Both moves preserved the invoice and all11 surrounding files;
+  owner also hashed every copied final-workspace file. Original exact-call
+  verdicts remain false. This is not an overall qualityPASS.
+- Loop observations:19.347s and26.577s; whole tuning/task rounds67.893s and65.536s.
+  They are one sequential observation per mode, not a paired speedup/energy win.
+  Tuner profiles have25actual prompt tokens despite nominal128 with a prompt file.
+  Energy remains uncommissioned; retain these limitations in the demo.
+- The campaign's gateway restoration failed. At cutoff the gateway task was
+  disabled, no Python/native benchmark processes were observed, and port8083
+  had no listener. Its disabled state was left intact rather than overriding an
+  unverified external change. A later read-only SSH call failed; remote access
+  is still unreliable. Do not claim the live frontend/gateway is restored.
+- The Mac's owned timed caffeinate process expired by itself. The Windows owned
+  overnight awake task was Ready with last result0; the bound-MCP task was Ready
+  with last result0. No active owned hardware job was observed; no jobs killed.
+  No subagents remain active. Heartbeat `local-turbo-overnight-stop-9am` is PAUSED.
+- Existing four-slide deck was finalized before this recovery. Its pending
+  tuner-to-MCP line is now stale; use this new evidence/runbook update when
+  presenting. Its QAIRT attribution and broader quality limitations still apply.
+- Next authorized session: recover the gateway and stable access, rehearse the
+  new presenter CLI, connect the teammate live frontend, and address broader
+  clarification/quality failures. Review/fix the separately documented TurboLab
+  blockers before integration; no frozen evaluation or baseline was changed.
+
 ## 15:22 UTC scheduled checkpoint — timeout evidence hardened
 
 - Bounded SSH attempt at 15:22 UTC timed out; no further device probes or jobs

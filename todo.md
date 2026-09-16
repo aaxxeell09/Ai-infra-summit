@@ -14,7 +14,8 @@ is preserved; it is not evidence that unfinished features are demo-ready.
 - [x] Publish and visually inspect a concise, evidence-scoped PowerPoint and presenter runbook.
 - [x] Integrate and locally test the bounded one-command presenter CLI, including recorded-payload verification and malformed-reply failures.
 - [ ] Verify the new presenter entrypoint in a successful hardware rehearsal. Its underlying MCP path already has recorded evidence.
-- [ ] Restore reachability, collect the already launched `Qualcomm-Bound-MCP-1400` result, verify configuration binding and file state, and check gateway restoration before starting another job. Last SSH attempts timed out; do not duplicate the existing campaign.
+- [x] Retrieve the already completed `Qualcomm-Bound-MCP-1400` result and independently verify both selected configurations and actual copied final files. Exact-call grades remain false; see `benchmarks/results/bound-feedback-mcp-1400/`.
+- [ ] Restore reliable access and the live gateway. Retrieval briefly succeeded, but a later SSH read failed; the gateway task was disabled with no port 8083 listener at cutoff.
 - [ ] Replace the teammate frontend's preview finale with a verified live provider; preserve its design ownership and label recorded fallback explicitly.
 - [ ] Review teammate TurboLab branch `claude/beautiful-mayer-gslb35` at `33de023` before integration. It is not yet a validated demo dependency.
 

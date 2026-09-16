@@ -1,0 +1,115 @@
+{
+  "schema_version": "4",
+  "cell_id": "trial-0001",
+  "plugin": "llama_cpp",
+  "device": "cpu",
+  "device_id": null,
+  "model_path": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+  "model_size_bytes": 0,
+  "qairt_version": "2.45",
+  "llama_cpp_version": "0eadefe",
+  "params": {
+    "warmup": 0,
+    "repetitions": 2,
+    "n_prompt": 128,
+    "n_gen": 32,
+    "temperature": 0.0,
+    "seed": 42,
+    "n_ctx": 4096,
+    "n_threads": 10,
+    "n_gpu_layers": 0
+  },
+  "runs": [
+    {
+      "run_idx": 0,
+      "ttft_us": 95396,
+      "media_us": 0,
+      "prompt_time_us": 95089,
+      "decode_time_us": 849889,
+      "prompt_tokens": 25,
+      "gen_tokens": 32,
+      "prefill_tps": 262.911588,
+      "decode_tps": 37.651976,
+      "stop_reason": "length"
+    },
+    {
+      "run_idx": 1,
+      "ttft_us": 78953,
+      "media_us": 0,
+      "prompt_time_us": 78760,
+      "decode_time_us": 846407,
+      "prompt_tokens": 25,
+      "gen_tokens": 32,
+      "prefill_tps": 317.42001,
+      "decode_tps": 37.806871,
+      "stop_reason": "length"
+    }
+  ],
+  "agg": {
+    "ttft_ms": {
+      "median": 87.1745,
+      "min": 78.953,
+      "max": 95.396,
+      "mean": 87.1745,
+      "stdev": 11.626957
+    },
+    "prefill_tps": {
+      "median": 290.165799,
+      "min": 262.911588,
+      "max": 317.42001,
+      "mean": 290.165799,
+      "stdev": 38.543275
+    },
+    "decode_tps": {
+      "median": 37.729423,
+      "min": 37.651976,
+      "max": 37.806871,
+      "mean": 37.729423,
+      "stdev": 0.109527
+    },
+    "gen_tokens": {
+      "median": 32.0
+    },
+    "prompt_tokens": {
+      "median": 25.0
+    },
+    "media_ms": {
+      "median": 0.0
+    }
+  },
+  "telemetry": {
+    "peak_working_set_mb": 3699.51171875,
+    "energy_j": 144.15022380599999,
+    "energy_channel": "SYS",
+    "energy_scope": "full_process_trial",
+    "tokens_per_joule": 0.44398127391139103,
+    "energy": {
+      "duration_s": 3.9451921000145376,
+      "channels": {
+        "SYS": {
+          "energy_j": 144.15022380599999,
+          "average_power_w": 36.538201474515986,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_0": {
+          "energy_j": 22.0979382768,
+          "average_power_w": 5.601232517098109,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_1": {
+          "energy_j": 34.0463472228,
+          "average_power_w": 8.629832555599648,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_2": {
+          "energy_j": 27.6957878004,
+          "average_power_w": 7.020136687462683,
+          "tokens_per_joule": null
+        }
+      },
+      "unit": "picowatt-hours",
+      "scope": "full process trial including model initialization and any warmup",
+      "error": null
+    }
+  }
+}

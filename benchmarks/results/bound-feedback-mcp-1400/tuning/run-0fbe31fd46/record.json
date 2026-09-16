@@ -1,0 +1,2791 @@
+{
+  "schema_version": "turbo.tuning.v2",
+  "objective": "fast",
+  "constraints": null,
+  "variability_penalty": 0.0,
+  "results": [
+    {
+      "variant_id": "qwen4b",
+      "device": "cpu",
+      "threads": 6,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 2,
+      "gen_tokens": 32,
+      "prompt_tokens": 128,
+      "warmup": 0,
+      "model": {
+        "id": "qwen4b",
+        "path": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0000\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0000\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 0.5863319996364386,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "input_verified": true,
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "128",
+        "-n",
+        "32",
+        "-t",
+        "6",
+        "-r",
+        "2",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--prompt-file",
+        "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0000\\result.json",
+        "--cell-id",
+        "trial-0000"
+      ],
+      "artifact_sha256": {
+        "model": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2"
+      },
+      "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+      "runtime_sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+      "workload": {
+        "prompt_tokens": 128,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "workload_id": "f9081b21329a0114716daed217eed0ee282fe10c7bcfb8e7744996b37a1b2bad",
+      "group_id": "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09",
+      "peak_working_set_mb": 3699.4765625,
+      "working_set_mb": 3699.4765625,
+      "private_mb": 4908.9765625,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "energy": {
+        "duration_s": 3.9565909998491406,
+        "channels": {
+          "SYS": {
+            "energy_j": 109.153176084,
+            "average_power_w": 27.5876824488965,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 13.9543371792,
+            "average_power_w": 3.5268586466814638,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 25.3072229436,
+            "average_power_w": 6.396219104922629,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 18.60115104,
+            "average_power_w": 4.7013075247629175,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2473887.0685335,
+        "channels_pwh": {
+          "SYS": 146527449480284,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24777436564653,
+          "CPU_CLUSTER_1": 10412433094063,
+          "CPU_CLUSTER_2": 8933361915217
+        },
+        "error": null,
+        "host_collection_start_s": 2473887.0682466,
+        "host_collection_end_s": 2473887.0685337,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 146527449480284,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 24777436564653,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 10412433094063,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 8933361915217,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_after": {
+        "monotonic_s": 2473891.0251245,
+        "channels_pwh": {
+          "SYS": 146557769806974,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24781312769425,
+          "CPU_CLUSTER_1": 10419462878214,
+          "CPU_CLUSTER_2": 8938528901617
+        },
+        "error": null,
+        "host_collection_start_s": 2473891.0247397,
+        "host_collection_end_s": 2473891.0251249,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 146557769806974,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 24781312769425,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 10419462878214,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 8938528901617,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_j": 109.153176084,
+      "energy_duration_s": 3.9565909998491406,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 36.425485,
+      "prefill_tps": 290.854845,
+      "ttft_ms": 86.1865,
+      "latency_s": 0.9644745,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 87198,
+          "media_us": 0,
+          "prompt_time_us": 86980,
+          "decode_time_us": 876835,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 287.422396,
+          "decode_tps": 36.494894,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 85175,
+          "media_us": 0,
+          "prompt_time_us": 84951,
+          "decode_time_us": 880183,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 294.287295,
+          "decode_tps": 36.356076,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 2,
+      "run_count": 2,
+      "full_length": true,
+      "device_id": null,
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 2,
+        "n_prompt": 128,
+        "n_gen": 32,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 6,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.0026947931963226994
+    },
+    {
+      "variant_id": "qwen4b",
+      "device": "cpu",
+      "threads": 10,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 2,
+      "gen_tokens": 32,
+      "prompt_tokens": 128,
+      "warmup": 0,
+      "model": {
+        "id": "qwen4b",
+        "path": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 0.44398127391139103,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "input_verified": true,
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "128",
+        "-n",
+        "32",
+        "-t",
+        "10",
+        "-r",
+        "2",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--prompt-file",
+        "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+        "--cell-id",
+        "trial-0001"
+      ],
+      "artifact_sha256": {
+        "model": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2"
+      },
+      "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+      "runtime_sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+      "workload": {
+        "prompt_tokens": 128,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "workload_id": "f9081b21329a0114716daed217eed0ee282fe10c7bcfb8e7744996b37a1b2bad",
+      "group_id": "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09",
+      "peak_working_set_mb": 3699.51171875,
+      "working_set_mb": 3699.51171875,
+      "private_mb": 4909.1796875,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "energy": {
+        "duration_s": 3.9451921000145376,
+        "channels": {
+          "SYS": {
+            "energy_j": 144.15022380599999,
+            "average_power_w": 36.538201474515986,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 22.0979382768,
+            "average_power_w": 5.601232517098109,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 34.0463472228,
+            "average_power_w": 8.629832555599648,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 27.6957878004,
+            "average_power_w": 7.020136687462683,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2473891.0320359,
+        "channels_pwh": {
+          "SYS": 146557769806974,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24781312769425,
+          "CPU_CLUSTER_1": 10419462878214,
+          "CPU_CLUSTER_2": 8938528901617
+        },
+        "error": null,
+        "host_collection_start_s": 2473891.0315429,
+        "host_collection_end_s": 2473891.0320362,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 146557769806974,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 24781312769425,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 10419462878214,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 8938528901617,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_after": {
+        "monotonic_s": 2473894.977228,
+        "channels_pwh": {
+          "SYS": 146597811535809,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24787451085613,
+          "CPU_CLUSTER_1": 10428920196887,
+          "CPU_CLUSTER_2": 8946222176006
+        },
+        "error": null,
+        "host_collection_start_s": 2473894.9770314,
+        "host_collection_end_s": 2473894.9772283,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 146597811535809,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 24787451085613,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 10428920196887,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 8946222176006,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_j": 144.15022380599999,
+      "energy_duration_s": 3.9451921000145376,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 37.729423,
+      "prefill_tps": 290.165799,
+      "ttft_ms": 87.1745,
+      "latency_s": 0.9350725,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 95396,
+          "media_us": 0,
+          "prompt_time_us": 95089,
+          "decode_time_us": 849889,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 262.911588,
+          "decode_tps": 37.651976,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 78953,
+          "media_us": 0,
+          "prompt_time_us": 78760,
+          "decode_time_us": 846407,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 317.42001,
+          "decode_tps": 37.806871,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 2,
+      "run_count": 2,
+      "full_length": true,
+      "device_id": null,
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 2,
+        "n_prompt": 128,
+        "n_gen": 32,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 10,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.0029029678884940464
+    }
+  ],
+  "cells_planned": 2,
+  "input_verification": {
+    "status": "passed",
+    "before": {
+      "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+      "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+    },
+    "after": {
+      "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+      "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+    },
+    "resolved_paths": {
+      "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+      "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt"
+    }
+  },
+  "runtime_binding": {
+    "schema_version": "turbo.runtime.v1",
+    "sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+    "files": {
+      "benchmark/geniex-bench.exe": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "sdk/lib/geniex.dll": "b8c69332260ea772db6b1e9709800eb88956b94cd7b248131c4a119b194f5846",
+      "sdk/lib/llama_cpp/geniex_plugin.dll": "971c187a626bbe746e4ac635bcf5e8c9c8730aad5f5fcefe399da3112645df90",
+      "sdk/lib/llama_cpp/ggml-base.dll": "939d62c39934e7f9a6d2ff9832ace79d9c26234492e77b9d757372809b472fb7",
+      "sdk/lib/llama_cpp/ggml-cpu.dll": "014541b948ba35cf61ccad3b67807ff21d4a66e94affea83d0e91271c9b5e06a",
+      "sdk/lib/llama_cpp/ggml-hexagon.dll": "375635a0e4bce56edf033bd2d0cde575dcab585c8147713c423a655955ff7618",
+      "sdk/lib/llama_cpp/ggml-opencl.dll": "ca4e1af894b242f9d56fb631191a38372057f886fe117fc5ebea311767e52f35",
+      "sdk/lib/llama_cpp/ggml.dll": "a9ac39e4eff479a18a76f9cc1a18f528ac69e86b0f8b3a2d1ea6b0c17aba6922",
+      "sdk/lib/llama_cpp/libggml-htp-v73.so": "51b1f8be1296ff73652637a9508e6aedd5453130d6c0fe30a0a8366b740399c5",
+      "sdk/lib/llama_cpp/libggml-htp-v75.so": "d9b544835db27d27ce8381cd739dc3d365ef1a13527b169d8dfd4756dc9dee16",
+      "sdk/lib/llama_cpp/libggml-htp-v79.so": "74cc2b0144b0cc3b1e2379e6c9fc5dfb9cf176b4b45be709b0b418d652c81d09",
+      "sdk/lib/llama_cpp/libggml-htp-v81.so": "8be8efda2ad18c0330af360b3176f5d06989218f4693141f487cb2bc1cc35e36",
+      "sdk/lib/llama_cpp/libomp140.aarch64.dll": "2862472fe7654c6dca32c019e24c9640259265384ddba13d84795b8b4ca944b3",
+      "sdk/lib/llama_cpp/llama-common.dll": "ea8ced1fcf0771fcc837f089207d11901b4c6279ceed48d5dde1a193d6f14c1f",
+      "sdk/lib/llama_cpp/llama.dll": "ee343597f7d1db21968f445501b68361b01b0171de07025adf3f18df310bcacb",
+      "sdk/lib/llama_cpp/mtmd.dll": "0ca93534b2fde894f7a326179f1eb7a942a13d5b7cde6c34b5397688a289091e",
+      "sdk/lib/qairt/geniex-proc-vision.dll": "69d9aa839abaa13e11dfb31447a5722f37fe37c64c8753515d68050e948ae3d8",
+      "sdk/lib/qairt/geniex-proc.dll": "b7055bc33415543f3f056cf084665421760b8a6ab80d1b7d76f528d3f088e3b9",
+      "sdk/lib/qairt/geniex_core.dll": "52ed4108227897db70f371e7f820a1de8879223db3e620e4cf8bb83032b64c81",
+      "sdk/lib/qairt/geniex_plugin.dll": "e3138050f7dc6022092755d41fa194bb3137c2d3a9824d1799f660713f5a1c53",
+      "sdk/lib/qairt/geniex_vlm.dll": "cdf3d32ae1f0811b108e8b4c2307ed1231f61a02711b22cdaaaa9dd06b606619",
+      "sdk/lib/qairt/htp-files/PlatformValidatorShared.dll": "06df269e0ccd3df71d7cade11e63b7929216b04d6efc6e467c45c52a80fa9fc0",
+      "sdk/lib/qairt/htp-files/QnnChrometraceProfilingReader.dll": "bfc113593ecf311700f7290fb875ec0c1ce9ee98f64cc99f9fd43193b2e69f32",
+      "sdk/lib/qairt/htp-files/QnnHtp.dll": "3f1a96e0cc35992831ba3acf3e342074a494927dbe22fb5792233f2273732aff",
+      "sdk/lib/qairt/htp-files/QnnHtpNetRunExtensions.dll": "9d2bb9dde58eb054696d57635c8d9f5c2b08d7380aee07b787e4fe2690d78bff",
+      "sdk/lib/qairt/htp-files/QnnHtpOptraceProfilingReader.dll": "4dd1db629279fb1298e7ec049ff14b7453e336a39df054a40d052df9e24f1fdc",
+      "sdk/lib/qairt/htp-files/QnnHtpPrepare.dll": "e659c2fd811657cc3481bdb379444756047fd0c13d2d29de13c11022aecbeaa5",
+      "sdk/lib/qairt/htp-files/QnnHtpProfilingReader.dll": "e419ec669c2b0d7d95df802c11b396600cc4cb7b966fa8c700d42970a9209d6f",
+      "sdk/lib/qairt/htp-files/QnnHtpV73CalculatorStub.dll": "6c0b36162f04aa09e06f60d4188c8778bc994fa191c6174ed918f1b97bb6ab67",
+      "sdk/lib/qairt/htp-files/QnnHtpV73Stub.dll": "0c529ce342d3b56f88a148df1dd82513aec15485907fea95723b175e9a6a4405",
+      "sdk/lib/qairt/htp-files/QnnHtpV81CalculatorStub.dll": "47f1565fa451502477f82503edd909861fab5348c6f0e2007d2a5b8428f93e3f",
+      "sdk/lib/qairt/htp-files/QnnHtpV81Stub.dll": "09e8d3665c856af9ce178f0f6828faa870a5da5a1d1fe70d2ab0f14794f888f8",
+      "sdk/lib/qairt/htp-files/QnnIr.dll": "c057db8c6d9d5bac521e6c75eb3205a7c06fac9413305c93d3c7ec19921fd2bd",
+      "sdk/lib/qairt/htp-files/QnnJsonProfilingReader.dll": "9b5258465287d440ea8b1d3a319395145c75742837da2a767c70c874277456ca",
+      "sdk/lib/qairt/htp-files/QnnModelDlc.dll": "d7853356b8da11d19c57f041daa167acad02cf5996dca60d9ecdbb34039de4bf",
+      "sdk/lib/qairt/htp-files/QnnNetRunDirectV81Stub.dll": "81c156dd412343637eff6a9edcdc0325f487dd8a0fd88498a7d640fe250a80d1",
+      "sdk/lib/qairt/htp-files/QnnSaver.dll": "98ef48dda46bc6fa99480ffa46257073a117fa6f1548925ac8ccf0020167dbde",
+      "sdk/lib/qairt/htp-files/QnnSystem.dll": "baf80b0783608f3a2f5ed4f9629ccf1a4c796c64924de8b2300baae5ca456467",
+      "sdk/lib/qairt/htp-files/calculator.dll": "67d16e6c1ac1fd748f1221327575127e1f7d854b1fbd90cac74df41ac80b6667",
+      "sdk/lib/qairt/htp-files/calculator_htp.dll": "c6a58a900a8225d40967b00d9b558a4233689a74d213bdd87dc8615b2e28b8fd",
+      "sdk/lib/qairt/htp-files/libCalculator_skel.so": "5b160374e886745d5df31f8d44c91e6394c45dee00053213a2694df9f5a6e28e",
+      "sdk/lib/qairt/htp-files/libQnnHtpV73.so": "a05eae5e9c6962c69b975169d4ecc249b5b396d418459e9af6f7dc0e088c4c24",
+      "sdk/lib/qairt/htp-files/libQnnHtpV73QemuDriver.so": "8fafa9c25e1eee0b03f0b69007a7ff39fb1648267e8d5309acbb31245d91241c",
+      "sdk/lib/qairt/htp-files/libQnnHtpV73Skel.so": "d2fb5957e260e8d5fb12bf56fbf03a22bfce0b03165cd21588a652a23d811329",
+      "sdk/lib/qairt/htp-files/libQnnHtpV81.so": "b4610877765705aa12bdb27fb8d7e8f87692bfa2bbf86a0a9e525d3159cf1c1d",
+      "sdk/lib/qairt/htp-files/libQnnHtpV81Skel.so": "57330ed3f7846b94181b25b7a87bc3fe5dc71033766f2d5630520a1400477c97",
+      "sdk/lib/qairt/htp-files/libQnnNetRunDirectV81Skel.so": "0a8fd92f1ae352c1e3d11ac7b8b020bbaac783c37959fdcc5fd16ac05d7b1ba1",
+      "sdk/lib/qairt/htp-files/libQnnSaver.so": "bb76f974d92957604ab35b58b8f144b2aaf6558f7a637592914c119d855fe816",
+      "sdk/lib/qairt/htp-files/libQnnSystem.so": "0317434840a1ed5133a66e5607728048c93fd7712ab114dfd1a0798f4bc43834",
+      "sdk/lib/qairt/htp-files/libSnpeHtpV73Skel.so": "c4293dc4a1ab2df4701fa2dde88b16b89daac74b09a70c6feda57e2b69bf5b41",
+      "sdk/lib/qairt/htp-files/libSnpeHtpV81Skel.so": "a8a9a7ad930f2c2af8a2cf58a15687900682a96f0f74f7565e96cc5e1994469a"
+    },
+    "scope": "benchmark executable and SDK native libraries; excludes OS/driver"
+  },
+  "bench_exe": "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+  "ranking": [
+    {
+      "variant_id": "qwen4b",
+      "device": "cpu",
+      "threads": 10,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 2,
+      "gen_tokens": 32,
+      "prompt_tokens": 128,
+      "warmup": 0,
+      "model": {
+        "id": "qwen4b",
+        "path": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 0.44398127391139103,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "input_verified": true,
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "128",
+        "-n",
+        "32",
+        "-t",
+        "10",
+        "-r",
+        "2",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--prompt-file",
+        "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+        "--cell-id",
+        "trial-0001"
+      ],
+      "artifact_sha256": {
+        "model": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2"
+      },
+      "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+      "runtime_sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+      "workload": {
+        "prompt_tokens": 128,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "workload_id": "f9081b21329a0114716daed217eed0ee282fe10c7bcfb8e7744996b37a1b2bad",
+      "group_id": "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09",
+      "peak_working_set_mb": 3699.51171875,
+      "working_set_mb": 3699.51171875,
+      "private_mb": 4909.1796875,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "energy": {
+        "duration_s": 3.9451921000145376,
+        "channels": {
+          "SYS": {
+            "energy_j": 144.15022380599999,
+            "average_power_w": 36.538201474515986,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 22.0979382768,
+            "average_power_w": 5.601232517098109,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 34.0463472228,
+            "average_power_w": 8.629832555599648,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 27.6957878004,
+            "average_power_w": 7.020136687462683,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2473891.0320359,
+        "channels_pwh": {
+          "SYS": 146557769806974,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24781312769425,
+          "CPU_CLUSTER_1": 10419462878214,
+          "CPU_CLUSTER_2": 8938528901617
+        },
+        "error": null,
+        "host_collection_start_s": 2473891.0315429,
+        "host_collection_end_s": 2473891.0320362,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 146557769806974,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 24781312769425,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 10419462878214,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 8938528901617,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_after": {
+        "monotonic_s": 2473894.977228,
+        "channels_pwh": {
+          "SYS": 146597811535809,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24787451085613,
+          "CPU_CLUSTER_1": 10428920196887,
+          "CPU_CLUSTER_2": 8946222176006
+        },
+        "error": null,
+        "host_collection_start_s": 2473894.9770314,
+        "host_collection_end_s": 2473894.9772283,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 146597811535809,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 24787451085613,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 10428920196887,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 8946222176006,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_j": 144.15022380599999,
+      "energy_duration_s": 3.9451921000145376,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 37.729423,
+      "prefill_tps": 290.165799,
+      "ttft_ms": 87.1745,
+      "latency_s": 0.9350725,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 95396,
+          "media_us": 0,
+          "prompt_time_us": 95089,
+          "decode_time_us": 849889,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 262.911588,
+          "decode_tps": 37.651976,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 78953,
+          "media_us": 0,
+          "prompt_time_us": 78760,
+          "decode_time_us": 846407,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 317.42001,
+          "decode_tps": 37.806871,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 2,
+      "run_count": 2,
+      "full_length": true,
+      "device_id": null,
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 2,
+        "n_prompt": 128,
+        "n_gen": 32,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 10,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.0029029678884940464,
+      "score": 37.729423,
+      "objective": "fast",
+      "provisional": true,
+      "requires_paired_confirmation": true,
+      "rank": 1
+    },
+    {
+      "variant_id": "qwen4b",
+      "device": "cpu",
+      "threads": 6,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 2,
+      "gen_tokens": 32,
+      "prompt_tokens": 128,
+      "warmup": 0,
+      "model": {
+        "id": "qwen4b",
+        "path": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0000\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0000\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 0.5863319996364386,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "input_verified": true,
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "128",
+        "-n",
+        "32",
+        "-t",
+        "6",
+        "-r",
+        "2",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--prompt-file",
+        "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0000\\result.json",
+        "--cell-id",
+        "trial-0000"
+      ],
+      "artifact_sha256": {
+        "model": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2"
+      },
+      "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+      "runtime_sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+      "workload": {
+        "prompt_tokens": 128,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "workload_id": "f9081b21329a0114716daed217eed0ee282fe10c7bcfb8e7744996b37a1b2bad",
+      "group_id": "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09",
+      "peak_working_set_mb": 3699.4765625,
+      "working_set_mb": 3699.4765625,
+      "private_mb": 4908.9765625,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "energy": {
+        "duration_s": 3.9565909998491406,
+        "channels": {
+          "SYS": {
+            "energy_j": 109.153176084,
+            "average_power_w": 27.5876824488965,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 13.9543371792,
+            "average_power_w": 3.5268586466814638,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 25.3072229436,
+            "average_power_w": 6.396219104922629,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 18.60115104,
+            "average_power_w": 4.7013075247629175,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2473887.0685335,
+        "channels_pwh": {
+          "SYS": 146527449480284,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24777436564653,
+          "CPU_CLUSTER_1": 10412433094063,
+          "CPU_CLUSTER_2": 8933361915217
+        },
+        "error": null,
+        "host_collection_start_s": 2473887.0682466,
+        "host_collection_end_s": 2473887.0685337,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 146527449480284,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 24777436564653,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 10412433094063,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 8933361915217,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_after": {
+        "monotonic_s": 2473891.0251245,
+        "channels_pwh": {
+          "SYS": 146557769806974,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24781312769425,
+          "CPU_CLUSTER_1": 10419462878214,
+          "CPU_CLUSTER_2": 8938528901617
+        },
+        "error": null,
+        "host_collection_start_s": 2473891.0247397,
+        "host_collection_end_s": 2473891.0251249,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 146557769806974,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 24781312769425,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 10419462878214,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 8938528901617,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_j": 109.153176084,
+      "energy_duration_s": 3.9565909998491406,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 36.425485,
+      "prefill_tps": 290.854845,
+      "ttft_ms": 86.1865,
+      "latency_s": 0.9644745,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 87198,
+          "media_us": 0,
+          "prompt_time_us": 86980,
+          "decode_time_us": 876835,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 287.422396,
+          "decode_tps": 36.494894,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 85175,
+          "media_us": 0,
+          "prompt_time_us": 84951,
+          "decode_time_us": 880183,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 294.287295,
+          "decode_tps": 36.356076,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 2,
+      "run_count": 2,
+      "full_length": true,
+      "device_id": null,
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 2,
+        "n_prompt": 128,
+        "n_gen": 32,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 6,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.0026947931963226994,
+      "score": 36.425485,
+      "objective": "fast",
+      "provisional": true,
+      "requires_paired_confirmation": true,
+      "rank": 2
+    }
+  ],
+  "pareto_frontier": [
+    {
+      "variant_id": "qwen4b",
+      "device": "cpu",
+      "threads": 6,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 2,
+      "gen_tokens": 32,
+      "prompt_tokens": 128,
+      "warmup": 0,
+      "model": {
+        "id": "qwen4b",
+        "path": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0000\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0000\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 0.5863319996364386,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "input_verified": true,
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "128",
+        "-n",
+        "32",
+        "-t",
+        "6",
+        "-r",
+        "2",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--prompt-file",
+        "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0000\\result.json",
+        "--cell-id",
+        "trial-0000"
+      ],
+      "artifact_sha256": {
+        "model": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2"
+      },
+      "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+      "runtime_sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+      "workload": {
+        "prompt_tokens": 128,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "workload_id": "f9081b21329a0114716daed217eed0ee282fe10c7bcfb8e7744996b37a1b2bad",
+      "group_id": "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09",
+      "peak_working_set_mb": 3699.4765625,
+      "working_set_mb": 3699.4765625,
+      "private_mb": 4908.9765625,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "energy": {
+        "duration_s": 3.9565909998491406,
+        "channels": {
+          "SYS": {
+            "energy_j": 109.153176084,
+            "average_power_w": 27.5876824488965,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 13.9543371792,
+            "average_power_w": 3.5268586466814638,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 25.3072229436,
+            "average_power_w": 6.396219104922629,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 18.60115104,
+            "average_power_w": 4.7013075247629175,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2473887.0685335,
+        "channels_pwh": {
+          "SYS": 146527449480284,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24777436564653,
+          "CPU_CLUSTER_1": 10412433094063,
+          "CPU_CLUSTER_2": 8933361915217
+        },
+        "error": null,
+        "host_collection_start_s": 2473887.0682466,
+        "host_collection_end_s": 2473887.0685337,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 146527449480284,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 24777436564653,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 10412433094063,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162321890477,
+            "first_value": 8933361915217,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_after": {
+        "monotonic_s": 2473891.0251245,
+        "channels_pwh": {
+          "SYS": 146557769806974,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24781312769425,
+          "CPU_CLUSTER_1": 10419462878214,
+          "CPU_CLUSTER_2": 8938528901617
+        },
+        "error": null,
+        "host_collection_start_s": 2473891.0247397,
+        "host_collection_end_s": 2473891.0251249,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 146557769806974,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 24781312769425,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 10419462878214,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361455023,
+            "first_value": 8938528901617,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_j": 109.153176084,
+      "energy_duration_s": 3.9565909998491406,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 36.425485,
+      "prefill_tps": 290.854845,
+      "ttft_ms": 86.1865,
+      "latency_s": 0.9644745,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 87198,
+          "media_us": 0,
+          "prompt_time_us": 86980,
+          "decode_time_us": 876835,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 287.422396,
+          "decode_tps": 36.494894,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 85175,
+          "media_us": 0,
+          "prompt_time_us": 84951,
+          "decode_time_us": 880183,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 294.287295,
+          "decode_tps": 36.356076,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 2,
+      "run_count": 2,
+      "full_length": true,
+      "device_id": null,
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 2,
+        "n_prompt": 128,
+        "n_gen": 32,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 6,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.0026947931963226994
+    },
+    {
+      "variant_id": "qwen4b",
+      "device": "cpu",
+      "threads": 10,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 2,
+      "gen_tokens": 32,
+      "prompt_tokens": 128,
+      "warmup": 0,
+      "model": {
+        "id": "qwen4b",
+        "path": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 0.44398127391139103,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "input_verified": true,
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "128",
+        "-n",
+        "32",
+        "-t",
+        "10",
+        "-r",
+        "2",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--prompt-file",
+        "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+        "--cell-id",
+        "trial-0001"
+      ],
+      "artifact_sha256": {
+        "model": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2"
+      },
+      "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+      "runtime_sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+      "workload": {
+        "prompt_tokens": 128,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "workload_id": "f9081b21329a0114716daed217eed0ee282fe10c7bcfb8e7744996b37a1b2bad",
+      "group_id": "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09",
+      "peak_working_set_mb": 3699.51171875,
+      "working_set_mb": 3699.51171875,
+      "private_mb": 4909.1796875,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "energy": {
+        "duration_s": 3.9451921000145376,
+        "channels": {
+          "SYS": {
+            "energy_j": 144.15022380599999,
+            "average_power_w": 36.538201474515986,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 22.0979382768,
+            "average_power_w": 5.601232517098109,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 34.0463472228,
+            "average_power_w": 8.629832555599648,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 27.6957878004,
+            "average_power_w": 7.020136687462683,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2473891.0320359,
+        "channels_pwh": {
+          "SYS": 146557769806974,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24781312769425,
+          "CPU_CLUSTER_1": 10419462878214,
+          "CPU_CLUSTER_2": 8938528901617
+        },
+        "error": null,
+        "host_collection_start_s": 2473891.0315429,
+        "host_collection_end_s": 2473891.0320362,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 146557769806974,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 24781312769425,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 10419462878214,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 8938528901617,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_after": {
+        "monotonic_s": 2473894.977228,
+        "channels_pwh": {
+          "SYS": 146597811535809,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24787451085613,
+          "CPU_CLUSTER_1": 10428920196887,
+          "CPU_CLUSTER_2": 8946222176006
+        },
+        "error": null,
+        "host_collection_start_s": 2473894.9770314,
+        "host_collection_end_s": 2473894.9772283,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 146597811535809,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 24787451085613,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 10428920196887,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 8946222176006,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_j": 144.15022380599999,
+      "energy_duration_s": 3.9451921000145376,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 37.729423,
+      "prefill_tps": 290.165799,
+      "ttft_ms": 87.1745,
+      "latency_s": 0.9350725,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 95396,
+          "media_us": 0,
+          "prompt_time_us": 95089,
+          "decode_time_us": 849889,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 262.911588,
+          "decode_tps": 37.651976,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 78953,
+          "media_us": 0,
+          "prompt_time_us": 78760,
+          "decode_time_us": 846407,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 317.42001,
+          "decode_tps": 37.806871,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 2,
+      "run_count": 2,
+      "full_length": true,
+      "device_id": null,
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 2,
+        "n_prompt": 128,
+        "n_gen": 32,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 10,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.0029029678884940464
+    }
+  ],
+  "recommendations": {
+    "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09": {
+      "variant_id": "qwen4b",
+      "device": "cpu",
+      "threads": 10,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "llama_cpp",
+      "unsupported_reason": null,
+      "repeats": 2,
+      "gen_tokens": 32,
+      "prompt_tokens": 128,
+      "warmup": 0,
+      "model": {
+        "id": "qwen4b",
+        "path": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "architecture": "qwen3",
+        "quantization": "Q4_0",
+        "plugin": "llama_cpp",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": null,
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+      "log_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 0.44398127391139103,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "input_verified": true,
+      "command": [
+        "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "llama_cpp",
+        "--device",
+        "cpu",
+        "-m",
+        "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+        "-c",
+        "4096",
+        "-p",
+        "128",
+        "-n",
+        "32",
+        "-t",
+        "10",
+        "-r",
+        "2",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--prompt-file",
+        "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "--output-json",
+        "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+        "--cell-id",
+        "trial-0001"
+      ],
+      "artifact_sha256": {
+        "model": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2"
+      },
+      "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+      "runtime_sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+      "workload": {
+        "prompt_tokens": 128,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "workload_id": "f9081b21329a0114716daed217eed0ee282fe10c7bcfb8e7744996b37a1b2bad",
+      "group_id": "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09",
+      "peak_working_set_mb": 3699.51171875,
+      "working_set_mb": 3699.51171875,
+      "private_mb": 4909.1796875,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "energy": {
+        "duration_s": 3.9451921000145376,
+        "channels": {
+          "SYS": {
+            "energy_j": 144.15022380599999,
+            "average_power_w": 36.538201474515986,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 22.0979382768,
+            "average_power_w": 5.601232517098109,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 34.0463472228,
+            "average_power_w": 8.629832555599648,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 27.6957878004,
+            "average_power_w": 7.020136687462683,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2473891.0320359,
+        "channels_pwh": {
+          "SYS": 146557769806974,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24781312769425,
+          "CPU_CLUSTER_1": 10419462878214,
+          "CPU_CLUSTER_2": 8938528901617
+        },
+        "error": null,
+        "host_collection_start_s": 2473891.0315429,
+        "host_collection_end_s": 2473891.0320362,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 146557769806974,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 24781312769425,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 10419462878214,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162361522563,
+            "first_value": 8938528901617,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_after": {
+        "monotonic_s": 2473894.977228,
+        "channels_pwh": {
+          "SYS": 146597811535809,
+          "GPU": 155006563101,
+          "CPU_CLUSTER_0": 24787451085613,
+          "CPU_CLUSTER_1": 10428920196887,
+          "CPU_CLUSTER_2": 8946222176006
+        },
+        "error": null,
+        "host_collection_start_s": 2473894.9770314,
+        "host_collection_end_s": 2473894.9772283,
+        "pdh_collect_status": 0,
+        "raw_counters": {
+          "SYS": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 146597811535809,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "GPU": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 155006563101,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_0": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 24787451085613,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_1": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 10428920196887,
+            "second_value": 0,
+            "multi_count": 1
+          },
+          "CPU_CLUSTER_2": {
+            "read_status": 0,
+            "counter_status": 0,
+            "counter_type": 65792,
+            "source_timestamp_filetime_100ns": 134340162400978269,
+            "first_value": 8946222176006,
+            "second_value": 0,
+            "multi_count": 1
+          }
+        }
+      },
+      "energy_j": 144.15022380599999,
+      "energy_duration_s": 3.9451921000145376,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 37.729423,
+      "prefill_tps": 290.165799,
+      "ttft_ms": 87.1745,
+      "latency_s": 0.9350725,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 95396,
+          "media_us": 0,
+          "prompt_time_us": 95089,
+          "decode_time_us": 849889,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 262.911588,
+          "decode_tps": 37.651976,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 78953,
+          "media_us": 0,
+          "prompt_time_us": 78760,
+          "decode_time_us": 846407,
+          "prompt_tokens": 25,
+          "gen_tokens": 32,
+          "prefill_tps": 317.42001,
+          "decode_tps": 37.806871,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 2,
+      "run_count": 2,
+      "full_length": true,
+      "device_id": null,
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 2,
+        "n_prompt": 128,
+        "n_gen": 32,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 4096,
+        "n_threads": 10,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.0029029678884940464,
+      "score": 37.729423,
+      "objective": "fast",
+      "provisional": true,
+      "requires_paired_confirmation": true,
+      "rank": 1
+    }
+  },
+  "recommended": {
+    "variant_id": "qwen4b",
+    "device": "cpu",
+    "threads": 10,
+    "context": 4096,
+    "kind": "llm",
+    "plugin": "llama_cpp",
+    "unsupported_reason": null,
+    "repeats": 2,
+    "gen_tokens": 32,
+    "prompt_tokens": 128,
+    "warmup": 0,
+    "model": {
+      "id": "qwen4b",
+      "path": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "plugin": "llama_cpp",
+      "kind": "llm",
+      "tokenizer_path": null,
+      "mmproj_path": null,
+      "compiled_contexts": null,
+      "requiredimage": false
+    },
+    "architecture": "qwen3",
+    "quantization": "Q4_0",
+    "power_state": "ac",
+    "power_scope": "measured",
+    "result_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+    "log_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\bench.log",
+    "status": "completed",
+    "tokens_per_joule": 0.44398127391139103,
+    "energy_valid": true,
+    "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+    "input_verified": true,
+    "command": [
+      "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+      "--plugin",
+      "llama_cpp",
+      "--device",
+      "cpu",
+      "-m",
+      "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+      "-c",
+      "4096",
+      "-p",
+      "128",
+      "-n",
+      "32",
+      "-t",
+      "10",
+      "-r",
+      "2",
+      "--warmup",
+      "0",
+      "--temperature",
+      "0",
+      "--seed",
+      "42",
+      "--prompt-file",
+      "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+      "--output-json",
+      "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+      "--cell-id",
+      "trial-0001"
+    ],
+    "artifact_sha256": {
+      "model": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2"
+    },
+    "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+    "runtime_sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+    "workload": {
+      "prompt_tokens": 128,
+      "gen_tokens": 32,
+      "warmup": 0,
+      "repeats": 2,
+      "temperature": 0,
+      "seed": 42,
+      "image_path": null,
+      "prompt_file": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+      "image_sha256": null,
+      "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+    },
+    "workload_id": "f9081b21329a0114716daed217eed0ee282fe10c7bcfb8e7744996b37a1b2bad",
+    "group_id": "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09",
+    "peak_working_set_mb": 3699.51171875,
+    "working_set_mb": 3699.51171875,
+    "private_mb": 4909.1796875,
+    "power_state_start": {
+      "ac_line_status": "ac",
+      "battery_percent": 100,
+      "battery_flag": 1,
+      "battery_saver": false
+    },
+    "power_state_end": {
+      "ac_line_status": "ac",
+      "battery_percent": 100,
+      "battery_flag": 1,
+      "battery_saver": false
+    },
+    "energy": {
+      "duration_s": 3.9451921000145376,
+      "channels": {
+        "SYS": {
+          "energy_j": 144.15022380599999,
+          "average_power_w": 36.538201474515986,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_0": {
+          "energy_j": 22.0979382768,
+          "average_power_w": 5.601232517098109,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_1": {
+          "energy_j": 34.0463472228,
+          "average_power_w": 8.629832555599648,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_2": {
+          "energy_j": 27.6957878004,
+          "average_power_w": 7.020136687462683,
+          "tokens_per_joule": null
+        }
+      },
+      "unit": "picowatt-hours",
+      "scope": "full process trial including model initialization and any warmup",
+      "error": null
+    },
+    "energy_before": {
+      "monotonic_s": 2473891.0320359,
+      "channels_pwh": {
+        "SYS": 146557769806974,
+        "GPU": 155006563101,
+        "CPU_CLUSTER_0": 24781312769425,
+        "CPU_CLUSTER_1": 10419462878214,
+        "CPU_CLUSTER_2": 8938528901617
+      },
+      "error": null,
+      "host_collection_start_s": 2473891.0315429,
+      "host_collection_end_s": 2473891.0320362,
+      "pdh_collect_status": 0,
+      "raw_counters": {
+        "SYS": {
+          "read_status": 0,
+          "counter_status": 0,
+          "counter_type": 65792,
+          "source_timestamp_filetime_100ns": 134340162361522563,
+          "first_value": 146557769806974,
+          "second_value": 0,
+          "multi_count": 1
+        },
+        "GPU": {
+          "read_status": 0,
+          "counter_status": 0,
+          "counter_type": 65792,
+          "source_timestamp_filetime_100ns": 134340162361522563,
+          "first_value": 155006563101,
+          "second_value": 0,
+          "multi_count": 1
+        },
+        "CPU_CLUSTER_0": {
+          "read_status": 0,
+          "counter_status": 0,
+          "counter_type": 65792,
+          "source_timestamp_filetime_100ns": 134340162361522563,
+          "first_value": 24781312769425,
+          "second_value": 0,
+          "multi_count": 1
+        },
+        "CPU_CLUSTER_1": {
+          "read_status": 0,
+          "counter_status": 0,
+          "counter_type": 65792,
+          "source_timestamp_filetime_100ns": 134340162361522563,
+          "first_value": 10419462878214,
+          "second_value": 0,
+          "multi_count": 1
+        },
+        "CPU_CLUSTER_2": {
+          "read_status": 0,
+          "counter_status": 0,
+          "counter_type": 65792,
+          "source_timestamp_filetime_100ns": 134340162361522563,
+          "first_value": 8938528901617,
+          "second_value": 0,
+          "multi_count": 1
+        }
+      }
+    },
+    "energy_after": {
+      "monotonic_s": 2473894.977228,
+      "channels_pwh": {
+        "SYS": 146597811535809,
+        "GPU": 155006563101,
+        "CPU_CLUSTER_0": 24787451085613,
+        "CPU_CLUSTER_1": 10428920196887,
+        "CPU_CLUSTER_2": 8946222176006
+      },
+      "error": null,
+      "host_collection_start_s": 2473894.9770314,
+      "host_collection_end_s": 2473894.9772283,
+      "pdh_collect_status": 0,
+      "raw_counters": {
+        "SYS": {
+          "read_status": 0,
+          "counter_status": 0,
+          "counter_type": 65792,
+          "source_timestamp_filetime_100ns": 134340162400978269,
+          "first_value": 146597811535809,
+          "second_value": 0,
+          "multi_count": 1
+        },
+        "GPU": {
+          "read_status": 0,
+          "counter_status": 0,
+          "counter_type": 65792,
+          "source_timestamp_filetime_100ns": 134340162400978269,
+          "first_value": 155006563101,
+          "second_value": 0,
+          "multi_count": 1
+        },
+        "CPU_CLUSTER_0": {
+          "read_status": 0,
+          "counter_status": 0,
+          "counter_type": 65792,
+          "source_timestamp_filetime_100ns": 134340162400978269,
+          "first_value": 24787451085613,
+          "second_value": 0,
+          "multi_count": 1
+        },
+        "CPU_CLUSTER_1": {
+          "read_status": 0,
+          "counter_status": 0,
+          "counter_type": 65792,
+          "source_timestamp_filetime_100ns": 134340162400978269,
+          "first_value": 10428920196887,
+          "second_value": 0,
+          "multi_count": 1
+        },
+        "CPU_CLUSTER_2": {
+          "read_status": 0,
+          "counter_status": 0,
+          "counter_type": 65792,
+          "source_timestamp_filetime_100ns": 134340162400978269,
+          "first_value": 8946222176006,
+          "second_value": 0,
+          "multi_count": 1
+        }
+      }
+    },
+    "energy_j": 144.15022380599999,
+    "energy_duration_s": 3.9451921000145376,
+    "energy_scope": "full_process_trial",
+    "energy_channel": "SYS",
+    "timed_out": false,
+    "exit_code": 0,
+    "decode_tps": 37.729423,
+    "prefill_tps": 290.165799,
+    "ttft_ms": 87.1745,
+    "latency_s": 0.9350725,
+    "runs": [
+      {
+        "run_idx": 0,
+        "ttft_us": 95396,
+        "media_us": 0,
+        "prompt_time_us": 95089,
+        "decode_time_us": 849889,
+        "prompt_tokens": 25,
+        "gen_tokens": 32,
+        "prefill_tps": 262.911588,
+        "decode_tps": 37.651976,
+        "stop_reason": "length"
+      },
+      {
+        "run_idx": 1,
+        "ttft_us": 78953,
+        "media_us": 0,
+        "prompt_time_us": 78760,
+        "decode_time_us": 846407,
+        "prompt_tokens": 25,
+        "gen_tokens": 32,
+        "prefill_tps": 317.42001,
+        "decode_tps": 37.806871,
+        "stop_reason": "length"
+      }
+    ],
+    "complete_length_runs": 2,
+    "run_count": 2,
+    "full_length": true,
+    "device_id": null,
+    "reported_params": {
+      "warmup": 0,
+      "repetitions": 2,
+      "n_prompt": 128,
+      "n_gen": 32,
+      "temperature": 0.0,
+      "seed": 42,
+      "n_ctx": 4096,
+      "n_threads": 10,
+      "n_gpu_layers": 0
+    },
+    "variability_ratio": 0.0029029678884940464,
+    "score": 37.729423,
+    "objective": "fast",
+    "provisional": true,
+    "requires_paired_confirmation": true,
+    "rank": 1
+  },
+  "cells_run": 2,
+  "output_dir": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46",
+  "recommendation": {
+    "schema_version": "turbo.recommended.v2",
+    "model_id": "qwen4b",
+    "model_sha256": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2",
+    "model": {
+      "id": "qwen4b",
+      "path": "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+      "architecture": "qwen3",
+      "quantization": "Q4_0",
+      "plugin": "llama_cpp",
+      "kind": "llm",
+      "tokenizer_path": null,
+      "mmproj_path": null,
+      "compiled_contexts": null,
+      "requiredimage": false
+    },
+    "plugin": "llama_cpp",
+    "artifact_sha256": {
+      "model": "e0ba675d86ab277c61701c6793659b2ae801d95e3be791464c321e6fbf613be2"
+    },
+    "runtime_sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+    "runtime_binding": {
+      "schema_version": "turbo.runtime.v1",
+      "sha256": "7f39d624e513d6b157200704fdf16bac0822a83c53417e511a07cd2180a179ad",
+      "files": {
+        "benchmark/geniex-bench.exe": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+        "sdk/lib/geniex.dll": "b8c69332260ea772db6b1e9709800eb88956b94cd7b248131c4a119b194f5846",
+        "sdk/lib/llama_cpp/geniex_plugin.dll": "971c187a626bbe746e4ac635bcf5e8c9c8730aad5f5fcefe399da3112645df90",
+        "sdk/lib/llama_cpp/ggml-base.dll": "939d62c39934e7f9a6d2ff9832ace79d9c26234492e77b9d757372809b472fb7",
+        "sdk/lib/llama_cpp/ggml-cpu.dll": "014541b948ba35cf61ccad3b67807ff21d4a66e94affea83d0e91271c9b5e06a",
+        "sdk/lib/llama_cpp/ggml-hexagon.dll": "375635a0e4bce56edf033bd2d0cde575dcab585c8147713c423a655955ff7618",
+        "sdk/lib/llama_cpp/ggml-opencl.dll": "ca4e1af894b242f9d56fb631191a38372057f886fe117fc5ebea311767e52f35",
+        "sdk/lib/llama_cpp/ggml.dll": "a9ac39e4eff479a18a76f9cc1a18f528ac69e86b0f8b3a2d1ea6b0c17aba6922",
+        "sdk/lib/llama_cpp/libggml-htp-v73.so": "51b1f8be1296ff73652637a9508e6aedd5453130d6c0fe30a0a8366b740399c5",
+        "sdk/lib/llama_cpp/libggml-htp-v75.so": "d9b544835db27d27ce8381cd739dc3d365ef1a13527b169d8dfd4756dc9dee16",
+        "sdk/lib/llama_cpp/libggml-htp-v79.so": "74cc2b0144b0cc3b1e2379e6c9fc5dfb9cf176b4b45be709b0b418d652c81d09",
+        "sdk/lib/llama_cpp/libggml-htp-v81.so": "8be8efda2ad18c0330af360b3176f5d06989218f4693141f487cb2bc1cc35e36",
+        "sdk/lib/llama_cpp/libomp140.aarch64.dll": "2862472fe7654c6dca32c019e24c9640259265384ddba13d84795b8b4ca944b3",
+        "sdk/lib/llama_cpp/llama-common.dll": "ea8ced1fcf0771fcc837f089207d11901b4c6279ceed48d5dde1a193d6f14c1f",
+        "sdk/lib/llama_cpp/llama.dll": "ee343597f7d1db21968f445501b68361b01b0171de07025adf3f18df310bcacb",
+        "sdk/lib/llama_cpp/mtmd.dll": "0ca93534b2fde894f7a326179f1eb7a942a13d5b7cde6c34b5397688a289091e",
+        "sdk/lib/qairt/geniex-proc-vision.dll": "69d9aa839abaa13e11dfb31447a5722f37fe37c64c8753515d68050e948ae3d8",
+        "sdk/lib/qairt/geniex-proc.dll": "b7055bc33415543f3f056cf084665421760b8a6ab80d1b7d76f528d3f088e3b9",
+        "sdk/lib/qairt/geniex_core.dll": "52ed4108227897db70f371e7f820a1de8879223db3e620e4cf8bb83032b64c81",
+        "sdk/lib/qairt/geniex_plugin.dll": "e3138050f7dc6022092755d41fa194bb3137c2d3a9824d1799f660713f5a1c53",
+        "sdk/lib/qairt/geniex_vlm.dll": "cdf3d32ae1f0811b108e8b4c2307ed1231f61a02711b22cdaaaa9dd06b606619",
+        "sdk/lib/qairt/htp-files/PlatformValidatorShared.dll": "06df269e0ccd3df71d7cade11e63b7929216b04d6efc6e467c45c52a80fa9fc0",
+        "sdk/lib/qairt/htp-files/QnnChrometraceProfilingReader.dll": "bfc113593ecf311700f7290fb875ec0c1ce9ee98f64cc99f9fd43193b2e69f32",
+        "sdk/lib/qairt/htp-files/QnnHtp.dll": "3f1a96e0cc35992831ba3acf3e342074a494927dbe22fb5792233f2273732aff",
+        "sdk/lib/qairt/htp-files/QnnHtpNetRunExtensions.dll": "9d2bb9dde58eb054696d57635c8d9f5c2b08d7380aee07b787e4fe2690d78bff",
+        "sdk/lib/qairt/htp-files/QnnHtpOptraceProfilingReader.dll": "4dd1db629279fb1298e7ec049ff14b7453e336a39df054a40d052df9e24f1fdc",
+        "sdk/lib/qairt/htp-files/QnnHtpPrepare.dll": "e659c2fd811657cc3481bdb379444756047fd0c13d2d29de13c11022aecbeaa5",
+        "sdk/lib/qairt/htp-files/QnnHtpProfilingReader.dll": "e419ec669c2b0d7d95df802c11b396600cc4cb7b966fa8c700d42970a9209d6f",
+        "sdk/lib/qairt/htp-files/QnnHtpV73CalculatorStub.dll": "6c0b36162f04aa09e06f60d4188c8778bc994fa191c6174ed918f1b97bb6ab67",
+        "sdk/lib/qairt/htp-files/QnnHtpV73Stub.dll": "0c529ce342d3b56f88a148df1dd82513aec15485907fea95723b175e9a6a4405",
+        "sdk/lib/qairt/htp-files/QnnHtpV81CalculatorStub.dll": "47f1565fa451502477f82503edd909861fab5348c6f0e2007d2a5b8428f93e3f",
+        "sdk/lib/qairt/htp-files/QnnHtpV81Stub.dll": "09e8d3665c856af9ce178f0f6828faa870a5da5a1d1fe70d2ab0f14794f888f8",
+        "sdk/lib/qairt/htp-files/QnnIr.dll": "c057db8c6d9d5bac521e6c75eb3205a7c06fac9413305c93d3c7ec19921fd2bd",
+        "sdk/lib/qairt/htp-files/QnnJsonProfilingReader.dll": "9b5258465287d440ea8b1d3a319395145c75742837da2a767c70c874277456ca",
+        "sdk/lib/qairt/htp-files/QnnModelDlc.dll": "d7853356b8da11d19c57f041daa167acad02cf5996dca60d9ecdbb34039de4bf",
+        "sdk/lib/qairt/htp-files/QnnNetRunDirectV81Stub.dll": "81c156dd412343637eff6a9edcdc0325f487dd8a0fd88498a7d640fe250a80d1",
+        "sdk/lib/qairt/htp-files/QnnSaver.dll": "98ef48dda46bc6fa99480ffa46257073a117fa6f1548925ac8ccf0020167dbde",
+        "sdk/lib/qairt/htp-files/QnnSystem.dll": "baf80b0783608f3a2f5ed4f9629ccf1a4c796c64924de8b2300baae5ca456467",
+        "sdk/lib/qairt/htp-files/calculator.dll": "67d16e6c1ac1fd748f1221327575127e1f7d854b1fbd90cac74df41ac80b6667",
+        "sdk/lib/qairt/htp-files/calculator_htp.dll": "c6a58a900a8225d40967b00d9b558a4233689a74d213bdd87dc8615b2e28b8fd",
+        "sdk/lib/qairt/htp-files/libCalculator_skel.so": "5b160374e886745d5df31f8d44c91e6394c45dee00053213a2694df9f5a6e28e",
+        "sdk/lib/qairt/htp-files/libQnnHtpV73.so": "a05eae5e9c6962c69b975169d4ecc249b5b396d418459e9af6f7dc0e088c4c24",
+        "sdk/lib/qairt/htp-files/libQnnHtpV73QemuDriver.so": "8fafa9c25e1eee0b03f0b69007a7ff39fb1648267e8d5309acbb31245d91241c",
+        "sdk/lib/qairt/htp-files/libQnnHtpV73Skel.so": "d2fb5957e260e8d5fb12bf56fbf03a22bfce0b03165cd21588a652a23d811329",
+        "sdk/lib/qairt/htp-files/libQnnHtpV81.so": "b4610877765705aa12bdb27fb8d7e8f87692bfa2bbf86a0a9e525d3159cf1c1d",
+        "sdk/lib/qairt/htp-files/libQnnHtpV81Skel.so": "57330ed3f7846b94181b25b7a87bc3fe5dc71033766f2d5630520a1400477c97",
+        "sdk/lib/qairt/htp-files/libQnnNetRunDirectV81Skel.so": "0a8fd92f1ae352c1e3d11ac7b8b020bbaac783c37959fdcc5fd16ac05d7b1ba1",
+        "sdk/lib/qairt/htp-files/libQnnSaver.so": "bb76f974d92957604ab35b58b8f144b2aaf6558f7a637592914c119d855fe816",
+        "sdk/lib/qairt/htp-files/libQnnSystem.so": "0317434840a1ed5133a66e5607728048c93fd7712ab114dfd1a0798f4bc43834",
+        "sdk/lib/qairt/htp-files/libSnpeHtpV73Skel.so": "c4293dc4a1ab2df4701fa2dde88b16b89daac74b09a70c6feda57e2b69bf5b41",
+        "sdk/lib/qairt/htp-files/libSnpeHtpV81Skel.so": "a8a9a7ad930f2c2af8a2cf58a15687900682a96f0f74f7565e96cc5e1994469a"
+      },
+      "scope": "benchmark executable and SDK native libraries; excludes OS/driver"
+    },
+    "scope": {
+      "group_id": "c4f49ceb4d7f36adee0804d9a964b407c5f6751a07cc34f6d08d53c33b183d09",
+      "workload": {
+        "prompt_tokens": 128,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "power_state": "ac",
+      "power_scope": "measured",
+      "quality_calibrated": false,
+      "cold_kv": true,
+      "evidence": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\record.json",
+      "provisional": true,
+      "requires_paired_confirmation": true
+    },
+    "modes": {
+      "fast": {
+        "device": "cpu",
+        "threads": 10,
+        "context": 4096,
+        "metrics": {
+          "decode_tps": 37.729423,
+          "prefill_tps": 290.165799,
+          "latency_s": 0.9350725,
+          "tokens_per_joule": 0.44398127391139103,
+          "median_decode_tps": 37.729423,
+          "median_ttft_ms": 87.1745,
+          "median_peak_mib": 3699.51171875,
+          "energy_channel": "SYS",
+          "energy_scope": "full_process_trial"
+        },
+        "evidence": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+        "command": [
+          "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+          "--plugin",
+          "llama_cpp",
+          "--device",
+          "cpu",
+          "-m",
+          "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+          "-c",
+          "4096",
+          "-p",
+          "128",
+          "-n",
+          "32",
+          "-t",
+          "10",
+          "-r",
+          "2",
+          "--warmup",
+          "0",
+          "--temperature",
+          "0",
+          "--seed",
+          "42",
+          "--prompt-file",
+          "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+          "--output-json",
+          "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+          "--cell-id",
+          "trial-0001"
+        ],
+        "provisional": true,
+        "requires_paired_confirmation": true
+      },
+      "efficient": {
+        "device": "cpu",
+        "threads": 6,
+        "context": 4096,
+        "metrics": {
+          "decode_tps": 36.425485,
+          "prefill_tps": 290.854845,
+          "latency_s": 0.9644745,
+          "tokens_per_joule": 0.5863319996364386,
+          "median_decode_tps": 36.425485,
+          "median_ttft_ms": 86.1865,
+          "median_peak_mib": 3699.4765625,
+          "energy_channel": "SYS",
+          "energy_scope": "full_process_trial"
+        },
+        "evidence": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0000\\result.json",
+        "command": [
+          "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+          "--plugin",
+          "llama_cpp",
+          "--device",
+          "cpu",
+          "-m",
+          "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+          "-c",
+          "4096",
+          "-p",
+          "128",
+          "-n",
+          "32",
+          "-t",
+          "6",
+          "-r",
+          "2",
+          "--warmup",
+          "0",
+          "--temperature",
+          "0",
+          "--seed",
+          "42",
+          "--prompt-file",
+          "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+          "--output-json",
+          "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0000\\result.json",
+          "--cell-id",
+          "trial-0000"
+        ],
+        "provisional": true,
+        "requires_paired_confirmation": true
+      },
+      "balanced": {
+        "device": "cpu",
+        "threads": 10,
+        "context": 4096,
+        "metrics": {
+          "decode_tps": 37.729423,
+          "prefill_tps": 290.165799,
+          "latency_s": 0.9350725,
+          "tokens_per_joule": 0.44398127391139103,
+          "median_decode_tps": 37.729423,
+          "median_ttft_ms": 87.1745,
+          "median_peak_mib": 3699.51171875,
+          "energy_channel": "SYS",
+          "energy_scope": "full_process_trial"
+        },
+        "evidence": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+        "command": [
+          "${QUALCOMM_TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+          "--plugin",
+          "llama_cpp",
+          "--device",
+          "cpu",
+          "-m",
+          "${QUALCOMM_TOOLS}\\models\\Qwen3-4B-Instruct-2507-Q4_0.gguf",
+          "-c",
+          "4096",
+          "-p",
+          "128",
+          "-n",
+          "32",
+          "-t",
+          "10",
+          "-r",
+          "2",
+          "--warmup",
+          "0",
+          "--temperature",
+          "0",
+          "--seed",
+          "42",
+          "--prompt-file",
+          "${QUALCOMM_TOOLS}\\roadmap-16d1313\\local\\qairt-tuner-prompt.txt",
+          "--output-json",
+          "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\trial-0001\\result.json",
+          "--cell-id",
+          "trial-0001"
+        ],
+        "provisional": true,
+        "requires_paired_confirmation": true
+      }
+    },
+    "unavailable_modes": {}
+  },
+  "recommendation_path": "${QUALCOMM_TOOLS}\\bound-mcp-1400\\local\\bound-mcp-loop-1400\\tuning\\run-0fbe31fd46\\recommended.json"
+}
