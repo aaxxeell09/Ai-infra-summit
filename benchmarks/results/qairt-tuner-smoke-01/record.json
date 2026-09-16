@@ -1,0 +1,1055 @@
+{
+  "schema_version": "turbo.tuning.v2",
+  "objective": "decode",
+  "constraints": null,
+  "variability_penalty": 0.0,
+  "results": [
+    {
+      "variant_id": "qwen06-qairt",
+      "device": "npu",
+      "threads": 0,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "qairt",
+      "unsupported_reason": null,
+      "repeats": 2,
+      "gen_tokens": 32,
+      "prompt_tokens": 64,
+      "warmup": 0,
+      "model": {
+        "id": "qwen06-qairt",
+        "path": "${USER_HOME}\\.cache\\geniex\\models\\local\\qwen3-06-qairt-x-elite",
+        "architecture": "qwen3",
+        "quantization": "W4A16",
+        "plugin": "qairt",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": [
+          4096
+        ],
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "W4A16",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\result.json",
+      "log_path": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 1.264390913396564,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "command": [
+        "${TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "qairt",
+        "--device",
+        "npu",
+        "-m",
+        "${USER_HOME}\\.cache\\geniex\\models\\local\\qwen3-06-qairt-x-elite",
+        "-c",
+        "4096",
+        "-p",
+        "64",
+        "-n",
+        "32",
+        "-t",
+        "0",
+        "-r",
+        "2",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--prompt-file",
+        "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-prompt.txt",
+        "--output-json",
+        "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\result.json",
+        "--cell-id",
+        "trial-0000"
+      ],
+      "artifact_sha256": {
+        "model": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446"
+      },
+      "model_sha256": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446",
+      "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "workload": {
+        "prompt_tokens": 64,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "workload_id": "cbc992454faa1899afd78a73f140326e6232e7a3f261410a715b2b10188af321",
+      "group_id": "560675648a3644b11d287a462c29c45a944845cc3bd6c497153164fb3fce49d3",
+      "peak_working_set_mb": 2649.74609375,
+      "working_set_mb": 2649.74609375,
+      "private_mb": 446.33984375,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "energy": {
+        "duration_s": 4.313368100207299,
+        "channels": {
+          "SYS": {
+            "energy_j": 50.6172571488,
+            "average_power_w": 11.734972757453127,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 5.501203398,
+            "average_power_w": 1.2753846345123232,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 12.5821627488,
+            "average_power_w": 2.9170157650573123,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 0.2629028124,
+            "average_power_w": 0.06095070170045654,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2432863.5268713,
+        "channels_pwh": {
+          "SYS": 85818454196694,
+          "GPU": 153723885254,
+          "CPU_CLUSTER_0": 15444660052225,
+          "CPU_CLUSTER_1": 5121570424007,
+          "CPU_CLUSTER_2": 3893243142787
+        },
+        "error": null
+      },
+      "energy_after": {
+        "monotonic_s": 2432867.8402394,
+        "channels_pwh": {
+          "SYS": 85832514545902,
+          "GPU": 153723885254,
+          "CPU_CLUSTER_0": 15446188164280,
+          "CPU_CLUSTER_1": 5125065469215,
+          "CPU_CLUSTER_2": 3893316171346
+        },
+        "error": null
+      },
+      "energy_j": 50.6172571488,
+      "energy_duration_s": 4.313368100207299,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 84.998064,
+      "prefill_tps": 4515.207216,
+      "ttft_ms": 28.3545,
+      "latency_s": 0.40491049999999995,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 28762,
+          "media_us": 0,
+          "prompt_time_us": 28762,
+          "decode_time_us": 381935,
+          "prompt_tokens": 128,
+          "gen_tokens": 32,
+          "prefill_tps": 4450.31639,
+          "decode_tps": 83.78389,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 27947,
+          "media_us": 0,
+          "prompt_time_us": 27947,
+          "decode_time_us": 371177,
+          "prompt_tokens": 128,
+          "gen_tokens": 32,
+          "prefill_tps": 4580.098043,
+          "decode_tps": 86.212238,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 2,
+      "run_count": 2,
+      "full_length": true,
+      "device_id": "NPU",
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 2,
+        "n_prompt": 64,
+        "n_gen": 32,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 0,
+        "n_threads": 0,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.02020165233270243
+    }
+  ],
+  "cells_planned": 1,
+  "ranking": [
+    {
+      "variant_id": "qwen06-qairt",
+      "device": "npu",
+      "threads": 0,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "qairt",
+      "unsupported_reason": null,
+      "repeats": 2,
+      "gen_tokens": 32,
+      "prompt_tokens": 64,
+      "warmup": 0,
+      "model": {
+        "id": "qwen06-qairt",
+        "path": "${USER_HOME}\\.cache\\geniex\\models\\local\\qwen3-06-qairt-x-elite",
+        "architecture": "qwen3",
+        "quantization": "W4A16",
+        "plugin": "qairt",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": [
+          4096
+        ],
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "W4A16",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\result.json",
+      "log_path": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 1.264390913396564,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "command": [
+        "${TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "qairt",
+        "--device",
+        "npu",
+        "-m",
+        "${USER_HOME}\\.cache\\geniex\\models\\local\\qwen3-06-qairt-x-elite",
+        "-c",
+        "4096",
+        "-p",
+        "64",
+        "-n",
+        "32",
+        "-t",
+        "0",
+        "-r",
+        "2",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--prompt-file",
+        "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-prompt.txt",
+        "--output-json",
+        "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\result.json",
+        "--cell-id",
+        "trial-0000"
+      ],
+      "artifact_sha256": {
+        "model": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446"
+      },
+      "model_sha256": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446",
+      "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "workload": {
+        "prompt_tokens": 64,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "workload_id": "cbc992454faa1899afd78a73f140326e6232e7a3f261410a715b2b10188af321",
+      "group_id": "560675648a3644b11d287a462c29c45a944845cc3bd6c497153164fb3fce49d3",
+      "peak_working_set_mb": 2649.74609375,
+      "working_set_mb": 2649.74609375,
+      "private_mb": 446.33984375,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "energy": {
+        "duration_s": 4.313368100207299,
+        "channels": {
+          "SYS": {
+            "energy_j": 50.6172571488,
+            "average_power_w": 11.734972757453127,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 5.501203398,
+            "average_power_w": 1.2753846345123232,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 12.5821627488,
+            "average_power_w": 2.9170157650573123,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 0.2629028124,
+            "average_power_w": 0.06095070170045654,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2432863.5268713,
+        "channels_pwh": {
+          "SYS": 85818454196694,
+          "GPU": 153723885254,
+          "CPU_CLUSTER_0": 15444660052225,
+          "CPU_CLUSTER_1": 5121570424007,
+          "CPU_CLUSTER_2": 3893243142787
+        },
+        "error": null
+      },
+      "energy_after": {
+        "monotonic_s": 2432867.8402394,
+        "channels_pwh": {
+          "SYS": 85832514545902,
+          "GPU": 153723885254,
+          "CPU_CLUSTER_0": 15446188164280,
+          "CPU_CLUSTER_1": 5125065469215,
+          "CPU_CLUSTER_2": 3893316171346
+        },
+        "error": null
+      },
+      "energy_j": 50.6172571488,
+      "energy_duration_s": 4.313368100207299,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 84.998064,
+      "prefill_tps": 4515.207216,
+      "ttft_ms": 28.3545,
+      "latency_s": 0.40491049999999995,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 28762,
+          "media_us": 0,
+          "prompt_time_us": 28762,
+          "decode_time_us": 381935,
+          "prompt_tokens": 128,
+          "gen_tokens": 32,
+          "prefill_tps": 4450.31639,
+          "decode_tps": 83.78389,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 27947,
+          "media_us": 0,
+          "prompt_time_us": 27947,
+          "decode_time_us": 371177,
+          "prompt_tokens": 128,
+          "gen_tokens": 32,
+          "prefill_tps": 4580.098043,
+          "decode_tps": 86.212238,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 2,
+      "run_count": 2,
+      "full_length": true,
+      "device_id": "NPU",
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 2,
+        "n_prompt": 64,
+        "n_gen": 32,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 0,
+        "n_threads": 0,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.02020165233270243,
+      "score": 84.998064,
+      "objective": "decode",
+      "provisional": true,
+      "requires_paired_confirmation": true,
+      "rank": 1
+    }
+  ],
+  "pareto_frontier": [
+    {
+      "variant_id": "qwen06-qairt",
+      "device": "npu",
+      "threads": 0,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "qairt",
+      "unsupported_reason": null,
+      "repeats": 2,
+      "gen_tokens": 32,
+      "prompt_tokens": 64,
+      "warmup": 0,
+      "model": {
+        "id": "qwen06-qairt",
+        "path": "${USER_HOME}\\.cache\\geniex\\models\\local\\qwen3-06-qairt-x-elite",
+        "architecture": "qwen3",
+        "quantization": "W4A16",
+        "plugin": "qairt",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": [
+          4096
+        ],
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "W4A16",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\result.json",
+      "log_path": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 1.264390913396564,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "command": [
+        "${TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "qairt",
+        "--device",
+        "npu",
+        "-m",
+        "${USER_HOME}\\.cache\\geniex\\models\\local\\qwen3-06-qairt-x-elite",
+        "-c",
+        "4096",
+        "-p",
+        "64",
+        "-n",
+        "32",
+        "-t",
+        "0",
+        "-r",
+        "2",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--prompt-file",
+        "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-prompt.txt",
+        "--output-json",
+        "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\result.json",
+        "--cell-id",
+        "trial-0000"
+      ],
+      "artifact_sha256": {
+        "model": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446"
+      },
+      "model_sha256": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446",
+      "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "workload": {
+        "prompt_tokens": 64,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "workload_id": "cbc992454faa1899afd78a73f140326e6232e7a3f261410a715b2b10188af321",
+      "group_id": "560675648a3644b11d287a462c29c45a944845cc3bd6c497153164fb3fce49d3",
+      "peak_working_set_mb": 2649.74609375,
+      "working_set_mb": 2649.74609375,
+      "private_mb": 446.33984375,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "energy": {
+        "duration_s": 4.313368100207299,
+        "channels": {
+          "SYS": {
+            "energy_j": 50.6172571488,
+            "average_power_w": 11.734972757453127,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 5.501203398,
+            "average_power_w": 1.2753846345123232,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 12.5821627488,
+            "average_power_w": 2.9170157650573123,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 0.2629028124,
+            "average_power_w": 0.06095070170045654,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2432863.5268713,
+        "channels_pwh": {
+          "SYS": 85818454196694,
+          "GPU": 153723885254,
+          "CPU_CLUSTER_0": 15444660052225,
+          "CPU_CLUSTER_1": 5121570424007,
+          "CPU_CLUSTER_2": 3893243142787
+        },
+        "error": null
+      },
+      "energy_after": {
+        "monotonic_s": 2432867.8402394,
+        "channels_pwh": {
+          "SYS": 85832514545902,
+          "GPU": 153723885254,
+          "CPU_CLUSTER_0": 15446188164280,
+          "CPU_CLUSTER_1": 5125065469215,
+          "CPU_CLUSTER_2": 3893316171346
+        },
+        "error": null
+      },
+      "energy_j": 50.6172571488,
+      "energy_duration_s": 4.313368100207299,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 84.998064,
+      "prefill_tps": 4515.207216,
+      "ttft_ms": 28.3545,
+      "latency_s": 0.40491049999999995,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 28762,
+          "media_us": 0,
+          "prompt_time_us": 28762,
+          "decode_time_us": 381935,
+          "prompt_tokens": 128,
+          "gen_tokens": 32,
+          "prefill_tps": 4450.31639,
+          "decode_tps": 83.78389,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 27947,
+          "media_us": 0,
+          "prompt_time_us": 27947,
+          "decode_time_us": 371177,
+          "prompt_tokens": 128,
+          "gen_tokens": 32,
+          "prefill_tps": 4580.098043,
+          "decode_tps": 86.212238,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 2,
+      "run_count": 2,
+      "full_length": true,
+      "device_id": "NPU",
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 2,
+        "n_prompt": 64,
+        "n_gen": 32,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 0,
+        "n_threads": 0,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.02020165233270243
+    }
+  ],
+  "recommendations": {
+    "560675648a3644b11d287a462c29c45a944845cc3bd6c497153164fb3fce49d3": {
+      "variant_id": "qwen06-qairt",
+      "device": "npu",
+      "threads": 0,
+      "context": 4096,
+      "kind": "llm",
+      "plugin": "qairt",
+      "unsupported_reason": null,
+      "repeats": 2,
+      "gen_tokens": 32,
+      "prompt_tokens": 64,
+      "warmup": 0,
+      "model": {
+        "id": "qwen06-qairt",
+        "path": "${USER_HOME}\\.cache\\geniex\\models\\local\\qwen3-06-qairt-x-elite",
+        "architecture": "qwen3",
+        "quantization": "W4A16",
+        "plugin": "qairt",
+        "kind": "llm",
+        "tokenizer_path": null,
+        "mmproj_path": null,
+        "compiled_contexts": [
+          4096
+        ],
+        "requiredimage": false
+      },
+      "architecture": "qwen3",
+      "quantization": "W4A16",
+      "power_state": "ac",
+      "power_scope": "measured",
+      "result_path": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\result.json",
+      "log_path": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\bench.log",
+      "status": "completed",
+      "tokens_per_joule": 1.264390913396564,
+      "energy_valid": true,
+      "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+      "command": [
+        "${TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+        "--plugin",
+        "qairt",
+        "--device",
+        "npu",
+        "-m",
+        "${USER_HOME}\\.cache\\geniex\\models\\local\\qwen3-06-qairt-x-elite",
+        "-c",
+        "4096",
+        "-p",
+        "64",
+        "-n",
+        "32",
+        "-t",
+        "0",
+        "-r",
+        "2",
+        "--warmup",
+        "0",
+        "--temperature",
+        "0",
+        "--seed",
+        "42",
+        "--prompt-file",
+        "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-prompt.txt",
+        "--output-json",
+        "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\result.json",
+        "--cell-id",
+        "trial-0000"
+      ],
+      "artifact_sha256": {
+        "model": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446"
+      },
+      "model_sha256": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446",
+      "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+      "workload": {
+        "prompt_tokens": 64,
+        "gen_tokens": 32,
+        "warmup": 0,
+        "repeats": 2,
+        "temperature": 0,
+        "seed": 42,
+        "image_path": null,
+        "prompt_file": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-prompt.txt",
+        "image_sha256": null,
+        "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+      },
+      "workload_id": "cbc992454faa1899afd78a73f140326e6232e7a3f261410a715b2b10188af321",
+      "group_id": "560675648a3644b11d287a462c29c45a944845cc3bd6c497153164fb3fce49d3",
+      "peak_working_set_mb": 2649.74609375,
+      "working_set_mb": 2649.74609375,
+      "private_mb": 446.33984375,
+      "power_state_start": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "power_state_end": {
+        "ac_line_status": "ac",
+        "battery_percent": 100,
+        "battery_flag": 1,
+        "battery_saver": false
+      },
+      "energy": {
+        "duration_s": 4.313368100207299,
+        "channels": {
+          "SYS": {
+            "energy_j": 50.6172571488,
+            "average_power_w": 11.734972757453127,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_0": {
+            "energy_j": 5.501203398,
+            "average_power_w": 1.2753846345123232,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_1": {
+            "energy_j": 12.5821627488,
+            "average_power_w": 2.9170157650573123,
+            "tokens_per_joule": null
+          },
+          "CPU_CLUSTER_2": {
+            "energy_j": 0.2629028124,
+            "average_power_w": 0.06095070170045654,
+            "tokens_per_joule": null
+          }
+        },
+        "unit": "picowatt-hours",
+        "scope": "full process trial including model initialization and any warmup",
+        "error": null
+      },
+      "energy_before": {
+        "monotonic_s": 2432863.5268713,
+        "channels_pwh": {
+          "SYS": 85818454196694,
+          "GPU": 153723885254,
+          "CPU_CLUSTER_0": 15444660052225,
+          "CPU_CLUSTER_1": 5121570424007,
+          "CPU_CLUSTER_2": 3893243142787
+        },
+        "error": null
+      },
+      "energy_after": {
+        "monotonic_s": 2432867.8402394,
+        "channels_pwh": {
+          "SYS": 85832514545902,
+          "GPU": 153723885254,
+          "CPU_CLUSTER_0": 15446188164280,
+          "CPU_CLUSTER_1": 5125065469215,
+          "CPU_CLUSTER_2": 3893316171346
+        },
+        "error": null
+      },
+      "energy_j": 50.6172571488,
+      "energy_duration_s": 4.313368100207299,
+      "energy_scope": "full_process_trial",
+      "energy_channel": "SYS",
+      "timed_out": false,
+      "exit_code": 0,
+      "decode_tps": 84.998064,
+      "prefill_tps": 4515.207216,
+      "ttft_ms": 28.3545,
+      "latency_s": 0.40491049999999995,
+      "runs": [
+        {
+          "run_idx": 0,
+          "ttft_us": 28762,
+          "media_us": 0,
+          "prompt_time_us": 28762,
+          "decode_time_us": 381935,
+          "prompt_tokens": 128,
+          "gen_tokens": 32,
+          "prefill_tps": 4450.31639,
+          "decode_tps": 83.78389,
+          "stop_reason": "length"
+        },
+        {
+          "run_idx": 1,
+          "ttft_us": 27947,
+          "media_us": 0,
+          "prompt_time_us": 27947,
+          "decode_time_us": 371177,
+          "prompt_tokens": 128,
+          "gen_tokens": 32,
+          "prefill_tps": 4580.098043,
+          "decode_tps": 86.212238,
+          "stop_reason": "length"
+        }
+      ],
+      "complete_length_runs": 2,
+      "run_count": 2,
+      "full_length": true,
+      "device_id": "NPU",
+      "reported_params": {
+        "warmup": 0,
+        "repetitions": 2,
+        "n_prompt": 64,
+        "n_gen": 32,
+        "temperature": 0.0,
+        "seed": 42,
+        "n_ctx": 0,
+        "n_threads": 0,
+        "n_gpu_layers": 0
+      },
+      "variability_ratio": 0.02020165233270243,
+      "score": 84.998064,
+      "objective": "decode",
+      "provisional": true,
+      "requires_paired_confirmation": true,
+      "rank": 1
+    }
+  },
+  "recommended": {
+    "variant_id": "qwen06-qairt",
+    "device": "npu",
+    "threads": 0,
+    "context": 4096,
+    "kind": "llm",
+    "plugin": "qairt",
+    "unsupported_reason": null,
+    "repeats": 2,
+    "gen_tokens": 32,
+    "prompt_tokens": 64,
+    "warmup": 0,
+    "model": {
+      "id": "qwen06-qairt",
+      "path": "${USER_HOME}\\.cache\\geniex\\models\\local\\qwen3-06-qairt-x-elite",
+      "architecture": "qwen3",
+      "quantization": "W4A16",
+      "plugin": "qairt",
+      "kind": "llm",
+      "tokenizer_path": null,
+      "mmproj_path": null,
+      "compiled_contexts": [
+        4096
+      ],
+      "requiredimage": false
+    },
+    "architecture": "qwen3",
+    "quantization": "W4A16",
+    "power_state": "ac",
+    "power_scope": "measured",
+    "result_path": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\result.json",
+    "log_path": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\bench.log",
+    "status": "completed",
+    "tokens_per_joule": 1.264390913396564,
+    "energy_valid": true,
+    "energy_reason": "full process interval including load, prefill and decode; warmup excluded from efficiency eligibility",
+    "command": [
+      "${TOOLS}\\geniex-bench\\geniex-bench-windows-arm64-v0.6.1\\bin\\geniex-bench.exe",
+      "--plugin",
+      "qairt",
+      "--device",
+      "npu",
+      "-m",
+      "${USER_HOME}\\.cache\\geniex\\models\\local\\qwen3-06-qairt-x-elite",
+      "-c",
+      "4096",
+      "-p",
+      "64",
+      "-n",
+      "32",
+      "-t",
+      "0",
+      "-r",
+      "2",
+      "--warmup",
+      "0",
+      "--temperature",
+      "0",
+      "--seed",
+      "42",
+      "--prompt-file",
+      "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-prompt.txt",
+      "--output-json",
+      "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01\\trial-0000\\result.json",
+      "--cell-id",
+      "trial-0000"
+    ],
+    "artifact_sha256": {
+      "model": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446"
+    },
+    "model_sha256": "daf3a03e77eb3cf3dc641470458cac5508a16e3503e5959af9dbafc06a52f446",
+    "runtime_sha256": "ced11ae0bc4a5c52ef8a677fb0cb28680af57ab3bcf3f13f9b72ab1f297e952a",
+    "workload": {
+      "prompt_tokens": 64,
+      "gen_tokens": 32,
+      "warmup": 0,
+      "repeats": 2,
+      "temperature": 0,
+      "seed": 42,
+      "image_path": null,
+      "prompt_file": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-prompt.txt",
+      "image_sha256": null,
+      "prompt_sha256": "505994b658032887e9507630778bf0daa0c1b18034f9ce9295091dfd215c1c3b"
+    },
+    "workload_id": "cbc992454faa1899afd78a73f140326e6232e7a3f261410a715b2b10188af321",
+    "group_id": "560675648a3644b11d287a462c29c45a944845cc3bd6c497153164fb3fce49d3",
+    "peak_working_set_mb": 2649.74609375,
+    "working_set_mb": 2649.74609375,
+    "private_mb": 446.33984375,
+    "power_state_start": {
+      "ac_line_status": "ac",
+      "battery_percent": 100,
+      "battery_flag": 1,
+      "battery_saver": false
+    },
+    "power_state_end": {
+      "ac_line_status": "ac",
+      "battery_percent": 100,
+      "battery_flag": 1,
+      "battery_saver": false
+    },
+    "energy": {
+      "duration_s": 4.313368100207299,
+      "channels": {
+        "SYS": {
+          "energy_j": 50.6172571488,
+          "average_power_w": 11.734972757453127,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_0": {
+          "energy_j": 5.501203398,
+          "average_power_w": 1.2753846345123232,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_1": {
+          "energy_j": 12.5821627488,
+          "average_power_w": 2.9170157650573123,
+          "tokens_per_joule": null
+        },
+        "CPU_CLUSTER_2": {
+          "energy_j": 0.2629028124,
+          "average_power_w": 0.06095070170045654,
+          "tokens_per_joule": null
+        }
+      },
+      "unit": "picowatt-hours",
+      "scope": "full process trial including model initialization and any warmup",
+      "error": null
+    },
+    "energy_before": {
+      "monotonic_s": 2432863.5268713,
+      "channels_pwh": {
+        "SYS": 85818454196694,
+        "GPU": 153723885254,
+        "CPU_CLUSTER_0": 15444660052225,
+        "CPU_CLUSTER_1": 5121570424007,
+        "CPU_CLUSTER_2": 3893243142787
+      },
+      "error": null
+    },
+    "energy_after": {
+      "monotonic_s": 2432867.8402394,
+      "channels_pwh": {
+        "SYS": 85832514545902,
+        "GPU": 153723885254,
+        "CPU_CLUSTER_0": 15446188164280,
+        "CPU_CLUSTER_1": 5125065469215,
+        "CPU_CLUSTER_2": 3893316171346
+      },
+      "error": null
+    },
+    "energy_j": 50.6172571488,
+    "energy_duration_s": 4.313368100207299,
+    "energy_scope": "full_process_trial",
+    "energy_channel": "SYS",
+    "timed_out": false,
+    "exit_code": 0,
+    "decode_tps": 84.998064,
+    "prefill_tps": 4515.207216,
+    "ttft_ms": 28.3545,
+    "latency_s": 0.40491049999999995,
+    "runs": [
+      {
+        "run_idx": 0,
+        "ttft_us": 28762,
+        "media_us": 0,
+        "prompt_time_us": 28762,
+        "decode_time_us": 381935,
+        "prompt_tokens": 128,
+        "gen_tokens": 32,
+        "prefill_tps": 4450.31639,
+        "decode_tps": 83.78389,
+        "stop_reason": "length"
+      },
+      {
+        "run_idx": 1,
+        "ttft_us": 27947,
+        "media_us": 0,
+        "prompt_time_us": 27947,
+        "decode_time_us": 371177,
+        "prompt_tokens": 128,
+        "gen_tokens": 32,
+        "prefill_tps": 4580.098043,
+        "decode_tps": 86.212238,
+        "stop_reason": "length"
+      }
+    ],
+    "complete_length_runs": 2,
+    "run_count": 2,
+    "full_length": true,
+    "device_id": "NPU",
+    "reported_params": {
+      "warmup": 0,
+      "repetitions": 2,
+      "n_prompt": 64,
+      "n_gen": 32,
+      "temperature": 0.0,
+      "seed": 42,
+      "n_ctx": 0,
+      "n_threads": 0,
+      "n_gpu_layers": 0
+    },
+    "variability_ratio": 0.02020165233270243,
+    "score": 84.998064,
+    "objective": "decode",
+    "provisional": true,
+    "requires_paired_confirmation": true,
+    "rank": 1
+  },
+  "cells_run": 1,
+  "output_dir": "${TOOLS}\\eval-qairt-9288aeb\\local\\qairt-tuner-smoke-01",
+  "recommendation": null,
+  "recommendation_path": null,
+  "recommendation_error": "current parent apply supports llama_cpp LLM without artifact overrides only"
+}

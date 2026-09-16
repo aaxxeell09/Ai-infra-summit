@@ -98,10 +98,16 @@ Greedy top-k workaround candidate (`41260c4`): **29/50 (58%)**, mean inference *
 ## Immediate priorities
 
 1. Secure unattended access before the Latitude is left at the venue. Fresh Tailscale SSH is verified after the Mac changed networks, and the local tunnel supervisor restarts successfully. Graphical desktop authentication still needs the Microsoft-backed Windows account credential. Keep the machine awake with a bounded process-scoped request.
-2. **Highest-priority engineering experiment: Qwen3-0.6B through native QAIRT.** The installed GenieX 0.6.1 catalog lists it for the detected X Elite; QAIRT 2.45 is installed. Finish the official artifact download, record its compiled context/precision/hash, and prove actual QAIRT/Hexagon execution. Keep GGUF `llama_cpp` HTP0, GGUF CPU10 and compiled `qairt` NPU distinct. No grammar, routing or context changes in this first comparison.
-3. Run the unchanged Secretary development benchmark on the stable QAIRT path, then the full 50-case serious candidate. Preserve the frozen reference and all failures. Classify QAIRT as a different model/runtime deployment artifact, not a same-weights kernel speedup. Compare useful task latency, correctness, phase timings, memory and energy with matched boundaries.
+2. **QAIRT artifact and first full evaluation are complete.** Official Qwen3-0.6B W4A16 loaded on HTP v73; full result is 23/50 (46%), mean inference 786.338 ms, 34% invalid outputs. Distinguish its compiled deployment from GGUF CPU/HTP. Preserve all failures and do not qualify the model from throughput alone.
+3. Coordinate evaluator provenance with Axel before a formal comparison: the historical-reference guard correctly reports NOT_COMPARABLE. The questions, expected actions and scoring were preserved. Resolve the scanner's false positives on archived result reports with benchmark ownership.
 4. Complete the hash-bound tuner → recommendation → exact apply → correct task → MCP loop. Wire teammate frontend to real sequential trials. Hardware policy changes must alter the same applied configuration and show acknowledged feedback.
 5. Make Secretary reliable. Keep the measured CPU10 path; independently test production-schema grammar and conservative preconditions without changing golden answers. Coordinate any evaluation-adapter extension with Axel. The 1.7B result (34/50, 68%, 2839.033 ms mean, failed gate) does not establish a dependable larger-model solution.
-6. After the first QAIRT comparison, select one exposed QAIRT tuning experiment from evidence. Then resume 4B/8B/20–25B quality/routing trials and isolated prefix/KV, batch, speculation and local context experiments. Register UNO Q inference only after a real bounded on-board run; controller integration comes first.
+6. After the first QAIRT comparison, select one exposed QAIRT tuning experiment from evidence. Then resume 4B/8B/20–25B quality/routing trials and isolated prefix/KV, batch, speculation and local context experiments. UNO Q now has a real SmolLM2-360M CPU run; its exact-output failures prevent task admission. Physical controller acknowledgement remains pending.
 
 The supplied Henry V2 synthesis is research evidence. Its exact-runtime checks, output-validity findings, separate prefill-thread experiment and measurement cautions guide implementation. The subsequent explicit Qualcomm feedback makes the clean QAIRT comparison the immediate priority. See `docs/qairt-roadmap.md` for the execution gates.
+
+
+Latest access state: fresh offsite Tailscale SSH was verified earlier, but the
+Latitude was last seen at 2026-09-16 02:50 UTC and subsequently went offline.
+The two-round QAIRT MCP integration launch did not execute. Resume that check
+first after access returns, then transfer the checksum-verified 4B model.

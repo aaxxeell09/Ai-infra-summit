@@ -182,3 +182,14 @@ Separate CLI Codex processes using GLM-5.3-Flash successfully run in isolated wo
 - [ ] Complete pinned Qwen3-8B Q4_K_M and gpt-oss-20b MXFP4 downloads queued on the Latitude; checksum, memory, runtime and tool-parser checks precede admission.
 - [x] Finish and checksum Qwen3-4B-Instruct-2507 Q4_0 download on Mac.
 - [ ] Transfer the verified 4B model to Latitude, then prioritize its secretary evaluation.
+
+
+## Latest checkpoint: QAIRT loop and SDK binding
+
+- [x] Publish full native QAIRT 50-case result and runtime components (`8192409`).
+- [x] Fix compiled-shard/context tuner ABI and run a real two-repeat Latitude cell (`718140c`).
+- [x] Implement SDK-library-bound recommendations, QAIRT mode apply, and repeated MCP/HTTP/native-loop smoke harness (`efd5100`).
+- [ ] Run the two-round integration harness on the Latitude; launch was blocked before execution by Tailscale going offline at 02:50 UTC.
+- [ ] Restore normal service after isolated tests; it is currently intentionally stopped.
+- [ ] Coordinate evaluator hash migration and archived-report leakage scan with Axel. No golden benchmark changes made.
+- [ ] Qualify a reliable Secretary model before enabling accepted product modes. Current speed/efficiency recommendations remain provisional, quality uncalibrated.
