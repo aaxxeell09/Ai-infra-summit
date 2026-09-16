@@ -16,6 +16,8 @@ the single authority on measured evidence.
 from __future__ import annotations
 
 import signal
+import copy
+import threading
 import sys
 import time
 from pathlib import Path
@@ -47,7 +49,7 @@ class Scheduler:
 
     def __init__(self, session, *, backend, budget, queue, executor, console,
                  owner_decisions=(), clock=time.monotonic, dry_run=False,
-                 default_hardware_seconds=None):
+                 default_hardware_seconds=None, checkpoint_path=None):
         self.state = session
         self.backend = backend
         self.budget = budget
@@ -69,8 +71,17 @@ class Scheduler:
         session.setdefault('cost_model', {})['default_hardware_seconds'] = {
             'value': self.default_hardware_seconds, 'source': 'declared default, not measured'}
         self._active = None
+        self._hardware_mutex = threading.Lock()
+        self.checkpoint_path = Path(checkpoint_path).resolve() if checkpoint_path else None
+        self.state.setdefault('hardware_journal', {})
         self._interrupted = False
         self._last_mark = _now(clock)
+
+    def checkpoint(self):
+        self.state['elapsed_seconds'] = self.budget.elapsed_s
+        self.state['queue_snapshot'] = self.queue.snapshot()
+        if self.checkpoint_path is not None:
+            S.save(self.state, self.checkpoint_path)
 
     # ------------------------------------------------------------------ time
 
@@ -123,11 +134,13 @@ class Scheduler:
             split=self.state['split'], lane=lane)
         for candidate, reasons in rejected:
             S.record_rejection(self.state, candidate, reasons)
+            self.checkpoint()
         unique = []
         seen = set()
         for candidate in accepted:
             if candidate['config_hash'] in seen:
                 S.record_rejection(self.state, candidate, ['Duplicate within this batch'])
+                self.checkpoint()
                 continue
             seen.add(candidate['config_hash'])
             unique.append(candidate)
@@ -145,40 +158,81 @@ class Scheduler:
             return declared, 'candidate estimate'
         return self.default_hardware_seconds, 'declared session default, not measured'
 
-    def run_candidate(self, candidate, stage, *, estimated_seconds=None):
-        """Run exactly one candidate on hardware, or refuse to start.
+    def run_candidate(self, candidate, stage, *, estimated_seconds=None, job_id=None):
+        """Checkpoint intent before launch and the complete observation before return.
 
-        A candidate is never started when the remaining budget cannot cover its
-        estimated cost, and an unknown cost is not treated as a small one. The
-        one exception is explicit: a caller that passes allow_unknown through
-        the budget has decided to accept the risk.
+        A completed durable job is replayed without launching its executor. An
+        interrupted in-flight job has unknown completion and requires explicit
+        reconciliation instead of risking duplicate hardware work.
         """
-        if self._interrupted:
-            raise Interrupted('Scheduling stopped by interrupt')
-        if self._active is not None:
-            raise HardwareBusy('A hardware evaluation is already active: ' + str(self._active))
-        if estimated_seconds is None:
-            estimated_seconds, _source = self.estimated_cost(candidate)
-        if not self.budget.can_start(estimated_seconds, allow_unknown=self.dry_run):
-            self.console.warn('skipping ' + candidate['candidate_id']
-                              + ': estimated cost does not fit the remaining budget')
-            return None
-        self._mark('hardware_idle_s')
-        self._active = candidate['candidate_id']
-        self.queue.claim(candidate)
+        if not self._hardware_mutex.acquire(blocking=False):
+            raise HardwareBusy('A hardware evaluation is already active')
+        claimed = False
+        entry = None
         try:
-            observation = self.executor(candidate, stage=stage)
+            if self._interrupted:
+                raise Interrupted('Scheduling stopped by interrupt')
+            if self._active is not None:
+                raise HardwareBusy('A hardware evaluation is already active')
+            if job_id is not None:
+                entry = self.state['hardware_journal'].get(job_id)
+                if entry and entry['status'] == 'completed':
+                    return copy.deepcopy(entry['observation'])
+                if entry and entry['status'] == 'started':
+                    raise RuntimeError('Recovery requires reconciliation of uncertain hardware job ' + job_id)
+                if entry and entry['status'] == 'failed':
+                    # A caught executor exception is visible but cannot establish
+                    # whether an external child finished. Do not auto-retry it.
+                    raise RuntimeError('Recovery requires reconciliation of failed hardware job ' + job_id)
+            if estimated_seconds is None:
+                estimated_seconds, _source = self.estimated_cost(candidate)
+            if not self.budget.can_start(estimated_seconds, allow_unknown=self.dry_run):
+                self.console.warn('skipping ' + candidate['candidate_id'] + ': estimated cost does not fit the remaining budget')
+                return None
+            candidate_id = candidate['candidate_id']
+            self._mark('hardware_idle_s')
+            self.queue.claim(candidate)
+            claimed = True
+            self._active = candidate_id
+            if job_id is not None:
+                entry = {'job_id': job_id, 'candidate': copy.deepcopy(candidate), 'stage': stage,
+                         'status': 'started', 'started_at': S.now(), 'qualified': False}
+                self.state['hardware_journal'][job_id] = entry
+            self.checkpoint()
+            try:
+                observation = self.executor(candidate, stage=stage)
+                if not isinstance(observation, dict):
+                    raise TypeError('Hardware executor must return an observation object')
+            except BaseException as exc:
+                failure = S.failure_record(exc, where='executor', candidate=candidate, stage=stage)
+                self.state.setdefault('failures', []).append(failure)
+                if entry is not None:
+                    entry.update(status='failed', failure=failure, qualified=False)
+                raise
+            finally:
+                self.queue.release(candidate)
+                claimed = False
+                self._active = None
+                spent = self._mark('hardware_busy_s')
+            outcome = observation.get('outcome', 'unknown')
+            S.record_outcome(self.state, candidate, stage, outcome,
+                             hardware_seconds=observation.get('hardware_seconds') if observation.get('hardware_seconds') is not None else spent,
+                             net_cases=observation.get('net_cases'))
+            if entry is not None:
+                entry.update(status='completed', completed_at=S.now(), observation=copy.deepcopy(observation))
+            self.checkpoint()
+            self.console.stage(stage, candidate_id, str(outcome))
+            return observation
         finally:
-            self.queue.release(candidate)
-            self._active = None
-            spent = self._mark('hardware_busy_s')
-        outcome = observation.get('outcome', 'unknown') if isinstance(observation, dict) else 'unknown'
-        S.record_outcome(self.state, candidate, stage, outcome,
-                         hardware_seconds=observation.get('hardware_seconds', spent)
-                         if isinstance(observation, dict) else spent,
-                         net_cases=observation.get('net_cases') if isinstance(observation, dict) else None)
-        self.console.stage(stage, candidate['candidate_id'], str(outcome))
-        return observation
+            try:
+                if claimed:
+                    self.queue.release(candidate)
+                self._active = None
+                # Failure checkpoints have no fabricated observation or outcome.
+                if entry is not None and entry.get('status') == 'failed':
+                    self.checkpoint()
+            finally:
+                self._hardware_mutex.release()
 
     # ------------------------------------------------------------------ loop
 
@@ -235,7 +289,12 @@ class Scheduler:
     def counts(self):
         """The five counts a report must keep distinct."""
         counters = self.state['counters']
-        hardware = sum(counters.get(stage, 0) for stage in ('S1', 'S2', 'S3', 'S4', 'S5'))
+        completed = sum(counters.get(stage, 0) for stage in ('S1', 'S2', 'S3', 'S4', 'S5'))
+        journal = self.state.get('hardware_journal') or {}
+        # Caught failures and uncertain launched jobs remain visible as attempts,
+        # without manufacturing evaluator observations or successful stage counts.
+        incomplete = sum(entry.get('status') in ('started', 'failed') for entry in journal.values())
+        hardware = completed + incomplete
         return {'GENERATED_CANDIDATES': counters['generated'],
                 'STATICALLY_VALID_CANDIDATES': counters['unique'],
                 'DIAGNOSTIC_CANDIDATES': counters.get('S2', 0),

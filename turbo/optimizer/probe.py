@@ -78,7 +78,7 @@ def startup_observation(*, loaded, startup_seconds=None, runtime_error=None, exi
             'correctness_claim': False}
 
 
-def run_startup_probe(command, *, timeout_s, cwd=None, env=None, runner=subprocess.run):
+def run_startup_probe(command, *, timeout_s, cwd=None, env=None, runner=None):
     """Execute a bounded startup command and classify what happened.
 
     ``command`` is an argv list, never a shell string. ``runner`` is injectable
@@ -88,9 +88,10 @@ def run_startup_probe(command, *, timeout_s, cwd=None, env=None, runner=subproce
     """
     if not isinstance(command, (list, tuple)) or not command:
         raise ValueError('Startup probe needs an argv list')
+    effective_runner = subprocess.run if runner is None else runner
     started = time.monotonic()
     try:
-        completed = runner(list(command), cwd=cwd, env=env, timeout=timeout_s,
+        completed = effective_runner(list(command), cwd=cwd, env=env, timeout=timeout_s,
                            capture_output=True, text=True)
     except subprocess.TimeoutExpired:
         return startup_observation(loaded=False, startup_seconds=None, outcome=TIMED_OUT,

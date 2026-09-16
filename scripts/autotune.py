@@ -10,6 +10,8 @@ Heldout cases are unreachable from this command by construction. Final heldout
 evaluation is a separate, explicit command, scripts/autotune_final.py.
 """
 import argparse
+import copy
+import subprocess
 import json
 import sys
 import tempfile
@@ -190,28 +192,21 @@ def generate_by_family(engine, console, families, max_points):
     return candidates
 
 
-def measure_control(engine, state, stage):
-    """Run the current control at this stage so comparisons have a baseline.
-
-    Without a control observation from the same stage, an elimination rule has
-    nothing to compare against and must abstain. Re-measuring the control each
-    stage costs one slot and is what makes the stage's drops meaningful, rather
-    than comparisons against a number measured under different conditions.
-    """
+def control_candidate(state, stage):
     control = state['current_control']
-    record = {'candidate_id': 'CONTROL-' + stage, 'config': control['config'],
-              'config_hash': control['config_hash'], 'family': 'control',
-              'variable': None, 'treatment': 'control', 'is_control': True,
-              'hypothesis': 'Reference condition; no optimization claim',
-              'requires_restart': False, 'expected_hardware_seconds': None,
-              'priority': 1.0, 'status': 'generated'}
+    return {'candidate_id': 'CONTROL-' + stage + '-' + control['config_hash'][:12],
+            'config': copy.deepcopy(control['config']), 'config_hash': control['config_hash'],
+            'family': 'control', 'variable': None, 'treatment': 'control', 'is_control': True,
+            'hypothesis': 'Reference condition; no optimization claim',
+            'requires_restart': False, 'expected_hardware_seconds': None,
+            'priority': 1.0, 'status': 'generated'}
+
+
+def measure_control(engine, state, stage, *, job_id=None, candidate=None):
+    """Controls share the same durable scheduler and hardware exclusion as treatments."""
     if stage == 'S1':
         return None
-    try:
-        return engine.executor(record, stage=stage)
-    except (ValueError, OSError) as exc:
-        engine.console.warn('control measurement unavailable at ' + stage + ': ' + str(exc))
-        return None
+    return engine.run_candidate(candidate or control_candidate(state, stage), stage, job_id=job_id)
 
 
 def funnel(stage, observations, control_observation, console):
@@ -294,7 +289,35 @@ def promote_best(state, survivors, console, *, selector_module, evaluated, confi
     return selection
 
 
+RESUME_SETTINGS = ('control_config','control_name','backend','split','budget_minutes','session_dir',
+                   'archive_root','dry_run','mock_llm','max_points','stage_limit','owner_decision',
+                   'simulated_seconds_per_case','s2_cases','s3_cases','canary_seed','canary_timeout',
+                   'startup_timeout','llm_timeout','diagnostic_dirty','timeout')
+
+
+def restore_resume_settings(args):
+    if args.resume:
+        saved = state_module.load(args.resume).get('resume_settings')
+        if saved:
+            for key, value in saved.items():
+                setattr(args, key, value)
+            for key in ('control_config','session_dir','archive_root'):
+                if getattr(args, key, None):
+                    setattr(args, key, Path(getattr(args, key)))
+    return args
+
+
 def run_session(args, *, clock, executor, session_path, console, advisor=None):
+    # One controller per durable session, independently of the hardware mutex.
+    # This lock spans authoritative resume loading through the final checkpoint.
+    from turbo.experiments import archive_lock, digest
+    path = Path(session_path).resolve()
+    with archive_lock(path.parent, 'autotune-session-' + digest(path.name)[:16], timeout=0):
+        return _run_session_locked(args, clock=clock, executor=executor,
+                                   session_path=path, console=console, advisor=advisor)
+
+
+def _run_session_locked(args, *, clock, executor, session_path, console, advisor=None):
     control_config = load_control(args.control_config)
     backend = resolve_backend(control_config, args.backend)
     if args.resume:
@@ -302,7 +325,8 @@ def run_session(args, *, clock, executor, session_path, console, advisor=None):
         if state['backend'] != backend:
             raise ValueError('Resumed session targets backend ' + state['backend'])
         session_budget = budget_module.Budget(state['budget_minutes'], clock=clock)
-        session_budget.restore({'elapsed_s': state.get('elapsed_seconds', 0.0)})
+        session_budget.restore({'schema_version': budget_module.SCHEMA,
+                                'elapsed_seconds': state.get('elapsed_seconds', 0.0)})
     else:
         state = state_module.new_session(
             backend=backend, split=args.split, budget_minutes=args.budget_minutes,
@@ -318,14 +342,37 @@ def run_session(args, *, clock, executor, session_path, console, advisor=None):
         advisor_module.counters(state)
 
     queue = hardware_queue.HardwareQueue()
-    if args.resume and state.get('queue_snapshot'):
-        queue.restore(state['queue_snapshot'])
+    # Durable active batches, not transient queue snapshots, own resume work.
 
     engine = scheduler_module.Scheduler(
         state, backend=backend, budget=session_budget, queue=queue, executor=executor,
         console=console, owner_decisions=state['owner_decisions'], clock=clock,
-        dry_run=args.dry_run).install_interrupt_handler()
+        dry_run=args.dry_run, checkpoint_path=session_path).install_interrupt_handler()
 
+    settings = {key: getattr(args, key, None) for key in RESUME_SETTINGS}
+    settings['control_config'] = str(Path(args.control_config).resolve())
+    settings['session_dir'] = str(Path(args.session_dir).resolve())
+    settings['archive_root'] = str(args.archive_root) if getattr(args, 'archive_root', None) else None
+    state.setdefault('resume_settings', settings)
+    state.setdefault('workflow', {'pool': {stage: [] for stage in ('S1','S2','S3','S4','S5')},
+                                'generated_signatures': [], 'seen_phases': [], 'active_batch': None,
+                                'batch_counter': 0, 'confirmations': {}, 'dev35_observations': {},
+                                'initial_control': copy.deepcopy(state['current_control'])})
+    if not args.resume and Path(session_path).exists():
+        raise ValueError('Session already exists; use --resume or a new --session-dir: ' + str(session_path))
+    state['session_status'] = 'running'
+    engine.checkpoint()
+    try:
+        return _continue_session(args, state, engine, session_budget, console, advisor, session_path)
+    except BaseException as exc:
+        state['session_status'] = 'failed'
+        state.setdefault('failures', []).append(state_module.failure_record(exc, where='session'))
+        engine.checkpoint()
+        raise
+
+
+def _continue_session(args, state, engine, session_budget, console, advisor, session_path):
+    backend = state['backend']
     console.line('TurboLab session ' + state['session_id'] + ' backend=' + backend
                  + ' split=' + state['split'] + ' budget=' + str(state['budget_minutes']) + ' min')
     counts = grid.reachable_treatment_count(backend)
@@ -333,145 +380,140 @@ def run_session(args, *, clock, executor, session_path, console, advisor=None):
                  + ' single-variable treatments, ' + str(counts['full_cartesian_points'])
                  + ' bounded grid points')
 
-    initial_control = dict(state['current_control'])
-    started_at = state['created_at']
-    seen_phases, generated_signatures = [], set()
-    # Candidates waiting for each stage. A candidate only ever moves forward,
-    # and it moves when a phase permits that stage, so work started under
-    # exploration is finished under focus rather than thrown away.
-    pool = {stage: [] for stage in ('S1', 'S2', 'S3', 'S4', 'S5')}
-    confirmations, dev35_observations = {}, {}
-    while not session_budget.exhausted and not engine.interrupted:
+    workflow = state['workflow']
+    pool = workflow['pool']
+    while workflow['active_batch'] is not None or (not session_budget.exhausted and not engine.interrupted):
+        if workflow['active_batch'] is not None:
+            active = workflow['active_batch']
+            if not _run_batch(engine, state, args, active['stage'], active['phase'], console):
+                break
+            continue
         phase = session_budget.phase()
-        if phase not in seen_phases:
-            seen_phases.append(phase)
-            console.event('PHASE', phase, 'remaining '
-                          + str(round(session_budget.remaining_minutes, 1)) + ' min')
+        if phase not in workflow['seen_phases']:
+            workflow['seen_phases'].append(phase)
+            console.event('PHASE', phase, 'remaining ' + str(round(session_budget.remaining_minutes, 1)) + ' min')
         plan = phase_plan(phase, backend)
-        signature = (state['current_control']['config_hash'], plan['breadth'])
-        if plan['generate'] and signature not in generated_signatures:
-            generated_signatures.add(signature)
+        signature = [state['current_control']['config_hash'], plan['breadth']]
+        if plan['generate'] and signature not in workflow['generated_signatures']:
             control_config = state['current_control']['config']
-            # The model speaks first, off the hardware path, and only ever
-            # decides which declared family gets attention this round. Its
-            # candidates are built by the deterministic mapper and still have to
-            # pass the guard, so nothing it wrote reaches a device unchecked.
             hypotheses, llm_candidates = [], []
             if advisor is not None and plan['propose']:
-                hypotheses = advisor.propose(
-                    backend=backend, remaining_minutes=session_budget.remaining_minutes,
-                    phase=phase)
+                hypotheses = advisor.propose(backend=backend,
+                    remaining_minutes=session_budget.remaining_minutes, phase=phase)
             if hypotheses:
-                llm_candidates, llm_rejected = advisor.candidates_from(
-                    hypotheses, control_config=control_config, backend=backend,
+                llm_candidates, llm_rejected = advisor.candidates_from(hypotheses,
+                    control_config=control_config, backend=backend,
                     start_index=state['counters']['generated'] + 1)
                 state['counters']['generated'] += len(llm_candidates)
                 for name, value, reason in llm_rejected:
-                    console.event('LLM', str(name)[:10],
-                                  'rejected ' + repr(value) + ': ' + str(reason)[:70])
-            families = None
-            if hypotheses:
-                families = advisor.families_to_explore(hypotheses, backend=backend,
-                                                       fallback=())
-            # One grid per family rather than one grid over all of them. The
-            # full product across families is tens of thousands of points on the
-            # llama.cpp backends, most of which say nothing that a within-family
-            # grid plus later refinement does not, and a point that crosses four
-            # families explains nothing on its own.
+                    console.event('LLM', str(name)[:10], 'rejected ' + repr(value) + ': ' + str(reason)[:70])
+            families = advisor.families_to_explore(hypotheses, backend=backend, fallback=()) if hypotheses else None
             if not families:
-                families = (plan['families'] if plan['breadth'] == 'wide'
-                            else productive_families(state, plan['families']))
-            candidates = llm_candidates + generate_by_family(engine, console, families,
-                                                             args.max_points)
+                families = plan['families'] if plan['breadth'] == 'wide' else productive_families(state, plan['families'])
+            candidates = llm_candidates + generate_by_family(engine, console, families, args.max_points)
             admitted = engine.admit(candidates)
             if advisor is not None:
                 advisor.submit_critique(admitted, phase=phase, hypotheses=hypotheses)
-                findings = advisor.collect_critiques()
-                admitted, blocked = advisor.deprioritise(admitted, findings)
+                admitted, blocked = advisor.deprioritise(admitted, advisor.collect_critiques())
                 for candidate in blocked:
-                    state_module.record_rejection(state, candidate,
-                                                  ['Critic raised a blocking finding'])
+                    state_module.record_rejection(state, candidate, ['Critic raised a blocking finding'])
+                    engine.checkpoint()
             pool['S1'].extend(admitted)
+            workflow['generated_signatures'].append(signature)
+            engine.checkpoint()
         progressed = False
         for stage in plan['stages']:
-            waiting = pool[stage]
-            if not waiting or session_budget.exhausted or engine.interrupted:
+            if not pool[stage] or session_budget.exhausted or engine.interrupted:
                 continue
-            pool[stage] = []
-            control_observation = measure_control(engine, state, stage)
-            engine.enqueue(waiting, phase=phase)
-            observations = engine.drain(stage, limit=args.stage_limit)
-            ran = {candidate['candidate_id'] for candidate, _ in observations}
-            pool[stage].extend(c for c in waiting if c['candidate_id'] not in ran)
-            survivors, _, evaluated = funnel(stage, observations, control_observation, console)
-            progressed = progressed or bool(observations)
-            if stage == 'S4':
-                dev35_observations.update(evaluated)
-            if stage == 'S5':
-                confirmations.update(evaluated)
-                if survivors:
-                    promote_best(state, survivors, console, selector_module=selector,
-                                 evaluated=dev35_observations, confirmations=confirmations)
-            following = successive_halving.next_stage(stage)
-            if stage == 'S4' and survivors:
-                promote_best(state, survivors, console, selector_module=selector,
-                             evaluated=evaluated, confirmations=confirmations)
-            if following and following in pool:
-                pool[following].extend(survivors)
+            progressed = _run_batch(engine, state, args, stage, phase, console) or progressed
         if not progressed:
-            # The phase policy rations breadth, not the device. If the only work
-            # left is waiting on a later phase, running it now beats leaving the
-            # hardware idle: idle seconds are the one cost no later phase can
-            # recover. The relaxation is logged so the session record shows
-            # which stage ran outside its phase.
-            stage = next((name for name in ('S3', 'S4', 'S5', 'S2', 'S1') if pool[name]), None)
+            stage = next((name for name in ('S3','S4','S5','S2','S1') if pool[name]), None)
             if stage is None or session_budget.exhausted or engine.interrupted:
                 console.warn('no work remains for the current control')
                 break
-            console.event('RELAX', phase, 'running ' + stage
-                          + ' outside its phase rather than idling the device')
-            waiting, pool[stage] = pool[stage], []
-            control_observation = measure_control(engine, state, stage)
-            engine.enqueue(waiting, phase=phase)
-            observations = engine.drain(stage, limit=args.stage_limit)
-            ran = {candidate['candidate_id'] for candidate, _ in observations}
-            pool[stage].extend(c for c in waiting if c['candidate_id'] not in ran)
-            if not observations:
-                console.warn('no work remains for the current control')
+            console.event('RELAX', phase, 'running ' + stage + ' outside its phase rather than idling the device')
+            if not _run_batch(engine, state, args, stage, phase, console):
                 break
-            survivors, _, evaluated = funnel(stage, observations, control_observation, console)
-            if stage == 'S4':
-                dev35_observations.update(evaluated)
-            if stage == 'S5':
-                confirmations.update(evaluated)
-                if survivors:
-                    promote_best(state, survivors, console, selector_module=selector,
-                                 evaluated=dev35_observations, confirmations=confirmations)
-            if stage == 'S4' and survivors:
-                promote_best(state, survivors, console, selector_module=selector,
-                             evaluated=evaluated, confirmations=confirmations)
-            following = successive_halving.next_stage(stage)
-            if following and following in pool:
-                pool[following].extend(survivors)
-
     if advisor is not None:
         advisor.collect_critiques(wait_s=5.0)
-    state['queue_snapshot'] = queue.snapshot()
+    state['session_status'] = 'interrupted' if engine.interrupted else 'stopped'
     resume_command = engine.finish(session_path)
-    summary = report.session_summary(
-        state, started_at=started_at, finished_at=state_module.now(),
-        initial_control=initial_control, final_control=state['current_control'])
+    summary = report.session_summary(state, started_at=state['created_at'], finished_at=state_module.now(),
+        initial_control=workflow['initial_control'], final_control=state['current_control'])
     summary['counts_by_name'] = engine.counts()
     summary['llm_status'] = args.llm_status
-    summary['llm_counters'] = (advisor.report_counters() if advisor is not None
-                               else {name: 0 for name in advisor_module.COUNTERS})
+    summary['llm_counters'] = advisor.report_counters() if advisor is not None else {name: 0 for name in advisor_module.COUNTERS}
     summary['dry_run'] = bool(args.dry_run)
     directory = state_module.ensure_home(args.session_dir) / 'reports'
     paths = report.write_summary(summary, directory)
     console.line('summary written: ' + ', '.join(str(p) for p in paths))
     if engine.interrupted:
-        console.warn('interrupted; resume with: ' + resume_command)
+        console.warn('interrupted; recovery state: ' + str(Path(session_path).resolve()))
     return summary
+
+
+def _run_batch(engine, state, args, stage, phase, console):
+    workflow = state['workflow']
+    batch = workflow['active_batch']
+    if batch is None:
+        waiting = workflow['pool'][stage]
+        engine.enqueue(waiting, phase=phase)
+        ordered = engine.queue.drain()
+        workflow['batch_counter'] += 1
+        batch = {'id': 'B-' + str(workflow['batch_counter']), 'stage': stage, 'phase': phase,
+                 'waiting': copy.deepcopy(ordered),
+                 'selected': copy.deepcopy(ordered[:args.stage_limit] if args.stage_limit is not None else ordered),
+                 'control': control_candidate(state, stage)}
+        workflow['active_batch'] = batch
+        engine.checkpoint()
+    journal = state['hardware_journal']
+    def failed(job):
+        return journal.get(job, {}).get('status') == 'failed'
+    control_job = batch['id'] + ':control'
+    if stage != 'S1' and failed(control_job):
+        raise RuntimeError('Control failed at ' + stage + '; batch remains blocked and unqualified pending reconciliation')
+    control = None if stage == 'S1' else measure_control(
+        engine, state, stage, job_id=control_job, candidate=batch['control'])
+    if stage != 'S1':
+        if control is None:
+            return False  # Budget did not admit the control; do not launch treatments.
+        if control.get('runtime_error') or control.get('outcome') in ('failed','crashed','timed_out','refused','skipped'):
+            raise RuntimeError('Control has no usable observation at ' + stage + '; batch remains blocked and unqualified')
+    observations, failed_ids = [], set()
+    for candidate in batch['selected']:
+        job = batch['id'] + ':' + candidate['candidate_id']
+        if failed(job):
+            failed_ids.add(candidate['candidate_id'])
+            continue
+        observation = engine.run_candidate(candidate, stage, job_id=job)
+        if observation is None:
+            break
+        observations.append((candidate, observation))
+    # Replay postprocessing transactionally from durable full observations. If
+    # processing fails, restore the pre-processing state; resume replays it only,
+    # never a completed hardware invocation.
+    before = copy.deepcopy(state)
+    try:
+        survivors, _, evaluated = funnel(stage, observations, control, console)
+        done = failed_ids | {candidate['candidate_id'] for candidate, _ in observations}
+        workflow['pool'][stage] = [c for c in batch['waiting'] if c['candidate_id'] not in done]
+        if stage == 'S4':
+            workflow['dev35_observations'].update(evaluated)
+        if stage == 'S5':
+            workflow['confirmations'].update(evaluated)
+        if stage in ('S4','S5') and survivors:
+            promote_best(state, survivors, console, selector_module=selector,
+                evaluated=workflow['dev35_observations'], confirmations=workflow['confirmations'])
+        following = successive_halving.next_stage(stage)
+        if following in workflow['pool']:
+            workflow['pool'][following].extend(survivors)
+        workflow['active_batch'] = None
+        engine.checkpoint()
+    except BaseException:
+        state.clear()
+        state.update(before)
+        raise
+    return bool(observations or failed_ids)
 
 
 def main(argv=None):
@@ -510,6 +552,10 @@ def main(argv=None):
     p.add_argument('--diagnostic-dirty', action='store_true')
     p.add_argument('--timeout', type=float, default=600.0)
     args = p.parse_args(argv)
+    try:
+        restore_resume_settings(args)
+    except (ValueError, OSError) as exc:
+        p.error(str(exc))
 
     if args.split != 'development':
         p.error('Only the development split may be optimized')
@@ -578,9 +624,18 @@ def main(argv=None):
     try:
         summary = run_session(args, clock=clock, executor=executor,
                               session_path=session_path, console=console, advisor=advisor)
-    except (ValueError, OSError) as exc:
-        p.error(str(exc))
-        return 2
+    except BaseException as exc:
+        recovery = Path(session_path).resolve()
+        failure = state_module.failure_record(exc, where='cli')
+        print('Autotune failed: ' + failure['error_class'] + ': ' + failure['message'], file=sys.stderr)
+        print('Recovery state: ' + str(recovery), file=sys.stderr)
+        print('Resume: ' + subprocess.list2cmdline([sys.executable, str(Path(__file__).resolve()), '--resume', str(recovery)]), file=sys.stderr)
+        if not recovery.exists():
+            print('No checkpoint available; failure occurred before session initialization.', file=sys.stderr)
+        holder = getattr(args, '_simulated_archives', None)
+        if holder is not None:
+            holder.cleanup()
+        return 1
     print(json.dumps({**summary['counts_by_name'], **summary['llm_counters']}, indent=2))
     holder = getattr(args, '_simulated_archives', None)
     if holder is not None:

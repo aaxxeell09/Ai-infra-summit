@@ -215,3 +215,19 @@ def resume(path):
         raise ValueError('Session already finished; start a new session instead of resuming')
     state.setdefault('resumed', []).append(now())
     return state
+
+
+def failure_record(exc, *, where, candidate=None, stage=None):
+    """Local recovery evidence, not an evaluator result or qualified observation."""
+    import traceback
+    text = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    message = str(exc)
+    # Retain actionable tracebacks while removing configured credential values.
+    for name, secret in os.environ.items():
+        if secret and len(secret) >= 4 and any(marker in name.upper() for marker in ('KEY', 'TOKEN', 'SECRET', 'PASSWORD')):
+            text = text.replace(secret, '[REDACTED]')
+            message = message.replace(secret, '[REDACTED]')
+    return {'at': now(), 'where': where, 'candidate_id': (candidate or {}).get('candidate_id'),
+            'stage': stage, 'error_class': type(exc).__name__, 'message': message,
+            'traceback': text, 'qualified': False, 'promotion_evidence': False,
+            'hardware_observation': None}

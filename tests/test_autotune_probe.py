@@ -90,3 +90,65 @@ def test_a_canary_must_attempt_every_case_it_declares():
     with pytest.raises(ValueError):
         probe.canary_result(subset=['a', 'b', 'c'], correct=1, attempted=2, invalid=0,
                             median_latency_ms=1.0)
+
+
+@pytest.mark.parametrize('explicit_none', [False, True])
+def test_default_runner_is_resolved_at_call_time(monkeypatch, explicit_none):
+    calls = []
+    def default(command, **kwargs):
+        calls.append((command, kwargs))
+        return FakeCompleted(0)
+    monkeypatch.setattr(probe.subprocess, 'run', default)
+    kwargs = {'runner': None} if explicit_none else {}
+    record = probe.run_startup_probe(['synthetic-startup'], timeout_s=7, cwd='work', env={'TEST':'1'}, **kwargs)
+    assert record['outcome'] == probe.LOADED
+    assert calls == [(['synthetic-startup'], {'cwd':'work', 'env':{'TEST':'1'}, 'timeout':7,
+                                            'capture_output':True, 'text':True})]
+
+
+def test_injected_runner_used_exactly_once_instead_of_default(monkeypatch):
+    calls = []
+    def forbidden(*args, **kwargs):
+        pytest.fail('Default subprocess runner must not execute with injection')
+    def injected(*args, **kwargs):
+        calls.append((args, kwargs))
+        return FakeCompleted(0)
+    monkeypatch.setattr(probe.subprocess, 'run', forbidden)
+    assert probe.run_startup_probe(['synthetic-startup'], timeout_s=1, runner=injected)['loaded']
+    assert len(calls) == 1
+
+
+def test_scheduler_startup_executor_none_uses_default_runner_once(monkeypatch, tmp_path):
+    from turbo.optimizer.scheduler import startup_probe_executor
+    calls = []
+    def default(command, **kwargs):
+        calls.append((command, kwargs))
+        return FakeCompleted(0)
+    monkeypatch.setattr(probe.subprocess, 'run', default)
+    executor = startup_probe_executor(repo=tmp_path, python='synthetic-python', timeout_s=9,
+                                      config_directory=tmp_path/'candidates', runner=None)
+    record = executor({'candidate_id':'C-none', 'config':dict(QAIRT)}, stage='S1')
+    assert record['outcome'] == 'survive'
+    assert record['qualified'] is False and record['correctness_claim'] is False
+    assert len(calls) == 1
+    assert calls[0][0] == ['synthetic-python', '-X', 'utf8', str(tmp_path/'scripts/backend_smoke.py'),
+                           '--config', str(tmp_path/'candidates/C-none.json')]
+    assert calls[0][1]['timeout'] == 9
+
+
+@pytest.mark.parametrize('error', [subprocess.TimeoutExpired(cmd='fake', timeout=1), OSError('missing'), RuntimeError('unexpected')])
+def test_none_runner_preserves_exception_classification(monkeypatch, error):
+    calls = []
+    def default(*args, **kwargs):
+        calls.append(1)
+        raise error
+    monkeypatch.setattr(probe.subprocess, 'run', default)
+    if isinstance(error, subprocess.TimeoutExpired):
+        assert probe.run_startup_probe(['fake'], timeout_s=1, runner=None)['outcome'] == probe.TIMED_OUT
+    elif isinstance(error, OSError):
+        with pytest.raises(probe.ProbeUnavailable):
+            probe.run_startup_probe(['fake'], timeout_s=1, runner=None)
+    else:
+        with pytest.raises(RuntimeError, match='unexpected'):
+            probe.run_startup_probe(['fake'], timeout_s=1, runner=None)
+    assert calls == [1]
