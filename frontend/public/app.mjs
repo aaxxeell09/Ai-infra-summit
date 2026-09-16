@@ -110,30 +110,23 @@ function demoScreen() {
   const configurationLabel = configuration
     ? `${configuration.runtime} · ${configuration.device.toUpperCase()}${configuration.threads ? ` · ${configuration.threads} threads` : ''}`
     : 'Qwen3-4B · GenieX · CPU';
-  const outcome = busy
-    ? `<div class="live-outcome running"><span class="live-spinner" aria-hidden="true"></span><div><span>RUNNING ON THE LATITUDE</span><h2>Executing the local task…</h2><p>The result stays pending until the filesystem is independently checked.</p></div></div>`
+  const runStatus = busy
+    ? `<div class="action-status running"><span class="live-spinner" aria-hidden="true"></span><div><strong>Running locally</strong><small>Waiting for the Latitude and independent file verification</small></div></div>`
     : result
-      ? `<div class="live-outcome ${moved ? 'verified' : 'rejected'}"><span class="outcome-mark" aria-hidden="true">${moved ? '✓' : '×'}</span><div><span>${moved ? 'FILESYSTEM VERIFIED' : 'VERIFICATION FAILED'}</span><h2>${moved ? 'Move verified.' : 'The requested move was not verified.'}</h2><p>${moved ? 'The destination has the same content hash. Every unrelated fixture file is unchanged.' : esc(result.file_move.reason || 'Inspect the device evidence before retrying.')}</p></div></div>`
-      : `<div class="live-outcome ready"><span class="outcome-mark" aria-hidden="true">◇</span><div><span>DISPOSABLE WORKSPACE</span><h2>Ready for one bounded action.</h2><p>No personal files are used. Success requires the requested move and matching bytes.</p></div></div>`;
+      ? `<div class="action-status ${moved ? 'verified' : 'rejected'}"><span class="status-mark" aria-hidden="true">${moved ? '✓' : '×'}</span><div><strong>${moved ? 'Move verified' : 'Move not verified'}</strong><small>${moved ? `${result.timing.loop_seconds == null ? 'Task complete' : `${number(result.timing.loop_seconds, 1)} s`} · same content hash · unrelated files unchanged` : esc(result.file_move.reason || 'Inspect the preserved run evidence')}</small></div></div>`
+      : `<div class="action-status ${available ? 'ready' : 'offline'}"><span class="status-mark" aria-hidden="true">${available ? '●' : '○'}</span><div><strong>${available ? 'Ready on the Latitude' : 'Latitude connection required'}</strong><small>${available ? 'The next result will come from the local model' : 'The interface will not simulate a successful run'}</small></div></div>`;
   return `<section class="screen live-demo">
-    <header class="live-demo-heading"><div><span class="eyebrow">LIVE LOCAL ACTION</span><h1>One request. One verified move.</h1></div><span class="device-state ${available ? 'connected' : 'offline'}"><i></i>${available ? 'Latitude ready' : 'Latitude not connected'}</span></header>
+    <header class="live-demo-heading"><div><span class="eyebrow">LIVE ON THE LATITUDE</span><h1>From request to verified action.</h1><p>The model reads the task, calls local tools, and we check what changed.</p></div><span class="device-state ${available ? 'connected' : 'offline'}"><i></i>${available ? 'Connected' : 'Not connected'}</span></header>
     <div class="live-workspace">
-      <div class="live-prompt"><div><span class="prompt-label">TASK ${esc(INVOICE_TASK.id)}</span><p>${esc(INVOICE_TASK.prompt)}</p></div><button class="button primary run-live" data-action="run-demo" ${!available || busy ? 'disabled' : ''}>${busy ? 'Running…' : result ? 'Run again ↗' : 'Run on Latitude →'}</button></div>
-      <div class="live-run-grid">
-        <div class="live-evidence">
-          <div class="live-config"><span>ACTIVE CONFIGURATION</span><strong>${esc(configurationLabel)}</strong></div>
-          <ol class="verification-list">
-            <li class="${result ? 'done' : busy ? 'active' : ''}"><span>01</span><div><strong>Native inference</strong><small>Local 4B model through the MCP runner</small></div></li>
-            <li class="${result ? 'done' : ''}"><span>02</span><div><strong>Protected file action</strong><small>${esc(INVOICE_TASK.source)}</small></div></li>
-            <li class="${result ? (moved ? 'done' : 'failed') : ''}"><span>03</span><div><strong>Independent verification</strong><small>Destination, content hash and unrelated files</small></div></li>
-          </ol>
-        </div>
-        <div class="live-result">${outcome}
-          ${result ? `<div class="move-path"><span>${esc(result.file_move.source)}</span><i aria-hidden="true">→</i><strong>${esc(result.file_move.destination)}</strong></div><div class="result-facts"><div><span>Task loop</span><strong>${result.timing.loop_seconds == null ? 'Unavailable' : `${number(result.timing.loop_seconds, 1)} s`}</strong></div><div><span>Content hash</span><strong class="hash-short">${result.file_move.sha256 ? esc(result.file_move.sha256.slice(0, 10)) + '…' : 'Unavailable'}</strong></div></div>` : ''}
-        </div>
+      <div class="live-prompt"><div><span class="prompt-label">TASK ${esc(INVOICE_TASK.id)}</span><p>${esc(INVOICE_TASK.prompt)}</p></div><button class="button primary run-live" data-action="run-demo" ${!available || busy ? 'disabled' : ''}>${busy ? 'Running…' : !available ? 'Connect Latitude' : result ? 'Run again ↗' : 'Run live →'}</button></div>
+      <div class="file-action-stage ${busy ? 'working' : ''} ${moved ? 'complete' : ''}">
+        <article class="folder-card source-folder"><header><span class="folder-icon" aria-hidden="true"></span><div><strong>drafts</strong><small>Source folder</small></div></header><div class="file-list">${moved ? `<div class="file-row moved"><span>✓</span><div><strong>hexagon-invoice.md</strong><small>Moved successfully</small></div></div>` : `<div class="file-row target"><span>MD</span><div><strong>hexagon-invoice.md</strong><small>Invoice draft</small></div></div>`}<div class="file-row quiet"><span>MD</span><div><strong>q3-summary.md</strong><small>Unchanged</small></div></div></div></article>
+        <div class="model-bridge"><span class="bridge-line"></span><div><span class="bridge-mark">lt</span><strong>Local model</strong><small>${esc(configurationLabel)}</small></div><span class="bridge-arrow" aria-hidden="true">→</span></div>
+        <article class="folder-card destination-folder"><header><span class="folder-icon" aria-hidden="true"></span><div><strong>invoices/2026</strong><small>Destination folder</small></div></header><div class="file-list">${moved ? `<div class="file-row arrived"><span>✓</span><div><strong>hexagon-invoice.md</strong><small>Bytes preserved</small></div></div>` : `<div class="destination-slot"><span>Destination</span><small>The verified file will appear here</small></div>`}</div></article>
       </div>
+      <div class="live-status-bar">${runStatus}<div class="verification-note"><span>Protected fixture</span><span>Hash checked</span><span>No cloud inference</span></div></div>
     </div>
-    ${state.error ? `<p class="live-error" role="alert">${esc(state.error)}</p>` : !available ? `<p class="live-error muted">${esc(state.demoStatus?.reason || 'Checking the Latitude runner…')}</p>` : ''}
+    ${state.error ? `<p class="live-error" role="alert">${esc(state.error)}</p>` : ''}
     ${result ? `<details class="live-disclosure"><summary>Verification details</summary><div><p><strong>Physical result:</strong> ${moved ? 'source removed, destination added, bytes preserved.' : 'not verified.'}</p><p><strong>Exact-call check:</strong> ${result.exact_call.passed ? 'passed.' : 'failed because the model used extra search/list calls.'}</p><p>This public-fixture diagnostic is not a production quality pass.</p></div></details>` : ''}
     <span class="sr-only" role="status" aria-live="polite">${busy ? 'The task is running on the Latitude.' : result ? (moved ? 'The file move was verified.' : 'The file move was not verified.') : ''}</span>
   </section>`;
